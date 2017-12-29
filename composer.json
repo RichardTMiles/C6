@@ -1,0 +1,23 @@
+{
+  "name": "RichardTMiles/C6",
+  "description": "The best MVC framework",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "config": {
+    "vendor-dir": "Data/Vendors"
+  },
+  "authors": [
+    {
+      "name": "Richard Miles",
+      "email": "RichardMiles@Stats.Coach"
+    }
+  ],
+  "require": {
+    "richardtmiles/carbonphp":"dev-master",
+    "almasaeed2010/adminlte": "^2.4",
+    "bower-asset/jquery-backstretch": "^2.1",
+    "google/apiclient": "^2.0",
+    "facebook/graph-sdk": "^5.5",
+    "mustache/mustache": "^2.12"
+  }
+}
