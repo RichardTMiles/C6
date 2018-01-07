@@ -1,55 +1,67 @@
 <!DOCTYPE html>
 <html>
 <?php
-
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'StatsCoach/Head.php';
+include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Head.php';
 ?>
 <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
-<body class="hold-transition skin-blue layout-top-nav" style="background: transparent">
+<body class="hold-transition skin-purple layout-top-nav" style="background: transparent">
 <div class="wrapper" style="background: transparent">
 
     <header class="main-header">
         <nav class="navbar navbar-static-top">
             <div class="container">
                 <div class="navbar-header">
-                    <a href="<?= site ?>" class="navbar-brand"><b>Stats</b>Coach</a>
+                    <a href="<?= site ?>" class="navbar-brand"><b>C</b>6</a>
+
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
                             data-target="#navbar-collapse">
                         <i class="fa fa-bars"></i>
                     </button>
+
                 </div>
 
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
 
-
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
+                        <li><a href="#">Link</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <span
+                                        class="caret"></span></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a href="#">Action</a></li>
+                                <li><a href="#">Another action</a></li>
+                                <li><a href="#">Something else here</a></li>
+                                <li class="divider"></li>
+                                <li><a href="#">Separated link</a></li>
+                                <li class="divider"></li>
+                                <li><a href="#">One more separated link</a></li>
+                            </ul>
+                        </li>
+                    </ul>
                     <form class="navbar-form navbar-left" role="search">
                         <div class="form-group">
                             <input type="text" class="form-control" id="navbar-search-input" placeholder="Search">
                         </div>
                     </form>
 
-
                 </div>
                 <!-- /.navbar-collapse -->
                 <!-- Navbar Right Menu -->
                 <div class="navbar-custom-menu">
+                <?php if ($_SESSION['id']) :
+                    global $user;
+                    $me = $user[$_SESSION['id']];
+                    include_once 'navbar-nav.php';
+                 else : ?>
                     <ul class="nav navbar-nav">
                         <!-- User Account Menu -->
-                        <li class="active"><a href="<?=site?>login/">Login <span class="sr-only">(current)</span></a></li>
-
-
-                        <li class="dropdown user user-menu">
-                            <!-- Menu Toggle Button -->
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                <!-- The user image in the navbar-->
-                                <!-- hidden-xs hides the username on small devices so only the image appears. -->
-                                <span class="hidden-xs">Register</span>
-
-                            </a>
-
-                        </li>
+                        <li><a href="<?= site ?>Register/">Try Me ---></a></li>
+                        <li><a href="<?= site ?>login/">Login <span class="sr-only">(current)</span></a></li>
+                        <li><a href="<?= site ?>Register/">Register </a></li>
                     </ul>
+                <?php endif; ?>
                 </div>
                 <!-- /.navbar-custom-menu -->
             </div>
@@ -57,7 +69,7 @@ include_once SERVER_ROOT . PUBLIC_FOLDER . 'StatsCoach/Head.php';
         </nav>
     </header>
     <!-- Full Width Column -->
-    <div class="content-wrapper" style="background: transparent">
+    <div class="content-wrapper" style="background: black; opacity: .9">
         <div class="container">
             <!-- Content Header (Page header) -->
             <section class="content-header">
@@ -66,7 +78,8 @@ include_once SERVER_ROOT . PUBLIC_FOLDER . 'StatsCoach/Head.php';
                     <small style="color: ghostwhite">Example 2.0</small>
                 </h1>
                 <ol class="breadcrumb" style="color: ghostwhite">
-                    <li><a href="#" style="color: ghostwhite"><i class="fa fa-dashboard" style="color: ghostwhite"></i> Home</a></li>
+                    <li><a href="#" style="color: ghostwhite"><i class="fa fa-dashboard" style="color: ghostwhite"></i>
+                            Home</a></li>
                     <li><a href="#" style="color: ghostwhite">Layout</a></li>
                     <li class="active" style="color: ghostwhite">Top Navigation</li>
                 </ol>
@@ -77,44 +90,86 @@ include_once SERVER_ROOT . PUBLIC_FOLDER . 'StatsCoach/Head.php';
                 <div class="row">
                     <div class="col-md-6">
 
-                        <div class="callout callout-danger">
-                            <p>Add the layout-top-nav class to the body tag to get this layout. This feature can also be
-                                used
-                                with a
-                                sidebar! So use this class if you want to remove the custom dropdown menus from the
-                                navbar
-                                and
-                                use regular
-                                links instead.</p>
+                        <div class="callout bg-green">
+                            <h4>Heads Up!</h4>
+                            <p>Carbon 6, or C6 for short, is a ready-made open source application template.
+                                I make use of CarbonPHP our backend framework as well as AdminLTE for the
+                                user interface. CarbonPHP and AdminLTE can be used independently for other
+                                project specifications.
+                            </p>
+                        </div>
+
+                        <div class="callout bg-orange">
+                            <h4>New C6 project with Composer</h4>
+                            composer create-project --stability dev --prefer-dist richardtmiles/c6 .
+                        </div>
+
+                        <div class="callout bg-black">
+                            <h4>Quick Start</h4>
+                            <br>
+                            CarbonPHP is where the work is done.<br>
+                            C6 provides an abstraction to run CarbonPHP in jQuery.<br><br>
+
+                            <h5>PHP</h5>
+                            <ul>
+                                <li>startApplication &nbsp;( &nbsp;$new_url&nbsp; )</li>
+                            </ul>
+                            <h5>jQuery</h5>
+                            <ul>
+                                <li>$.fn.startApplication &nbsp;( &nbsp;string&nbsp; )</li>
+                            </ul>
+                            <br>
+                            <p>startApplication() restarts your Route.php file from line 1.<br><br>
+                                If a string is passed to the funtion, it will replace the url with PJAX.
+
+                            </p>
+                            <h5></h5>
                         </div>
 
                     </div>
                     <div class="col-md-6">
-                        <div class="callout callout-info">
-                            <h4>Warning!</h4>
+                        <div class="row">
+                            <!-- PHP LCOAL -->
+                            <div class="callout bg-purple" style="overflow-x: scroll">
+                                <h4>Run locally with PHP's Built in server</h4>
 
-                            <p>The construction of this layout differs from the normal one. In other words, the HTML
-                                markup of
-                                the navbar
-                                and the content will slightly differ than that of the normal layout.</p>
+                                <p>>> php -S localhost:8000 index.php</p>
+                            </div>
+                            <!-- ./ PHP LOCAL -->
+                            <!-- GOOGLE  -->
+                            <div class="callout bg-info">
+                                <h4>Google Cloud App Engine Support</h4>
+
+                                <p>>> gcloud app deploy</p>
+
+                                <h4>Google Cloud Local MYSQL</h4>
+                                <p>>> ./cloud_sql_proxy
+                                    -instances="[example-name]:[location]:[databaseserver]"=tcp:[port]</p>
+                            </div>
+                            <!-- ./ GOOGLE -->
+
+                            <!-- small box -->
+                            <div class="small-box bg-gray">
+                                <div class="inner">
+                                    <h3>Webscokets Built in!</h3>
+
+                                    <p>and made easy...</p>
+                                </div>
+                                <div class="icon">
+                                    <i class="glyphicon glyphicon-globe"></i>
+                                </div>
+                                <a href="#" class="small-box-footer">
+                                    Learn more <i class="fa fa-arrow-circle-right"></i>
+                                </a>
+                            </div>
+
+
                         </div>
-
                     </div>
+
+
                 </div>
 
-
-                <div class="box box-default">
-                    <div class="box-header with-border">
-                        <h3 class="box-title">Blank Box</h3>
-                    </div>
-                    <div class="box-body">
-                        <div class="col-md-2 col-md-offset-5">
-                        <button type="button" class="btn btn-block btn-info btn-sm">Info</button>
-                        </div>
-                    </div>
-                    <!-- /.box-body -->
-                </div>
-                <!-- /.box -->
             </section>
             <!-- /.content -->
         </div>
@@ -135,8 +190,8 @@ include_once SERVER_ROOT . PUBLIC_FOLDER . 'StatsCoach/Head.php';
 <!-- ./wrapper -->
 
 <?php
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'StatsCoach/Styles.php';
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'StatsCoach/Scripts.php';
+include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Styles.php';
+include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Scripts.php';
 ?>
 
 </body>

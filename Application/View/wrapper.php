@@ -1,32 +1,25 @@
 <!DOCTYPE html>
 <html>
 <?php
-
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'StatsCoach/Head.php';
-
-$userType = ($this->user[$_SESSION['id']]['user_type'] ?? false);
-$layout = ($userType == 'Athlete') ? 'hold-transition skin-green layout-top-nav' :
-    (($userType == 'Coach') ? 'skin-green fixed sidebar-mini sidebar-collapse' :
-        'stats-wrap');
+include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Head.php';
+$logged_in = $_SESSION['id'] ?? false;
 ?>
 <!-- Full Width Column -->
-<body class="<?= $layout ?>" style="background: transparent">
-<div <?= (($userType == 'Athlete' || $userType == 'Coach') ? 'class="wrapper"' : 'class="container" id="pjax-content"') ?>
-        style="background: transparent">
+<body class="skin-green fixed sidebar-mini sidebar-collapse" style="background: transparent">
+<div <?= ($logged_in ? 'class="wrapper"' : 'class="container" id="pjax-content"') ?> style="background: transparent">
 
     <?php
-
-    if (($_SESSION['id'] ?? false) && is_array($this->user[$_SESSION['id']] ?? false)):
-        $my = $this->user[$_SESSION['id']];
-        ($userType == 'Coach' ?  require_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/CoachLayout.php' :
-            require_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/AthleteLayout.php'); ?>
+    if ($logged_in) :
+        global $user;
+        $my = $user[$_SESSION['id']];
+        require_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/logged-in-layout.php'; ?>
 
         <div class="content-wrapper" style="background: transparent">
             <div class="container">
                 <div id="alert"></div>
                 <!-- content -->
                 <div id="pjax-content">
-                    <?= $this->bufferedContent ?>
+                    <?= $this->bufferedContent ?? ''?>
                 </div>
                 <!-- /.content -->
             </div>
@@ -50,8 +43,8 @@ $layout = ($userType == 'Athlete') ? 'hold-transition skin-green layout-top-nav'
     endif; ?>
 </div>
 <?php
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'StatsCoach/Styles.php';
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'StatsCoach/Scripts.php';
+include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Styles.php';
+include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Scripts.php';
 ?>
 </body>
 </html>

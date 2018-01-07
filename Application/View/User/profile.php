@@ -46,9 +46,6 @@ $profile = (!$myAccountBool ? $this->user[$user_id] : $my);
                             <b>Following</b>
                             <a class="pull-right"><?= count($profile['following']) ?></a>
                         </li>
-                        <li class="list-group-item">
-                            <b>Rounds</b><a class="pull-right"><?= $profile['stats']['stats_rounds'] ?></a>
-                        </li>
                     </ul>
                     <?php if (!$myAccountBool) {
                         $following = in_array($user_id, $my['following']); ?>

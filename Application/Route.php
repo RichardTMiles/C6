@@ -8,9 +8,9 @@ $route = new class extends Route
     public function defaultRoute()  // Sockets will not execute this
     {
         if (!$_SESSION['id']):
-            return include(SERVER_ROOT . 'Application/View/StatsCoach/home.php');
+            return include(SERVER_ROOT . 'Application/View/AdminLTE/home.php');
         else:
-            return MVC('golf', 'golf');
+            return MVC('user', 'profile');
         endif;
     }
 
@@ -50,16 +50,17 @@ $route = new class extends Route
 
 $route->structure($route->MVC());
 
-if((string)$route->match('Home/', function () {
-    return include(SERVER_ROOT . 'Application/View/StatsCoach/home.php');
-})) return true;
 
+if((string)$route->match('Home/', function () {
+    return include(SERVER_ROOT . 'Application/View/AdminLTE/home.php');
+})) return true;
 
 ################################### MVC
 if (!$_SESSION['id']) {  // Signed out
 
     if ((bool)(string)($route->match('Login/*', 'User', 'login')))
         return true;
+
     if ((string)($route->match('Google/{request?}/*', 'User', 'google')))
         return true;
     if ((string)($route->match('Facebook/{request?}/*', 'User', 'facebook')))
@@ -91,34 +92,18 @@ if (!$_SESSION['id']) {  // Signed out
         if (SOCKET) return false;                // Sockets only get json
     }
     ################################### MVC
-    if ((string)($route->match('Home/*', 'Golf', 'golf')))
-        return true;
-
-    if ((string)($route->match('Golf/*', 'Golf', 'golf')))
-        return true;
     if ((string)($route->match('Profile/{user_uri?}/', 'User', 'profile')))           // Profile $user
         return true;
 
     $route->structure($route->MVC());
 
-    if ((string)($route->match('CreateTeam/', 'Team', 'createTeam')))
-        return true;
-    if ((string)($route->match('PostScore/{state?}/{course_id?}/{boxColor?}/*', 'Golf', 'postScore')))  // PostScore $state
-        return true;
-    if ((string)($route->match('JoinTeam/', 'Team', 'joinTeam')))
-        return true;
-    if ((string)($route->match('Team/{team_id}/*', 'Team', 'team')))
-        return true;
+
     if ((string)($route->match('Messages/*', 'Messages', 'messages')))
         return true;
-    if ((string)($route->match('Rounds/{user_uri?}/', 'Golf', 'rounds')))
-        return true;
-    if ((string)($route->match('AddCourse/{state?}/*', 'Golf', 'AddCourse')))
-        return true;         // AddCourse
+      //
     if ((string)($route->match('Logout/*', function () {
         Controller\User::logout();
-    })))
-        return true;          // Logout
+    }))) return true;          // Logout
 }
 
 return (string)($route->match('Activate/{email?}/{email_code?}/', 'User', 'activate')) ||  // Activate $email $email_code

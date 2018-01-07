@@ -7,3 +7,17 @@ composer.phar
 # composer.lock
 
 /Data/Vendors/
+.DS_Store
+.idea/inspectionProfiles/
+.idea/workspace.xml
+Data/.DS_Store
+Data/Cache/
+Data/Indexes/.DS_Store
+Data/Locales/
+Data/Logs/
+Data/SQL/
+Data/Scripts/
+Data/Uploads/.DS_Store
+Data/Uploads/Pictures/.DS_Store
+Data/Uploads/Pictures/_notes/
+Data/Uploads/_notes/

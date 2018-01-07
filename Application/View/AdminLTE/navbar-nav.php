@@ -1,4 +1,8 @@
-<?php $m = new Mustache_Engine() ?>
+<?php
+    global $user;
+    $m = new Mustache_Engine();
+    $my = $my ?? $user[$_SESSION['id']];
+?>
 
 <ul class="nav navbar-nav">
     <!-- Messages: style can be found in dropdown.less-->

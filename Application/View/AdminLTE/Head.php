@@ -29,10 +29,11 @@
             else w.loadJS = loadJS;
         }(typeof global !== "undefined" ? global : this));// Hierarchical PJAX Request
 
+        <?php if (defined('FACEBOOK_APP_ID') && !empty(FACEBOOK_APP_ID)): ?>
         // Facebook Analytics
         window.fbAsyncInit = function () {
             FB.init({
-                appId: <?=FACEBOOK_APP_ID?>,
+                appId: '<?=FACEBOOK_APP_ID?>',
                 xfbml: true,
                 version: 'v2.11'
             });
@@ -49,6 +50,7 @@
             js.src = "https://connect.facebook.net/en_US/sdk.js";
             fjs.parentNode.insertBefore(js, fjs);
         }(document, 'script', 'facebook-jssdk'));
+        <?php endif; ?>
 
         // Document ready => jQuery => PJAX => CarbonPHP = loaded
         function Carbon(cb) {

@@ -10,7 +10,6 @@ namespace Tables;
 
 use Carbon\Database;
 use Carbon\Error\ErrorCatcher;
-use Model\Helpers\iSport;
 use Carbon\Error\PublicAlert;
 use Carbon\Helpers\Bcrypt;
 use Carbon\Entities;
@@ -27,7 +26,6 @@ class Users extends Entities implements iEntity
         $array['user_cover_photo'] = SITE . ($array['user_cover_photo'] ?? PUBLIC_FOLDER . 'img/defaults/photo' . rand(1, 3) . '.png');
         $array['user_first_last'] = $array['user_full_name'] = $array['user_first_name'] . ' ' . $array['user_last_name'];
         $array['user_id'] = $id;
-        Users::sport($array, $id);
         return $array;
     }
 
@@ -62,10 +60,8 @@ class Users extends Entities implements iEntity
         $stmt->bindValue( ':user_location', $argv['location'] ?? null);
         $stmt->bindValue( ':user_creation_date', time());
 
-        if (!$stmt->execute()) throw new PublicAlert ('Your account could not be created.', 'danger');
 
-        if (!Database::database()->prepare('INSERT INTO StatsCoach.golf_stats (stats_id) VALUES (?)')->execute([$key]))
-            throw new PublicAlert ('Your account could not be created.', 'danger');;
+        if (!$stmt->execute()) throw new PublicAlert ('Your account could not be created.', 'danger');
 
         if (self::commit()) $_SESSION['id'] = $key;
 
@@ -79,7 +75,7 @@ class Users extends Entities implements iEntity
             "\r\n Username :  {$argv['username']} 
             \r\n Password :  {$argv['password']}
             \r\n Please visit the link below so we can activate your account:\r\n\r\n
-             https://www.Stats.Coach/Activate/" . base64_encode( $argv['email'] ) . "/" . base64_encode( $email_code ) . "/ \r\n\r\n Have a good day! \r\n--" . SITE;
+            " . SITE . "/Activate/" . base64_encode( $argv['email'] ) . "/" . base64_encode( $email_code ) . "/ \r\n\r\n Have a good day! \r\n--" . SITE;
 
         if (!mail( $argv['email'], $subject, $message, $headers )) {
             ErrorCatcher::generateErrorLog([$argv['email'], $subject, $message, $headers]);
@@ -106,27 +102,6 @@ class Users extends Entities implements iEntity
         $user['user_id'] = $id;
 
         return $user;
-    }
-
-    static function sport(&$user, $id)
-    {
-        if (!is_array($user)) throw new \InvalidArgumentException('No User Passed');
-
-        $sport = $user['user_sport'];
-        $sport = "Model\\$sport";
-
-        if (!class_exists($sport)) return null;
-
-        Teams::all($user, $id);
-
-
-
-        $sport = new $sport;
-        if ($sport instanceof iSport)                   // load stats
-            return $sport->stats($user, $id);
-
-        throw new PublicAlert('You ran into a big problem. Contact us for support.');
-
     }
 
     static function range(&$object, $id, $argv)

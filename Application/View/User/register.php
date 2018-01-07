@@ -8,7 +8,7 @@
         <div id="alert"></div>
 
         <p class="login-box-msg">Register a new membership</p>
-        <form data-pjax action="https://Stats.Coach/Register/" method="post">
+        <form data-pjax action="<?= SITE ?>Register/" method="post">
 
             <div class="form-group has-feedback">
                 <input type="text" class="form-control" placeholder="First Name" name="firstname" value="<?= $this->firstName ?>">
@@ -54,11 +54,6 @@
             <div id="extended-signup">
             </div>
 
-
-            <div class="categories-bottom">
-                <div id="alert"></div>
-            </div>
-
             <div class="row">
                 <div class="col-xs-8">
                     <div class="checkbox icheck">
@@ -75,7 +70,8 @@
 
         <div class="social-auth-links text-center">
             <p>- OR -</p>
-            <a href="<?= (new Facebook\Facebook( [
+            <a href="<?php
+            if (defined('FACEBOOK_APP_ID') && !empty(FACEBOOK_APP_ID)) print (new Facebook\Facebook( [
                 'app_id' => FACEBOOK_APP_ID, // Replace {app-id} with your app id
                 'app_secret' => FACEBOOK_APP_SECRET,
                 'default_graph_version' => 'v2.2',
@@ -90,7 +86,7 @@
 
 
         <br>
-        <a href="<?= SITE ?>" class="text-center">I already have a membership</a>
+        <a href="<?= SITE ?>login/" class="text-center">I already have a membership</a>
     </div><!-- /.form-box -->
 </div><!-- /.register-box -->
 <br>

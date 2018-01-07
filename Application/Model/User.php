@@ -145,7 +145,7 @@ class User extends GlobalMap
 
     public function register()
     {
-        global $username, $password, $userType, $email, $firstName, $lastName, $gender, $teamCode;
+        global $username, $password, $userType, $email, $firstName, $lastName, $gender;
 
         if (Users::user_exists($username))
             throw new PublicAlert ('That username already exists', 'warning');
@@ -165,15 +165,6 @@ class User extends GlobalMap
             'last_name' => $lastName,
             'gender' => $gender
         ]);
-
-        if ($userType == 'Coach') {
-            global $teamName, $schoolName;
-            Teams::add($null, $null, [
-                'teamName' => $teamName,
-                'schoolName' => $schoolName
-            ]);
-        } elseif ($teamCode ?? false)
-            Teams::newTeamMember($teamCode);
 
         PublicAlert::success("Welcome to Stats Coach. Please check your email to finish your registration.");
         startApplication('home/');
