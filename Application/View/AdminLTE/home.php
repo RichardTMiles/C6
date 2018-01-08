@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <?php
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Head.php';
+include_once SERVER_ROOT . APP_VIEW . 'AdminLTE/Head.php';
 ?>
 <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
 <body class="hold-transition skin-purple layout-top-nav" style="background: transparent">
@@ -190,8 +190,8 @@ include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Head.php';
 <!-- ./wrapper -->
 
 <?php
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Styles.php';
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Scripts.php';
+include_once SERVER_ROOT . APP_VIEW . 'AdminLTE/Styles.php';
+include_once SERVER_ROOT . APP_VIEW . 'AdminLTE/Scripts.php';
 ?>
 
 </body>

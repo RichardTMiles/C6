@@ -263,7 +263,6 @@ class User extends GlobalMap
             exit(1);
         }
 
-
         if ($user_uri) {
             global $user_id;
             $user_id = Users::user_id_from_uri($user_uri);

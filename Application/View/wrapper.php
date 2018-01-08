@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <?php
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Head.php';
+include_once SERVER_ROOT . APP_VIEW . 'AdminLTE/Head.php';
 $logged_in = $_SESSION['id'] ?? false;
 ?>
 <!-- Full Width Column -->
@@ -12,7 +12,7 @@ $logged_in = $_SESSION['id'] ?? false;
     if ($logged_in) :
         global $user;
         $my = $user[$_SESSION['id']];
-        require_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/logged-in-layout.php'; ?>
+        require_once SERVER_ROOT . APP_VIEW . 'AdminLTE/logged-in-layout.php'; ?>
 
         <div class="content-wrapper" style="background: transparent">
             <div class="container">
@@ -43,8 +43,8 @@ $logged_in = $_SESSION['id'] ?? false;
     endif; ?>
 </div>
 <?php
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Styles.php';
-include_once SERVER_ROOT . PUBLIC_FOLDER . 'AdminLTE/Scripts.php';
+include_once SERVER_ROOT . APP_VIEW . 'AdminLTE/Styles.php';
+include_once SERVER_ROOT . APP_VIEW . 'AdminLTE/Scripts.php';
 ?>
 </body>
 </html>

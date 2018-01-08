@@ -11,9 +11,9 @@ beta_settings:
 env_variables:
   # Replace USER, PASSWORD, DATABASE, and CONNECTION_NAME with the
   # values obtained when configuring your Cloud SQL instance.
-  MYSQL_DSN: mysql:unix_socket=/cloudsql/statscoach-miles:us-central1:statsdatamine;dbname=StatsCoach
+  MYSQL_DSN: mysql:unix_socket=/cloudsql/[];dbname=[]
   MYSQL_USER: root
-  MYSQL_PASSWORD: Huskies!99
+  MYSQL_PASSWORD: smokey
 
 
 # network:
@@ -21,7 +21,7 @@ env_variables:
   #  - 2222/tcp
 
 handlers:
-- url: /(.*)\.[\d]{10}(\.(css|js))
+- url: /(.*)\.[\d]{10}(\.(css|js))          # TODO - stack overflow versioning app.yaml
   static_files: \1\2
   upload: /((.*\.)(css|js))$
 

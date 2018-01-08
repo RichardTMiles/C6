@@ -6,6 +6,15 @@
   "config": {
     "vendor-dir": "Data/Vendors"
   },
+  "autoload": {
+    "psr-4": {
+      "View\\": "Application/View/",
+      "Controller\\": "Application/Controller/",
+      "Model\\": "Application/Model/",
+      "Tables\\": "Application/Tables/"
+
+    }
+  },
   "authors": [
     {
       "name": "Richard Miles",

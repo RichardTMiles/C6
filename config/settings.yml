@@ -1,16 +1,23 @@
 # Google credentials and configuration
-google_client_id:      764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercontent.com
-google_client_secret:  d-FL95Q19q7MQmFpd7hHD0Ty
-google_project_id:     147935174231
+google_client_id:      GoogleIsNice
 
-# options are "mysql", "postgres", "mongodb", or "datastore"
-bookshelf_backend: mysql
+google_client_secret:  OneOfTheFew
+
+google_project_id:     HIREMEGOOGLE
+
+# options are "mysql", "postgres", "mongodb", or "datastore" -
+# This is the only variable on this page that may stay the same
+bookshelf_backend: mysql  # C6 requires INNODB ( leave this if unsure )
 
 # configure CloudSQL for MySQL or PostgreSQL backend
-cloudsql_connection_name: statscoach-miles:us-central1:statsdatamine
-cloudsql_database_name: StatsCoach
-cloudsql_user: root
-cloudsql_password: Huskies!99
+cloudsql_connection_name: Thefollowing:issuper:fake
+
+cloudsql_database_name: C6
+
+cloudsql_user: root               # probably should avoid this as well
+
+cloudsql_password: smokey         # I do not recommend using my black labs name as a password
+
 cloudsql_port: 3306
 
 # configure Mongo backend
