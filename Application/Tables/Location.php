@@ -11,20 +11,21 @@ namespace Tables;
 
 use Carbon\Database;
 use Carbon\Entities;
+use Carbon\Error\PublicAlert;
 use Carbon\Interfaces\iEntity;
 
 class Location extends Entities implements iEntity
 {
     static function get(&$array, $id)
     {
-        $sql = 'SELECT * FROM StatsCoach.carbon_location WHERE entity_id = ?';
-        $array->location = self::fetch_object( $sql, $id );
+        $sql = 'SELECT * FROM carbon_location WHERE entity_id = ?';
+        $array->location = self::fetch( $sql, $id );
         return true;
     }
 
-    static function add(&$object, $id, $argv)
+    static function add(&$array, $id, $argv)
     {
-        $sql = "REPLACE INTO StatsCoach.carbon_location (entity_id, latitude, longitude, street, city, state, elevation) VALUES (:entity_id, :latitude, :longitude, :street, :city, :state, :elevation)";
+        $sql = "REPLACE INTO carbon_location (entity_id, latitude, longitude, street, city, state, elevation) VALUES (:entity_id, :latitude, :longitude, :street, :city, :state, :elevation)";
         $stmt = Database::database()->prepare( $sql );
         $stmt->bindValue( ':entity_id', $id );
         $stmt->bindValue( ':latitude',  $argv['latitude']  ?? null );
@@ -36,24 +37,23 @@ class Location extends Entities implements iEntity
         return $stmt->execute();
     }
 
-    static function all(&$object, $id)
+    static function all(&$array, $id)
     {
 
     }
 
-    static function range(&$object, $id, $argv)
+    static function range(&$array, $id, $argv)
     {
         // TODO: Implement range() method.
     }
 
-    static function remove(&$object, $id)
+    static function remove(&$array, $id)
     {
-        $sql = 'DELETE * FROM StatsCoach.carbon_location WHERE entity_id = ?';
+        $sql = 'DELETE * FROM carbon_location WHERE entity_id = ?';
         if (Database::database()->prepare( $sql )->execute([$id])) {
-            unset($object->location);
+            unset($array['location']);
             return true;
-        }
-        return false;
+        } throw new PublicAlert('Failed to remove location.');
     }
 
 }

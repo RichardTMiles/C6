@@ -22,7 +22,7 @@ class Photos extends Entities implements iEntity
             throw new \Exception( 'Invalid Object Passed' );
         $array['photo'] = [];
 
-        $sql = 'SELECT photo_id, parent_id, user_id, photo_path, photo_description FROM StatsCoach.carbon_photos WHERE parent_id = ? OR photo_id = ? LIMIT 1';
+        $sql = 'SELECT photo_id, parent_id, user_id, photo_path, photo_description FROM carbon_photos WHERE parent_id = ? OR photo_id = ? LIMIT 1';
         $stmt = self::fetch( $sql, $id, $id );
 
         if (array_key_exists('photo_id', $stmt)) $stmt = [$stmt];
@@ -35,7 +35,7 @@ class Photos extends Entities implements iEntity
 
     static function all(&$object, $id)
     {
-        $sql = 'SELECT photo_id, parent_id, user_id, photo_path, photo_description FROM StatsCoach.carbon_photos WHERE parent_id = ?';
+        $sql = 'SELECT photo_id, parent_id, user_id, photo_path, photo_description FROM carbon_photos WHERE parent_id = ?';
         $object['photo'] = static::fetch( $sql, $id );
     }
 
@@ -47,7 +47,7 @@ class Photos extends Entities implements iEntity
     static function add(&$object, $id, $argv)
     {
         $photo_id = static::beginTransaction( ENTITY_PHOTOS, $id );
-        $sql = 'REPLACE INTO StatsCoach.carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES (:parent_id, :photo_id, :user_id, :photo_path, :photo_description)';
+        $sql = 'REPLACE INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES (:parent_id, :photo_id, :user_id, :photo_path, :photo_description)';
         $stmt = Database::database()->prepare( $sql );
         $stmt->bindValue( ':parent_id', $id );
         $stmt->bindValue( ':photo_id', $photo_id );
@@ -61,7 +61,7 @@ class Photos extends Entities implements iEntity
 
     static function remove(&$object, $id)
     {
-        $sql = 'DELETE * FROM StatsCoach.carbon_photos WHERE photo_id = ?';
+        $sql = 'DELETE * FROM carbon_photos WHERE photo_id = ?';
         if (array_key_exists( $id, $object->photos ))
             unset( $object->photos[$id] );    // I may not need the array_key_exists
         return Database::database()->prepare( $sql )->execute( [$id] );

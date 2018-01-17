@@ -160,7 +160,7 @@ class User extends GlobalMap
             'username' => $username,
             'password' => $password,
             'email' => $email,
-            'type' => $userType,
+            'type' => '',
             'first_name' => $firstName,
             'last_name' => $lastName,
             'gender' => $gender
@@ -183,7 +183,7 @@ class User extends GlobalMap
             return startApplication('Home/');
         }
 
-        if (!$this->db->prepare("UPDATE StatsCoach.user SET user_email_confirmed = 1 WHERE user_email = ?")->execute(array($email)))
+        if (!$this->db->prepare("UPDATE user SET user_email_confirmed = 1 WHERE user_email = ?")->execute(array($email)))
             throw new PublicAlert('The code provided appears to be invalid.', 'danger');
 
 
@@ -206,12 +206,12 @@ class User extends GlobalMap
         $generated = Bcrypt::genRandomHex(20);
 
         if (empty($generated_string)) {
-            $sql = 'SELECT user_first_name  FROM StatsCoach.user WHERE user_email = ?';
+            $sql = 'SELECT user_first_name  FROM user WHERE user_email = ?';
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$email]);
             $user_first_name = $stmt->fetchColumn();
 
-            $stmt = $this->db->prepare('UPDATE StatsCoach.user SET user_generated_string = ? WHERE user_email = ?');
+            $stmt = $this->db->prepare('UPDATE user SET user_generated_string = ? WHERE user_email = ?');
             if (!$stmt->execute([$generated, $email]))
                 throw new PublicAlert('Sorry, we failed to recover your account.', 'danger');
 
@@ -230,13 +230,13 @@ class User extends GlobalMap
 
         } else {
 
-            $sql = 'SELECT user_id, user_first_name FROM StatsCoach.user WHERE user_email = ? AND user_generated_string = ?';
+            $sql = 'SELECT user_id, user_first_name FROM user WHERE user_email = ? AND user_generated_string = ?';
             $stmt = $this->db->prepare($sql);
             if (!$stmt->execute([$email, $generated_string])) $alert();
             if (empty($user = $stmt->fetch())) $alert();
 
             $this->change_password($user['user_id'], $generated);
-            $stmt = $this->db->prepare('UPDATE StatsCoach.user SET user_generated_string = 0 AND user_email_code = 0 AND user_email_confirmed = 1 WHERE user_id = ?');
+            $stmt = $this->db->prepare('UPDATE user SET user_generated_string = 0 AND user_email_code = 0 AND user_email_confirmed = 1 WHERE user_id = ?');
             $stmt->execute([$user['user_id']]);
 
             $subject = 'Your' . SITE_TITLE . ' password';
@@ -280,7 +280,7 @@ class User extends GlobalMap
         // $this->user === global $user
         $my = $this->user[$_SESSION['id']];
 
-        $sql = 'UPDATE StatsCoach.user SET user_profile_pic = :user_profile_pic, user_first_name = :user_first_name, user_last_name = :user_last_name, user_birthday = :user_birthday, user_email = :user_email, user_email_confirmed = :user_email_confirmed,  user_gender = :user_gender, user_about_me = :user_about_me WHERE user_id = :user_id';
+        $sql = 'UPDATE user SET user_profile_pic = :user_profile_pic, user_first_name = :user_first_name, user_last_name = :user_last_name, user_birthday = :user_birthday, user_email = :user_email, user_email_confirmed = :user_email_confirmed,  user_gender = :user_gender, user_about_me = :user_about_me WHERE user_id = :user_id';
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':user_profile_pic', $profile_pic ?: $my['user_profile_pic']);
         $stmt->bindValue(':user_first_name', $first ?: $my['user_first_name']);

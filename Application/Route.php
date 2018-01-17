@@ -8,17 +8,23 @@ $url = new class extends Route
     public function defaultRoute()  // Sockets will not execute this
     {
         if (!$_SESSION['id']):
-            return $this->FullPage()('AdminLTE/home.php');
+            return $this->wrap()('AdminLTE/home.php');
         else:
             return MVC('user', 'profile');
         endif;
     }
 
-    public function FullPage()
+    public function fullPage()
     {
         return catchErrors(function (string $file) {
+            return include(APP_VIEW . $file);
+        });
+    }
+
+    public function wrap(){
+        return catchErrors(function (string $file) {
             return View::contents(APP_VIEW . $file);
-        });      // This could cache
+        });
     }
 
     public function MVC()
@@ -28,7 +34,7 @@ $url = new class extends Route
         };
     }
 
-    public function Events()
+    public function events()
     {
         return function ($class, $method, $argv) {
             global $alert, $json;
@@ -43,7 +49,7 @@ $url = new class extends Route
 
             $json = [
                 'Errors' => $alert,
-                'Event' => "CM",
+                'Event' => "CM",        // This doesn't do an
                 'Model' => $argv
             ];
 
@@ -55,7 +61,7 @@ $url = new class extends Route
 
 };
 
-if ((string)$url->structure($url->FullPage())->match('Home/', 'AdminLTE/home.php') ||
+if ((string)$url->structure($url->wrap())->match('Home/', 'AdminLTE/home.php') ||
 
     ((string)$url->match('CarbonPHP/', 'AdminLTE/home.php')) ||
 
@@ -151,6 +157,6 @@ if (!$_SESSION['id']) {  // Signed out
 
 
 return (string)($url->structure($url->MVC())->match('Activate/{email?}/{email_code?}/', 'User', 'activate')) ||  // Activate $email $email_code
-    (string)($url->structure($url->FullPage())->match('404/*', 'Error/404error.php')) ||
+    (string)($url->structure($url->wrap())->match('404/*', 'Error/404error.php')) ||
     (string)($url->match('500/*', 'Error/500error.php'));
 

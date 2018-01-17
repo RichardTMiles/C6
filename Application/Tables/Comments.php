@@ -19,7 +19,7 @@ class Comments extends Entities implements iEntity
     
     static function get(&$array, $id)
     {
-        $sql = 'SELECT * FROM StatsCoach.carbon_comments JOIN StatsCoach.carbon_tag ON comment_id = entity_id WHERE parent_id = ? LIMIT 10';
+        $sql = 'SELECT * FROM carbon_comments JOIN carbon_tag ON comment_id = entity_id WHERE parent_id = ? LIMIT 10';
         $array->comments = static::fetch_classes( $sql, $id );
         return true;
     }
@@ -27,7 +27,7 @@ class Comments extends Entities implements iEntity
 
     static function all(&$object, $id)
     {
-        $sql = 'SELECT * FROM StatsCoach.carbon_comments JOIN StatsCoach.carbon_tag ON comment_id = entity_id WHERE parent_id = ?';
+        $sql = 'SELECT * FROM carbon_comments JOIN carbon_tag ON comment_id = entity_id WHERE parent_id = ?';
         $object->comments = static::fetch_classes( $sql, $id );
         return true;
     }
@@ -41,7 +41,7 @@ class Comments extends Entities implements iEntity
     static function add(&$object, $id, $argv)
     {
         $comment_id = static::beginTransaction( 'ENTITY_COMMENTS', $id );
-        $sql = 'INSERT INTO StatsCoach.carbon_comments (parent_id, comment_id, user_id, comment) VALUES (:parent_id, :comment_id, :user_id, :comment)';
+        $sql = 'INSERT INTO carbon_comments (parent_id, comment_id, user_id, comment) VALUES (:parent_id, :comment_id, :user_id, :comment)';
         $stmt = Database::database()->prepare( $sql );
         $stmt->bindValue( ':parent_id', $id );
         $stmt->bindValue( ':comment_id', $comment_id );
@@ -56,5 +56,6 @@ class Comments extends Entities implements iEntity
         static::remove_entity( $id );
         if (array_key_exists( $id, $object->comments ))
             unset($object->comments[$id]);
+        return true;
     }
 }

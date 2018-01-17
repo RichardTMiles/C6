@@ -144,9 +144,6 @@ class User extends Request
         elseif (!$gender)
             PublicAlert::warning('Sorry, please enter your gender.');
 
-        elseif (!$userType || !($userType == 'Coach' || $userType == 'Athlete'))
-            PublicAlert::warning('Sorry, please choose an account type. This can be changed later in the web application.');
-
         elseif ($userType == "Coach" && !$teamName)
             PublicAlert::warning("Sorry, the team name you have entered appears invalid.");
 

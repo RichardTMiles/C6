@@ -20,9 +20,10 @@
         //-- Jquery Form -->
         loadJS('<?=  SITE . COMPOSER . 'bower-asset/jquery-form/src/jquery.form.js'?>');
 
+
         //-- Background Stretch -->
         loadJS("<?=  SITE .  COMPOSER . 'bower-asset/jquery-backstretch/jquery.backstretch.min.js' ?>", () => {
-            $.backstretch('<?=SITE?>Application/View/img/velodrome.jpg');
+            $.backstretch('<?=SITE?>Application/View/img/augusta-master.jpg');
         });
 
         //-- Slim Scroll -->

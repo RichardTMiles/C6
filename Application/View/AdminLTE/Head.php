@@ -7,6 +7,7 @@
 
     <!-- PJAX Content Control -->
     <meta http-equiv="x-pjax-version" content="<?= $_SESSION['X_PJAX_Version'] ?>">
+    <!-- Google -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-100885582-1"></script>
 
     <script>

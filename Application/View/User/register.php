@@ -42,15 +42,6 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <select class="form-control" name="UserType" onclick="extend_registration(this.value)">
-                    <option disabled <?= ($this->userType ? null : 'selected') ?>>Account Type</option>
-                    <option value="Athlete" <?= ($this->userType == 'Athlete' ? 'selected' : null) ?> >Athlete</option>
-                    <option value="Coach" <?= ($this->userType == 'Coach' ? 'selected' : null) ?>>Coach</option>
-                </select>
-            </div>
-
-
             <div id="extended-signup">
             </div>
 
