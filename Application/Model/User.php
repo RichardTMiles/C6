@@ -26,9 +26,9 @@ class User extends GlobalMap
             return; // We've already gotten current user data
 
         if ($_SESSION['id'] && $id !== null) {
-            Users::get($this->user[$id], $id);
-            Followers::get($this->user[$id], $id);
-            Messages::get($this->user[$id], $id);
+            Users::Get($this->user[$id], $id);
+            Followers::Get($this->user[$id], $id);
+            Messages::Get($this->user[$id], $id);
         }
     }
 
@@ -83,7 +83,7 @@ class User extends GlobalMap
 
         if (!$C6_id && !$fb_id): // create new account
             if ($request === 'SignUp'):                         // This will set the session id
-                Users::add($null, $null, [
+                Users::Post($null, $null, [
                     'username' => $facebook['username'],
                     'password' => $facebook['password'],
                     'facebook_id' => $facebook['id'],
@@ -126,7 +126,7 @@ class User extends GlobalMap
         global $user;
         if (!$out = Users::user_exists($user_id))
             throw new PublicAlert("That user does not exist $user_id >> $out");
-        return Followers::add($user[$_SESSION['id']], $_SESSION['id'], $user_id);
+        return Followers::Post($user[$_SESSION['id']], $_SESSION['id'], $user_id);
     }
 
     public function unfollow($user_id)
@@ -134,7 +134,7 @@ class User extends GlobalMap
         global $user;
         if (!Users::user_exists($user_id))
             throw new PublicAlert("That user does not exist");
-        return Followers::remove($user[$_SESSION['id']], $user_id);
+        return Followers::Delete($user[$_SESSION['id']], $user_id);
 
     }
 
@@ -156,7 +156,7 @@ class User extends GlobalMap
         $null = null;
 
         // Tables self validate and throw public errors
-        Users::add($null, $null, [
+        Users::Post($null, $null, [
             'username' => $username,
             'password' => $password,
             'email' => $email,
@@ -257,7 +257,7 @@ class User extends GlobalMap
     public function profile($user_uri = false)
     {
         if ($user_uri == "DeleteAccount"){
-            Users::remove($this->user[$_SESSION['id']], $_SESSION['id']);
+            Users::Delete($this->user[$_SESSION['id']], $_SESSION['id']);
             Serialized::clear();
             startApplication(true);
             exit(1);
@@ -270,7 +270,7 @@ class User extends GlobalMap
                 return new User($user_id);
         }
 
-        Users::all($this->user[$_SESSION['id']], $_SESSION['id']);
+        Users::All($this->user[$_SESSION['id']], $_SESSION['id']);
 
         if (empty($_POST)) return null;
 

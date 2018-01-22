@@ -27,7 +27,7 @@
             <b>CarbonPHP</b> is a open source library for <u>quickly creating web applications.</u>
             We feature PSR-4 Accolading, Larval style URL mapping, Zend style file structure, PHP PDO Databases,
             and (with the Carbon.js file) real-time communication using Named Pipes & Sockets. We also provide a
-            beautiful feature to create seemingly-stateless PHP classes and objects. PJAX, a javascript library
+            beautiful feature to create <a href="Singleton">seemingly-stateless PHP class objects</a>. PJAX, a javascript library
             for inner content refreshing, is supported in the configuration however you must manually include
             their JS. This is only the case if you choose to use CarbonPHP independently of C6. CarbonPHP has
             many other features.
@@ -75,12 +75,12 @@
                     <div class="box-body">
                         <p>But you do you.. This option installs CarbonPHP on an existing project <b>using Composer.</b>
                         </p>
-                        <a href="https://adminlte.io/download/AdminLTE" class="btn btn-danger"><i
-                                    class="fa fa-download"></i> Download</a>
+                        <a href="https://adminlte.io/download/AdminLTE" class="btn btn-danger"><i class="fa fa-download"></i> Download</a>
                     </div><!-- /.box-body -->
                 </div><!-- /.box -->
             </div><!-- /.col -->
         </div><!-- /.row -->
+    </section>
         <pre class="hierarchy bring-up"><code class="language-bash" data-lang="bash">File Hierarchy of C6
 
       C6/
@@ -150,7 +150,7 @@
                 quick tips on how to create or use a component which can be really helpful when you need to create
                 something on the fly.
             </li>
-            <li><b>Documentation.</b> We are trying our best to make your experience with C6 be smooth. One way to
+            <li><b>Documentation.</b> We are trying our best to make your experience with C6 smooth. One way to
                 achieve that is to provide documentation and support. If you think that something is missing from the
                 documentation, please do not hesitate to create an issue to tell us about it.
             </li>

@@ -12,12 +12,12 @@ namespace Tables;
 use Carbon\Database;
 use Carbon\Entities;
 use Carbon\Error\PublicAlert;
-use Carbon\Interfaces\iEntity;
+use Carbon\Interfaces\iTable;
 
-class Comments extends Entities implements iEntity
+class Comments extends Entities implements iTable
 {
     
-    static function get(&$array, $id)
+    static function Get(&$array, $id)
     {
         $sql = 'SELECT * FROM carbon_comments JOIN carbon_tag ON comment_id = entity_id WHERE parent_id = ? LIMIT 10';
         $array->comments = static::fetch_classes( $sql, $id );
@@ -25,7 +25,7 @@ class Comments extends Entities implements iEntity
     }
 
 
-    static function all(&$object, $id)
+    static function All(&$object, $id)
     {
         $sql = 'SELECT * FROM carbon_comments JOIN carbon_tag ON comment_id = entity_id WHERE parent_id = ?';
         $object->comments = static::fetch_classes( $sql, $id );
@@ -38,7 +38,7 @@ class Comments extends Entities implements iEntity
     }
 
 
-    static function add(&$object, $id, $argv)
+    static function Post(&$array, $id, $argv)
     {
         $comment_id = static::beginTransaction( 'ENTITY_COMMENTS', $id );
         $sql = 'INSERT INTO carbon_comments (parent_id, comment_id, user_id, comment) VALUES (:parent_id, :comment_id, :user_id, :comment)';
@@ -51,7 +51,7 @@ class Comments extends Entities implements iEntity
         return static::commit();
     }
 
-    static function remove(&$object, $id)
+    static function Delete(&$object, $id)
     {
         static::remove_entity( $id );
         if (array_key_exists( $id, $object->comments ))

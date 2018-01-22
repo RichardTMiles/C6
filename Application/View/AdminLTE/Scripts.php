@@ -1,6 +1,6 @@
 <script>
     // Google
-    let loadDeferredStyles = function() {
+    let loadDeferredStyles = function () {
         let addStylesNode = document.getElementById("deferred-styles");
         let replacement = document.createElement("div");
         replacement.innerHTML = addStylesNode.textContent;
@@ -9,9 +9,12 @@
     };
     let raf = requestAnimationFrame || mozRequestAnimationFrame ||
         webkitRequestAnimationFrame || msRequestAnimationFrame;
-    if (raf) raf(function() { window.setTimeout(loadDeferredStyles, 0); });
+    if (raf) raf(function () {
+        window.setTimeout(loadDeferredStyles, 0);
+    });
     else window.addEventListener('load', loadDeferredStyles);
 
+    // C6
     let JSLoaded = new Set();
 
     //-- JQuery -->
@@ -19,12 +22,6 @@
 
         //-- Jquery Form -->
         loadJS('<?=  SITE . COMPOSER . 'bower-asset/jquery-form/src/jquery.form.js'?>');
-
-
-        //-- Background Stretch -->
-        loadJS("<?=  SITE .  COMPOSER . 'bower-asset/jquery-backstretch/jquery.backstretch.min.js' ?>", () => {
-            $.backstretch('<?=SITE?>Application/View/img/augusta-master.jpg');
-        });
 
         //-- Slim Scroll -->
         loadJS("<?=  SITE . TEMPLATE . 'bower_components/jquery-slimscroll/jquery.slimscroll.min.js' ?>");
@@ -43,6 +40,19 @@
 
             $.fn.CarbonJS = (sc, cb) => (!JSLoaded.has(sc) ? loadJS(sc, cb) : cb());
 
+
+            $.fn.load_backStreach = (img, selector) =>
+                $.fn.CarbonJS("<?=  SITE . COMPOSER . 'bower-asset/jquery-backstretch/jquery.backstretch.js' ?>", () =>
+                    $(selector).length ? $(selector).backstretch(img) : $.backstretch(img));
+
+
+            /*
+            loadJS("<!--?=  SITE .  COMPOSER . 'bower-asset/jquery-backstretch/jquery.backstretch.min.js' ?-->", () => {
+                $.backstretch('<!--?=SITE?-->Application/View/img/augusta-master.jpg');
+            });
+            */
+
+
             //-- Select 2 -->
             $.fn.load_select2 = (select2) =>
                 $.fn.CarbonJS("<?= SITE . TEMPLATE . 'bower_components/select2/dist/js/select2.full.min.js' ?>", () =>
@@ -50,8 +60,13 @@
 
             //-- Data tables -->
             $.fn.load_datatables = (table) =>
-                $.fn.CarbonJS("<?=  SITE . TEMPLATE .'bower_components/datatables.net-bs/js/dataTables.bootstrap.js' ?>", () => {
-                    try { return $(table).DataTable() } catch (err) { return false }});
+                $.fn.CarbonJS("<?=  SITE . TEMPLATE . 'bower_components/datatables.net-bs/js/dataTables.bootstrap.js' ?>", () => {
+                    try {
+                        return $(table).DataTable()
+                    } catch (err) {
+                        return false
+                    }
+                });
 
             //-- iCheak -->
             $.fn.load_iCheck = (input) => {
@@ -79,7 +94,7 @@
                             // "tron" case
                             if (this.$.data('skin') === 'tron') {
 
-                                var a = this.angle(this.cv)  // Angle
+                                let a = this.angle(this.cv)  // Angle
                                     , sa = this.startAngle          // Previous start angle
                                     , sat = this.startAngle         // Start angle
                                     , ea                            // Previous end angle
@@ -142,7 +157,7 @@
             loadJS("<?=  SITE . COMPOSER . 'bower-asset/jquery-pjax/jquery.pjax.js' ?>", () =>
                 loadJS("<?=  SITE . COMPOSER . 'bower-asset/mustache.js/mustache.js' ?>", () =>
                     loadJS("<?=  SITE . COMPOSER . 'richardtmiles/carbonphp/Helpers/Carbon.js'?>", () =>
-                        CarbonJS('#pjax-content', '<?=($_SESSION['id']??false)?'wss://stats.coach:8888/':null?>', false))));
+                        CarbonJS('#pjax-content', '<?=($_SESSION['id'] ?? false) ? 'wss://stats.coach:8888/' : null?>', false))));
 
             //<!-- AdminLTE for demo purposes loadJS('dist/js/demo.js') ?>//");
 
@@ -151,7 +166,11 @@
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
     gtag('js', new Date());
 
     gtag('config', 'UA-100885582-1');

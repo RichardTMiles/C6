@@ -54,12 +54,13 @@
         <?php endif; ?>
 
         // Document ready => jQuery => PJAX => CarbonPHP = loaded
-        function Carbon(cb) {
-            document.addEventListener("Carbon", function fn(event) {
-                document.removeEventListener("Carbon", fn);
-                cb(event);
+        function OneTimeEvent(ev, cb){
+            return document.addEventListener(ev, function fn(event) {
+                document.removeEventListener(ev, fn);
+                return cb(event);
             });
         }
+        function Carbon(cb) {return OneTimeEvent("Carbon", cb)}
     </script>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->

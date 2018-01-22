@@ -127,5 +127,10 @@
 </div><!-- /.login-box -->
 
 <script>
-    Carbon(() => $.fn.load_iCheck('input'));
+    Carbon(() => {
+        $.fn.load_iCheck('input');
+        $.fn.load_backStreach("<?=SITE?>Application/View/img/augusta-master.jpg");
+        let remove=()=>$.fn.load_backStreach();
+        $(document).off("pjax:beforeSend", remove).on("pjax:beforeSend", remove)
+    });
 </script>

@@ -1098,12 +1098,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/RichardTMiles/CarbonPHP.git",
-                "reference": "a20a451b2922cf085a64a0927c1af30a444334b7"
+                "reference": "d8453d1d41de611b186165d80ef19b97a074e24c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/a20a451b2922cf085a64a0927c1af30a444334b7",
-                "reference": "a20a451b2922cf085a64a0927c1af30a444334b7",
+                "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/d8453d1d41de611b186165d80ef19b97a074e24c",
+                "reference": "d8453d1d41de611b186165d80ef19b97a074e24c",
                 "shasum": ""
             },
             "require": {
@@ -1145,7 +1145,7 @@
                 "pipes",
                 "sockets"
             ],
-            "time": "2018-01-08T02:37:52+00:00"
+            "time": "2018-01-17T19:28:56+00:00"
         },
         {
             "name": "rize/uri-template",
@@ -1195,16 +1195,16 @@
     "packages-dev": [
         {
             "name": "google/cloud-tools",
-            "version": "v0.6.7",
+            "version": "v0.6.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/GoogleCloudPlatform/php-tools.git",
-                "reference": "86321c2023d93f6a2d75f91c129f591198435081"
+                "reference": "cebb2588ce42a253f20380eac5708b867571708d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/GoogleCloudPlatform/php-tools/zipball/86321c2023d93f6a2d75f91c129f591198435081",
-                "reference": "86321c2023d93f6a2d75f91c129f591198435081",
+                "url": "https://api.github.com/repos/GoogleCloudPlatform/php-tools/zipball/cebb2588ce42a253f20380eac5708b867571708d",
+                "reference": "cebb2588ce42a253f20380eac5708b867571708d",
                 "shasum": ""
             },
             "require": {
@@ -1215,9 +1215,6 @@
                 "symfony/filesystem": "~2|~3",
                 "symfony/process": "~2|~3",
                 "twig/twig": "~1.3|~2.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "~5.0"
             },
             "bin": [
                 "src/Utils/Flex/flex_exec"
@@ -1247,7 +1244,7 @@
                 "gcp",
                 "test"
             ],
-            "time": "2017-10-19T21:54:20+00:00"
+            "time": "2018-01-08T23:34:16+00:00"
         },
         {
             "name": "symfony/browser-kit",

@@ -13,12 +13,12 @@ use Carbon\Error\ErrorCatcher;
 use Carbon\Error\PublicAlert;
 use Carbon\Helpers\Bcrypt;
 use Carbon\Entities;
-use Carbon\Interfaces\iEntity;
+use Carbon\Interfaces\iTable;
 
-class Users extends Entities implements iEntity
+class Users extends Entities implements iTable
 {
 
-    static function get(&$array, $id)
+    static function Get(array &$array, string $id, array $argv)
     {
         $array = static::fetch('SELECT * FROM user WHERE user_id = ?', $id);
         $array['user_profile_pic'] = SITE . (!empty($user['user_profile_pic']) ? $user['user_profile_pic'] : 'Data/Uploads/Pictures/Defaults/default_avatar.png');
@@ -29,7 +29,7 @@ class Users extends Entities implements iEntity
         return $array;
     }
 
-    static function add(&$object, $id, $argv)        // object and id will be null
+    static function Post(array &$array)        // object and id will be null
     {
         $key = self::beginTransaction(USER);         // Begin transaction
 
@@ -38,26 +38,26 @@ class Users extends Entities implements iEntity
         $stmt = Database::database()->prepare( $sql );
 
         $stmt->bindValue( ':user_id', $key);
-        $stmt->bindValue( ':user_type', $argv['type'] ?? "Athlete");
+        $stmt->bindValue( ':user_type', $array['type'] ?? "Athlete");
         $stmt->bindValue( ':user_session_id', session_id());
-        $stmt->bindValue( ':user_facebook_id', $argv['facebook_id'] ?? null);
-        $stmt->bindValue( ':user_username', $argv['username']);
-        $stmt->bindValue( ':user_first_name', $argv['first_name']);
-        $stmt->bindValue( ':user_last_name', $argv['last_name']);
-        $stmt->bindValue( ':user_profile_pic', $argv['profile_pic'] ?? null);
-        $stmt->bindValue( ':user_profile_uri', $argv['profile_uri'] ?? null);
-        $stmt->bindValue( ':user_cover_photo', $argv['cover_photo'] ?? null);
-        $stmt->bindValue( ':user_birthday', $argv['birthday'] ?? null);
-        $stmt->bindValue( ':user_gender', $argv['gender'] ?? null);
-        $stmt->bindValue( ':user_about_me', $argv['about_me'] ?? null);
-        $stmt->bindValue( ':user_password', Bcrypt::genHash($argv['password']));
-        $stmt->bindValue( ':user_email', $argv['email']);
+        $stmt->bindValue( ':user_facebook_id', $array['facebook_id'] ?? null);
+        $stmt->bindValue( ':user_username', $array['username']);
+        $stmt->bindValue( ':user_first_name', $array['first_name']);
+        $stmt->bindValue( ':user_last_name', $array['last_name']);
+        $stmt->bindValue( ':user_profile_pic', $array['profile_pic'] ?? null);
+        $stmt->bindValue( ':user_profile_uri', $array['profile_uri'] ?? null);
+        $stmt->bindValue( ':user_cover_photo', $array['cover_photo'] ?? null);
+        $stmt->bindValue( ':user_birthday', $array['birthday'] ?? null);
+        $stmt->bindValue( ':user_gender', $array['gender'] ?? null);
+        $stmt->bindValue( ':user_about_me', $array['about_me'] ?? null);
+        $stmt->bindValue( ':user_password', Bcrypt::genHash($array['password']));
+        $stmt->bindValue( ':user_email', $array['email']);
         $stmt->bindValue( ':user_email_code', $email_code = uniqid('code_', true));
         $stmt->bindValue( ':user_generated_string', null);
         $stmt->bindValue( ':user_last_login', time());
         $stmt->bindValue( ':user_ip', $_SERVER['REMOTE_ADDR'] ?? null);
-        $stmt->bindValue( ':user_education_history', $argv['education_history'] ?? null);
-        $stmt->bindValue( ':user_location', $argv['location'] ?? null);
+        $stmt->bindValue( ':user_education_history', $array['education_history'] ?? null);
+        $stmt->bindValue( ':user_location', $array['location'] ?? null);
         $stmt->bindValue( ':user_creation_date', time());
 
 
@@ -70,27 +70,32 @@ class Users extends Entities implements iEntity
             'Reply-To: ' . REPLY_EMAIL . "\r\n" .
             'X-Mailer: PHP/' . phpversion();
 
-        $message = "Hello {$argv['first_name']},
+        $message = "Hello {$array['first_name']},
             \r\nThank you for registering with " . SITE_TITLE .
-            "\r\n Username :  {$argv['username']} 
-            \r\n Password :  {$argv['password']}
+            "\r\n Username :  {$array['username']} 
+            \r\n Password :  {$array['password']}
             \r\n Please visit the link below so we can activate your account:\r\n\r\n
-            " . SITE . "/Activate/" . base64_encode( $argv['email'] ) . "/" . base64_encode( $email_code ) . "/ \r\n\r\n Have a good day! \r\n--" . SITE;
+            " . SITE . "/Activate/" . base64_encode( $array['email'] ) . "/" . base64_encode( $email_code ) . "/ \r\n\r\n Have a good day! \r\n--" . SITE;
 
-        if (!mail( $argv['email'], $subject, $message, $headers )) {
-            ErrorCatcher::generateErrorLog([$argv['email'], $subject, $message, $headers]);
+        if (!mail( $array['email'], $subject, $message, $headers )) {
+            ErrorCatcher::generateErrorLog([$array['email'], $subject, $message, $headers]);
             PublicAlert::danger('We failed to send your activation email, this is hella bad. Leave me a messages at 817-7893-294');
         }
         return true;
     }
 
-    static function remove(&$user, $id)
+    static function Put(array &$array, $id, string $argv): bool
+    {
+        // TODO: Implement Put() method.
+    }
+
+    static function Delete(array &$user, string $id)
     {
         self::remove_entity($id);
         $_SESSION['id'] = false;
     }
 
-    static function all(&$user, $id)
+    static function All(array &$user, string $id)
     {
         $user = static::fetch('SELECT * FROM user LEFT JOIN carbon_tag ON entity_id = user.user_id WHERE user.user_id = ?', $id);
         if (!is_array($user)) throw new PublicAlert('Could not find user  ' . $id, 'danger');
@@ -104,7 +109,7 @@ class Users extends Entities implements iEntity
         return $user;
     }
 
-    static function range(&$object, $id, $argv)
+    static function range(&$array, $id, $argv)
     {
         // TODO: Implement range() method.
     }

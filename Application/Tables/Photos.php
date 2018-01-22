@@ -12,11 +12,11 @@ namespace Tables;
 use Carbon\Database;
 use Carbon\Entities;
 use Carbon\Error\PublicAlert;
-use Carbon\Interfaces\iEntity;
+use Carbon\Interfaces\iTable;
 
-class Photos extends Entities implements iEntity
+class Photos extends Entities implements iTable
 {
-    static function get(&$array, $id)
+    static function Get(&$array, $id)
     {
         if (!is_array($array))
             throw new \Exception( 'Invalid Object Passed' );
@@ -33,7 +33,7 @@ class Photos extends Entities implements iEntity
         return $array;
     }
 
-    static function all(&$object, $id)
+    static function All(&$object, $id)
     {
         $sql = 'SELECT photo_id, parent_id, user_id, photo_path, photo_description FROM carbon_photos WHERE parent_id = ?';
         $object['photo'] = static::fetch( $sql, $id );
@@ -44,7 +44,7 @@ class Photos extends Entities implements iEntity
         // TODO: Implement range() method.
     }
 
-    static function add(&$object, $id, $argv)
+    static function Post(&$array, $id, $argv)
     {
         $photo_id = static::beginTransaction( ENTITY_PHOTOS, $id );
         $sql = 'REPLACE INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES (:parent_id, :photo_id, :user_id, :photo_path, :photo_description)';
@@ -59,7 +59,7 @@ class Photos extends Entities implements iEntity
         return static::commit();
     }
 
-    static function remove(&$object, $id)
+    static function Delete(&$object, $id)
     {
         $sql = 'DELETE * FROM carbon_photos WHERE photo_id = ?';
         if (array_key_exists( $id, $object->photos ))

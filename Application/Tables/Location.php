@@ -12,18 +12,18 @@ namespace Tables;
 use Carbon\Database;
 use Carbon\Entities;
 use Carbon\Error\PublicAlert;
-use Carbon\Interfaces\iEntity;
+use Carbon\Interfaces\iTable;
 
-class Location extends Entities implements iEntity
+class Location extends Entities implements iTable
 {
-    static function get(&$array, $id)
+    static function Get(&$array, $id)
     {
         $sql = 'SELECT * FROM carbon_location WHERE entity_id = ?';
         $array->location = self::fetch( $sql, $id );
         return true;
     }
 
-    static function add(&$array, $id, $argv)
+    static function Post(&$array, $id, $argv)
     {
         $sql = "REPLACE INTO carbon_location (entity_id, latitude, longitude, street, city, state, elevation) VALUES (:entity_id, :latitude, :longitude, :street, :city, :state, :elevation)";
         $stmt = Database::database()->prepare( $sql );
@@ -37,7 +37,7 @@ class Location extends Entities implements iEntity
         return $stmt->execute();
     }
 
-    static function all(&$array, $id)
+    static function All(&$array, $id)
     {
 
     }
@@ -47,7 +47,7 @@ class Location extends Entities implements iEntity
         // TODO: Implement range() method.
     }
 
-    static function remove(&$array, $id)
+    static function Delete(&$array, $id)
     {
         $sql = 'DELETE * FROM carbon_location WHERE entity_id = ?';
         if (Database::database()->prepare( $sql )->execute([$id])) {

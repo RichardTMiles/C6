@@ -8,7 +8,7 @@ $url = new class extends Route
     public function defaultRoute()  // Sockets will not execute this
     {
         if (!$_SESSION['id']):
-            return $this->wrap()('AdminLTE/home.php');
+            return $this->wrap()('Home.php');  // don't change how wrap works, I know it looks funny
         else:
             return MVC('user', 'profile');
         endif;
@@ -22,9 +22,9 @@ $url = new class extends Route
     }
 
     public function wrap(){
-        return catchErrors(function (string $file) {
+        return function (string $file) {
             return View::contents(APP_VIEW . $file);
-        });
+        };
     }
 
     public function MVC()
@@ -49,7 +49,7 @@ $url = new class extends Route
 
             $json = [
                 'Errors' => $alert,
-                'Event' => "CM",        // This doesn't do an
+                'Event' => "CM",        // This doesn't do anything.. Its just a mental note when I look at the json's in console (controller->model only)
                 'Model' => $argv
             ];
 

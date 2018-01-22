@@ -13,12 +13,12 @@ use Carbon\Error\PublicAlert;
 use Model\Helpers\GlobalMap;
 use Model\User;
 use Carbon\Entities;
-use Carbon\Interfaces\iEntity;
+use Carbon\Interfaces\iTable;
 use Carbon\Helpers\Pipe;
 
-class Messages extends Entities implements iEntity
+class Messages extends Entities implements iTable
 {
-    static function get(&$array, $id)
+    static function Get(&$array, $id)
     {
         $to_user = $array['user_id'] ?? false;
         if (!$to_user) throw new \Exception( 'Cannot get messages from a non-user.' );
@@ -28,7 +28,7 @@ class Messages extends Entities implements iEntity
         return $array;
     }
 
-    static function all(&$array, $id)   // signed in user
+    static function All(&$array, $id)   // signed in user
     {
         $stmt = Database::database()->prepare( 'SELECT user_id, to_user_id FROM user_messages INNER JOIN carbon_tag ON entity_id = message_id WHERE 
                     user_messages.to_user_id = ? OR carbon_tag.user_id = ?');
@@ -51,7 +51,7 @@ class Messages extends Entities implements iEntity
         // TODO: Implement range() method.
     }
 
-    static function add(&$array, $id, $argv)   // id is the user to be sent to
+    static function Post(&$array, $id, $argv)   // id is the user to be sent to
     {
         $message_id = self::beginTransaction( USER_MESSAGES, $_SESSION['id'] );
         $sql = 'INSERT INTO user_messages (message_id, to_user_id, message) VALUES (:message_id, :user_id, :message)';
@@ -65,10 +65,10 @@ class Messages extends Entities implements iEntity
         } ) : self::verify( 'Failed to send your message.' );
     }
 
-    static function remove(&$array, $id)
+    static function Delete(&$array, $id)
     {
         self::remove_entity($id);
-        return self::all($array, $_SESSION['id']);  // TODO -check
+        return self::All($array, $_SESSION['id']);  // TODO -check
     }
 
 }

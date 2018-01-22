@@ -1,6 +1,6 @@
 var AdminLTEOptions = {
     navbarMenuSlimscroll: true, navbarMenuSlimscrollWidth: "3px",
-    navbarMenuHeight: "200px", animationSpeed: 'normal',
+    navbarMenuHeight: "200px", animationSpeed: 'fast',
     sidebarToggleSelector: "[data-toggle='push-menu']", sidebarPushMenu: false, sidebarSlimScroll: true,
     sidebarExpandOnHover: false, enableBoxRefresh: true, enableBSToppltip: true,
     BSTooltipSelector: "[data-toggle='tooltip']", enableFastclick: true, enableControlSidebar: true,

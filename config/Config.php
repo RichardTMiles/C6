@@ -6,7 +6,6 @@
  * Time: 11:14 AM
  */
 
-
 // Tables that require a unique identifier
 const USER = 1;
 const USER_FOLLOWERS = 2;
@@ -15,7 +14,6 @@ const USER_MESSAGES = 4;
 const USER_TASKS = 5;
 const ENTITY_COMMENTS = 6;
 const ENTITY_PHOTOS = 7;
-
 
 // Template
 const COMPOSER = 'Data' . DS . 'Vendors' . DS;
@@ -79,9 +77,9 @@ return [
                 if (!is_array($user)) $user = [];
 
                 if (!is_array($me = &$user[$_SESSION['id']] ?? false)) {          // || $reset  /  but this shouldn't matter
-                    Tables\Users::all($me, $_SESSION['id']);
-                    Tables\Followers::get($me,  $_SESSION['id']);
-                    Tables\Messages::all($me,  $_SESSION['id']);
+                    Tables\Users::All($me, $_SESSION['id']);
+                    Tables\Followers::Get($me,  $_SESSION['id']);
+                    Tables\Messages::All($me,  $_SESSION['id']);
                 }
             }
         },

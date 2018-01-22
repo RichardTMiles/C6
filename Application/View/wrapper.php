@@ -5,8 +5,8 @@ include_once SERVER_ROOT . APP_VIEW . 'AdminLTE/Head.php';
 $logged_in = $_SESSION['id'] ?? false;
 ?>
 <!-- Full Width Column -->
-<body class="skin-purple fixed sidebar-mini sidebar-collapse"> <!-- style="background: transparent" -->
-<div class="wrapper"> <!-- style="background: transparent" -->
+<body class="skin-purple sidebar-mini" style="background-color: #ECF0F1">
+<div class="wrapper" style="background: transparent">
 
     <!-- Main Header -->
     <header class="main-header">
@@ -15,7 +15,7 @@ $logged_in = $_SESSION['id'] ?? false;
             <!-- mini logo for sidebar mini 50x50 pixels -->
             <span class="logo-mini"><b>C</b>6</span>
             <!-- logo for regular state and mobile devices -->
-            <span class="logo-lg"><b>Carbon</b>PHP Docs</span>
+            <span class="logo-lg"><b>Carbon</b>PHP & <b>C</b>6</span>
         </a>
 
         <!-- Header Navbar -->
@@ -26,6 +26,7 @@ $logged_in = $_SESSION['id'] ?? false;
             <!-- Navbar Right Menu -->
             <div class="navbar-custom-menu">
                 <ul class="nav navbar-nav">
+                    <li><a href="<?= SITE ?>login">Login</a></li>
                     <li><a href="http://CarbonPHP.com/">CarbonPHP</a></li>
                     <li><a href="http://Stats.Coach/">Stats.Coach</a></li>
                 </ul>
@@ -54,7 +55,7 @@ $logged_in = $_SESSION['id'] ?? false;
             <ul class="sidebar-menu tree" data-widget="tree">
                 <li class="header">TABLE OF CONTENTS</li>
                 <li>
-                    <a href="<?= SITE ?>CarbonPHP"><i class="fa fa-microchip"></i> <span>CarbonPHP</span></a>
+                    <a href="<?= SITE ?>"><i class="fa fa-microchip"></i> <span>CarbonPHP</span></a>
                 </li>
                 <li>
                     <a href="<?= SITE ?>Dependencies"><i class="fa fa-handshake-o"></i>
@@ -129,7 +130,8 @@ $logged_in = $_SESSION['id'] ?? false;
                     <a href="<?= SITE ?>UpgradeGuide"><i class="fa fa-hand-o-up"></i><span>Upgrade Guide</span></a>
                 </li>
                 <li>
-                    <a href="<?= SITE ?>Implementations"><i class="fa fa-bookmark-o"></i><span>Implementations</span></a>
+                    <a href="<?= SITE ?>Implementations"><i
+                                class="fa fa-bookmark-o"></i><span>Implementations</span></a>
                 </li>
                 <li>
                     <a href="<?= SITE ?>Support"><i class="fa fa-question-circle-o"></i><span>Support</span></a>
@@ -146,7 +148,7 @@ $logged_in = $_SESSION['id'] ?? false;
         <!-- /.sidebar -->
     </aside>
     <script>//--  Sidebar Search Engine
-        Carbon(()=>{
+        Carbon(() => {
             $(function () {
                 $('#sidebar-form').on('submit', function (e) {
                     e.preventDefault();
@@ -199,19 +201,21 @@ $logged_in = $_SESSION['id'] ?? false;
                         $(this).find('.pushmenu-search-found').show(0);
                     });
                 });
-            });})
+            });
+        })
     </script>
 
     <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper"> <!--  style="background: transparent" -->
-        <div class="container">
-            <div id="alert"></div>
-            <!-- content -->
+    <div class="content-wrapper" style="background: transparent"> <!--  style="background: transparent"  Add this to use the backstretch fn-->
+        <div id="alert"></div>
+        <!-- content -->
+        <div class="col-md-offset-1 col-md-10">
             <div id="pjax-content">
                 <?= $this->bufferedContent ?? '' ?>
             </div>
-            <!-- /.content -->
         </div>
+        <!-- /.content -->
+
         <div class="clearfix"></div>
         <!-- /.container -->
     </div>
