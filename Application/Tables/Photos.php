@@ -16,7 +16,7 @@ use Carbon\Interfaces\iTable;
 
 class Photos extends Entities implements iTable
 {
-    static function Get(&$array, $id)
+    static function Get(array &$array, string $id, array $arg) : bool
     {
         if (!is_array($array))
             throw new \Exception( 'Invalid Object Passed' );
@@ -30,26 +30,27 @@ class Photos extends Entities implements iTable
         foreach ($stmt as $item => $value)
              $array['photo'][$value['photo_id']] = $value;
 
-        return $array;
+        return true;
     }
 
-    static function All(&$object, $id)
+    static function Put(array &$array, string $id, array $argv): bool
+    {
+        return true;
+    }
+
+    static function All(array &$object, string $id) : bool
     {
         $sql = 'SELECT photo_id, parent_id, user_id, photo_path, photo_description FROM carbon_photos WHERE parent_id = ?';
         $object['photo'] = static::fetch( $sql, $id );
+        return true;
     }
 
-    static function range(&$object, $id, $argv)
+    static function Post(array $argv) : bool
     {
-        // TODO: Implement range() method.
-    }
-
-    static function Post(&$array, $id, $argv)
-    {
-        $photo_id = static::beginTransaction( ENTITY_PHOTOS, $id );
+        $photo_id = static::beginTransaction( ENTITY_PHOTOS, $_SESSION['id'] );
         $sql = 'REPLACE INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES (:parent_id, :photo_id, :user_id, :photo_path, :photo_description)';
         $stmt = Database::database()->prepare( $sql );
-        $stmt->bindValue( ':parent_id', $id );
+        $stmt->bindValue( ':parent_id', $argv['parent_id'] );
         $stmt->bindValue( ':photo_id', $photo_id );
         $stmt->bindValue( ':user_id', $_SESSION['id'] );
         $stmt->bindValue( ':photo_path', $argv['photo_path'] );
@@ -59,11 +60,11 @@ class Photos extends Entities implements iTable
         return static::commit();
     }
 
-    static function Delete(&$object, $id)
+    static function Delete(array &$array, string $id) : bool
     {
         $sql = 'DELETE * FROM carbon_photos WHERE photo_id = ?';
-        if (array_key_exists( $id, $object->photos ))
-            unset( $object->photos[$id] );    // I may not need the array_key_exists
+        if (array_key_exists( $id, $array['photos'] ))
+            unset( $array['photos'][$id] );    // I may not need the array_key_exists
         return Database::database()->prepare( $sql )->execute( [$id] );
     }
 

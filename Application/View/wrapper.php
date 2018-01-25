@@ -26,8 +26,13 @@ $logged_in = $_SESSION['id'] ?? false;
             <!-- Navbar Right Menu -->
             <div class="navbar-custom-menu">
                 <ul class="nav navbar-nav">
-                    <li><a href="<?= SITE ?>login">Login</a></li>
-                    <li><a href="http://CarbonPHP.com/">CarbonPHP</a></li>
+                    <?php if ($_SESSION['id'] ?? false): ?>
+                        <li><a href="<?=SITE?>Profile">Profile</a></li>
+                        <li><a href="<?=SITE?>LiveChat">Live Chat</a></li>
+                    <?php else: ?>
+                        <li><a href="<?= SITE ?>login">Login</a></li>
+                    <?php endif; ?>
+                    <li><a href="http://CarbonPHP.com/">Miles.Systems</a></li>
                     <li><a href="http://Stats.Coach/">Stats.Coach</a></li>
                 </ul>
             </div>
@@ -55,7 +60,7 @@ $logged_in = $_SESSION['id'] ?? false;
             <ul class="sidebar-menu tree" data-widget="tree">
                 <li class="header">TABLE OF CONTENTS</li>
                 <li>
-                    <a href="<?= SITE ?>"><i class="fa fa-microchip"></i> <span>CarbonPHP</span></a>
+                    <a href="<?= SITE ?>Home"><i class="fa fa-microchip"></i> <span>CarbonPHP</span></a>
                 </li>
                 <li>
                     <a href="<?= SITE ?>Dependencies"><i class="fa fa-handshake-o"></i>
@@ -68,7 +73,7 @@ $logged_in = $_SESSION['id'] ?? false;
                     </a>
                     <ul class="treeview-menu">
                         <li>
-                            <a href="<?= SITE ?>Installation"><i class="fa fa-code-fork"></i> <span>Installation</span></a>
+                            <a href="<?= SITE ?>Installation"><i class="fa fa-code-fork"></i><span>Installation</span></a>
                         </li>
                         <li>
                             <a href="<?= SITE ?>FileStructure"><i class="fa fa-folder"></i>File Structure</a>
@@ -157,10 +162,11 @@ $logged_in = $_SESSION['id'] ?? false;
                 $('.sidebar-menu li.active').data('lte.pushmenu.active', true);
 
                 $('#search-input').on('keyup', function () {
-                    var term = $('#search-input').val().trim();
+                    let term = $('#search-input').val().trim(),
+                        sidebar = $('.sidebar-menu li');
 
                     if (term.length === 0) {
-                        $('.sidebar-menu li').each(function () {
+                        sidebar.each(function () {
                             $(this).show(0);
                             $(this).removeClass('active');
                             if ($(this).data('lte.pushmenu.active')) {
@@ -170,7 +176,7 @@ $logged_in = $_SESSION['id'] ?? false;
                         return;
                     }
 
-                    $('.sidebar-menu li').each(function () {
+                    sidebar.each(function () {
                         if ($(this).text().toLowerCase().indexOf(term.toLowerCase()) === -1) {
                             $(this).hide(0);
                             $(this).removeClass('pushmenu-search-found', false);
@@ -186,7 +192,7 @@ $logged_in = $_SESSION['id'] ?? false;
                                 $(this).addClass('active');
                             }
 
-                            var parent = $(this).parents('li').first();
+                            let parent = $(this).parents('li').first();
                             if (parent.is('.treeview')) {
                                 parent.show(0);
                             }
@@ -206,12 +212,13 @@ $logged_in = $_SESSION['id'] ?? false;
     </script>
 
     <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper" style="background: transparent"> <!--  style="background: transparent"  Add this to use the backstretch fn-->
+    <div class="content-wrapper" style="background: transparent">
+        <!--  style="background: transparent"  Add this to use the backstretch fn-->
         <div id="alert"></div>
         <!-- content -->
         <div class="col-md-offset-1 col-md-10">
             <div id="pjax-content">
-                <?= $this->bufferedContent ?? '' ?>
+                <?= \Carbon\View::$bufferedContent ?? '' ?>
             </div>
         </div>
         <!-- /.content -->

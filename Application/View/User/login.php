@@ -1,13 +1,14 @@
+<?php global $UserImage, $UserName, $FullName; ?>
 <div class="login-box">
     <div class="login-logo">
-        <a href="<?= SITE ?>" style="color: #ffffff; font-size: 150%"><b>Stats</b>.Coach</a>
+        <a href="<?= SITE ?>" style="color: #ffffff; font-size: 150%"><b>Carbon</b> 6</a>
     </div><!-- /.login-logo -->
     <div class="login-box-body" style="background-color: #ECF0F1; color: #0c0c0c; border: medium">
         <p class="login-box-msg">Sign in to start your session</p>
 
         <div id="alert"></div>
 
-        <?php if ($this->UserName == false): ?>
+        <?php if (empty($UserName)): ?>
             <form data-pjax action="<?= SITE ?>login/" method="post"> <!-- return false; -->
                 <div class="form-group has-feedback">
                     <input type="text" class="form-control" name="username"
@@ -80,14 +81,14 @@
             <!-- Automatic element centering -->
             <div class="lockscreen-wrapper">
                 <!-- User name -->
-                <div class="lockscreen-name" style="text-align: center; font-size: 200%"><b><?= $this->FullName ?></b>
+                <div class="lockscreen-name" style="text-align: center; font-size: 200%"><b><?= $FullName ?></b>
                 </div>
 
                 <!-- START LOCK SCREEN ITEM -->
                 <div class="lockscreen-item">
                     <!-- lockscreen image -->
                     <div class="lockscreen-image">
-                        <img src="<?= $this->UserImage ?>" alt="User Image">
+                        <img src="<?= $UserImage ?>" alt="User Image">
                     </div>
                     <!-- /.lockscreen-image -->
 
@@ -96,7 +97,7 @@
                         <div class="input-group">
                             <input style="display: none" type="text" value="1" name="RememberMe" id="RememberMe">
                             <input style="display: none" type="text" class="form-control" name="username"
-                                   placeholder="Username" value="<?= $this->UserName ?>">
+                                   placeholder="Username" value="<?= $UserName ?>">
                             <input type="password" name="password" class="form-control" placeholder="Password">
 
                             <div class="input-group-btn">
@@ -112,7 +113,7 @@
                     Enter your password to retrieve your session
                 </div>
                 <div class="text-center">
-                    <a href="<?= SITE . 'login/clear/' ?>">Or sign in as a different user</a>
+                    <a href="<?= SITE ?>login/clear/">Or sign in as a different user</a>
                 </div>
                 <div class="lockscreen-footer text-center">
                     Copyright &copy; 2014-2017 <b><a href="http://lilRichard.com" class="text-black">Richard

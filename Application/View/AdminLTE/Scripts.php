@@ -157,7 +157,7 @@
             loadJS("<?=  SITE . COMPOSER . 'bower-asset/jquery-pjax/jquery.pjax.js' ?>", () =>
                 loadJS("<?=  SITE . COMPOSER . 'bower-asset/mustache.js/mustache.js' ?>", () =>
                     loadJS("<?=  SITE . COMPOSER . 'richardtmiles/carbonphp/Helpers/Carbon.js'?>", () =>
-                        CarbonJS('#pjax-content', '<?=($_SESSION['id'] ?? false) ? 'wss://stats.coach:8888/' : null?>', false))));
+                        CarbonJS('#pjax-content', '', false)))); // <!--?=($_SESSION['id'] ?? false) ? 'wss://stats.coach:8888/' : null?-->
 
             //<!-- AdminLTE for demo purposes loadJS('dist/js/demo.js') ?>//");
 

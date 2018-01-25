@@ -1,7 +1,7 @@
-
+<?php global $firstName, $lastName, $email, $username, $gender, $teamCode, $teamName, $schoolName, $userType;  ?>
 <div class="register-box" >
     <div class="register-logo">
-        <a href="<?= SITE ?>" style="color: #ffffff; font-size: 150%"><b>Stats</b>.Coach</a>
+        <a href="<?= SITE ?>" style="color: #ffffff; font-size: 150%"><b>Carbon</b> 6</a>
     </div><!-- /.login-logo -->
 
     <div class="register-box-body">
@@ -11,19 +11,19 @@
         <form data-pjax action="<?= SITE ?>Register/" method="post">
 
             <div class="form-group has-feedback">
-                <input type="text" class="form-control" placeholder="First Name" name="firstname" value="<?= $this->firstName ?>">
+                <input type="text" class="form-control" placeholder="First Name" name="firstname" value="<?= $firstName ?>">
                 <span class="glyphicon glyphicon-user form-control-feedback"></span>
             </div>
             <div class="form-group has-feedback">
-                <input type="text" class="form-control" placeholder="Last Name" name="lastname" value="<?= $this->lastName ?>">
+                <input type="text" class="form-control" placeholder="Last Name" name="lastname" value="<?= $lastName ?>">
                 <span class="glyphicon glyphicon-console form-control-feedback"></span>
             </div>
             <div class="form-group has-feedback">
-                <input type="email" class="form-control" placeholder="Email" name="email" value="<?= $this->email ?>">
+                <input type="email" class="form-control" placeholder="Email" name="email" value="<?= $email ?>">
                 <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
             </div>
             <div class="form-group has-feedback">
-                <input type="text" class="form-control" placeholder="Username" name="username" value="<?= $this->username ?>">
+                <input type="text" class="form-control" placeholder="Username" name="username" value="<?= $username ?>">
                 <span class="glyphicon glyphicon-knight form-control-feedback"></span>
             </div>
             <div class="form-group has-feedback">
@@ -36,9 +36,9 @@
             </div>
             <div class="form-group">
                 <select class="form-control" name="gender" required>
-                    <option disabled <?= ($this->gender ? null : 'selected') ?>>Gender</option>
-                    <option value="male" <?= ($this->gender == 'male' ? 'selected' : null) ?>>Male</option>
-                    <option value="female" <?= ($this->gender == 'female' ? 'selected' : null) ?>>Female</option>
+                    <option disabled <?= ($gender ? null : 'selected') ?>>Gender</option>
+                    <option value="male" <?= ($gender === 'male' ? 'selected' : null) ?>>Male</option>
+                    <option value="female" <?= ($gender === 'female' ? 'selected' : null) ?>>Female</option>
                 </select>
             </div>
 
@@ -94,19 +94,27 @@
         switch (value) {
             case 'Athlete':
                 node.innerHTML =
-                    '<div class="form-group has-feedback"><input type="text" class="form-control" placeholder="Team Code (optional)" name="teamCode" value="<?= $this->teamCode ?>"> \
+                    '<div class="form-group has-feedback"><input type="text" class="form-control" placeholder="Team Code (optional)" name="teamCode" value="<?= $teamCode ?>"> \
                                 <span class="form-control-feedback""></span></div>';
                 break;
             case 'Coach':
                 node.innerHTML =
-                    '<div class="form-group has-feedback"><input type="text" class="form-control" placeholder="Team Name" name="teamName" value="<?= $this->teamName ?>"> \
+                    '<div class="form-group has-feedback"><input type="text" class="form-control" placeholder="Team Name" name="teamName" value="<?= $teamName ?>"> \
                                 <span class="form-control-feedback""></span></div> \
-                                <div class="form-group has-feedback"><input type="text" class="form-control" placeholder="School (optional)" name="schoolName" value="<?= $this->schoolName ?>"> \
+                                <div class="form-group has-feedback"><input type="text" class="form-control" placeholder="School (optional)" name="schoolName" value="<?= $schoolName ?>"> \
                                 <span class="form-control-feedback"></span></div>';
                 break;
         }
     }
-    extend_registration('<?= $this->userType ?>');
+    extend_registration('<?= $userType ?>');
 
-    Carbon(()=>$.fn.load_iCheck('input'));
+
+
+
+    Carbon(() => {
+        $.fn.load_iCheck('input');
+        $.fn.load_backStreach("https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?ixlib=rb-0.3.5&s=872a83ba6a07ac43b3e7176337665316&auto=format&fit=crop&w=1950&q=80");
+        let remove=()=>$.fn.load_backStreach();
+        $(document).off("pjax:beforeSend", remove).on("pjax:beforeSend", remove)
+    });
 </script>

@@ -48,16 +48,16 @@
         },
         {
             "name": "bower-asset/jquery",
-            "version": "3.2.1",
+            "version": "3.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jquery/jquery-dist.git",
-                "reference": "77d2a51d0520d2ee44173afdf4e40a9201f5964e"
+                "reference": "9e8ec3d10fad04748176144f108d7355662ae75e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jquery/jquery-dist/zipball/77d2a51d0520d2ee44173afdf4e40a9201f5964e",
-                "reference": "77d2a51d0520d2ee44173afdf4e40a9201f5964e",
+                "url": "https://api.github.com/repos/jquery/jquery-dist/zipball/9e8ec3d10fad04748176144f108d7355662ae75e",
+                "reference": "9e8ec3d10fad04748176144f108d7355662ae75e",
                 "shasum": ""
             },
             "type": "bower-asset-library",
@@ -76,7 +76,7 @@
                 "jquery",
                 "library"
             ],
-            "time": "2017-03-20T19:02:00+00:00"
+            "time": "2018-01-20T17:26:57+00:00"
         },
         {
             "name": "bower-asset/jquery-backstretch",
@@ -1098,19 +1098,21 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/RichardTMiles/CarbonPHP.git",
-                "reference": "d8453d1d41de611b186165d80ef19b97a074e24c"
+                "reference": "23ec5603027c36fade6c6dd6c04c804eb461bf09"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/d8453d1d41de611b186165d80ef19b97a074e24c",
-                "reference": "d8453d1d41de611b186165d80ef19b97a074e24c",
+                "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/23ec5603027c36fade6c6dd6c04c804eb461bf09",
+                "reference": "23ec5603027c36fade6c6dd6c04c804eb461bf09",
                 "shasum": ""
             },
             "require": {
                 "bower-asset/jquery-form": "^4.2.2",
                 "bower-asset/jquery-pjax": "^2.0.1",
                 "bower-asset/mustache.js": "^2.3.0",
-                "php": "^7.0"
+                "mustache/mustache": "^2.12",
+                "php": "^7.1",
+                "psr/log": "^1.0"
             },
             "suggest": {
                 "almasaeed2010/adminlte": ">=2.4",
@@ -1145,7 +1147,7 @@
                 "pipes",
                 "sockets"
             ],
-            "time": "2018-01-17T19:28:56+00:00"
+            "time": "2018-01-24T06:27:50+00:00"
         },
         {
             "name": "rize/uri-template",
@@ -1195,16 +1197,16 @@
     "packages-dev": [
         {
             "name": "google/cloud-tools",
-            "version": "v0.6.8",
+            "version": "v0.6.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/GoogleCloudPlatform/php-tools.git",
-                "reference": "cebb2588ce42a253f20380eac5708b867571708d"
+                "reference": "449025ca42977fd4911ec97df5d44b28377126b5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/GoogleCloudPlatform/php-tools/zipball/cebb2588ce42a253f20380eac5708b867571708d",
-                "reference": "cebb2588ce42a253f20380eac5708b867571708d",
+                "url": "https://api.github.com/repos/GoogleCloudPlatform/php-tools/zipball/449025ca42977fd4911ec97df5d44b28377126b5",
+                "reference": "449025ca42977fd4911ec97df5d44b28377126b5",
                 "shasum": ""
             },
             "require": {
@@ -1244,7 +1246,7 @@
                 "gcp",
                 "test"
             ],
-            "time": "2018-01-08T23:34:16+00:00"
+            "time": "2018-01-24T00:40:23+00:00"
         },
         {
             "name": "symfony/browser-kit",

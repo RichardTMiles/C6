@@ -74,11 +74,13 @@ return [
 
                 global $user;
 
-                if (!is_array($user)) $user = [];
-
-                if (!is_array($me = &$user[$_SESSION['id']] ?? false)) {          // || $reset  /  but this shouldn't matter
+                if (!is_array($user)) {
+                    $user = [];
+                }
+                if (!is_array($me = &$user[$_SESSION['id']])) {          // || $reset  /  but this shouldn't matter
+                    $me = [];
                     Tables\Users::All($me, $_SESSION['id']);
-                    Tables\Followers::Get($me,  $_SESSION['id']);
+                    Tables\Followers::All($me,  $_SESSION['id']);
                     Tables\Messages::All($me,  $_SESSION['id']);
                 }
             }
