@@ -4,9 +4,11 @@
  * User: richardmiles
  * Date: 10/29/17
  * Time: 11:14 AM
+ *
+ * Tables that require a unique identifier,
+ * I use this for tags in the carbon_tag
+ * data table.
  */
-
-// Tables that require a unique identifier
 const USER = 1;
 const USER_FOLLOWERS = 2;
 const USER_NOTIFICATIONS = 3;
@@ -27,10 +29,67 @@ const FACEBOOK_APP_SECRET = '';
 const GOOGLE_APP_ID = '';
 const GOOGLE_APP_SECRET = '';
 
+
+/**
+ * This is the full list of options you can send to CarbonPHP()
+ * I omit the ones I don't use.
+ *
+ * @type $PHP = [
+ *       'AUTOLOAD' => []                       // Provide PSR-4 namespace roots
+ *       'SITE' => [
+ *           'URL' => string '',                                  // Server Url name you do not need to chane in remote development
+ *           'ROOT' => string '__FILE__',                         // This was defined in our ../index.php
+ *           'ALLOWED_EXTENSIONS' => string 'jpg|png',            // File ending in these extensions will be served
+ *           'CONFIG' => string __FILE__,                         // Send to sockets
+ *           'TIMEZONE' => string 'America/Chicago',              // Current timezone TODO - look up php
+ *           'TITLE' => string 'Carbon 6',                        // Website title
+ *           'VERSION' => string /phpversion(),                   // Add link to semantic versioning
+ *           'SEND_EMAIL' => string '',                           // I send emails to validate accounts
+ *           'REPLY_EMAIL' => string '',
+ *           'BOOTSTRAP' => string '',                            // This file is executed when the startApplication() function is called
+ *           'HTTP' => bool true
+ *       ],
+ *       'DATABASE' => [
+ *           'DB_DSN'  => string '',                        // Host and Database get put here
+ *           'DB_USER' => string '',
+ *           'DB_PASS' => string '',
+ *           'DB_BUILD'=> string '',                        // Absolute file path to your database set up file
+ *           'REBUILD' => bool false
+ *       ],
+ *       'SESSION' => [
+ *           'REMOTE' => bool true,             // Store the session in the SQL database
+ *           'SERIALIZE' => [],                 // These global variables will be stored between session
+ *           'CALLBACK' => callable,            // a callable that is executed when StartAppliction() runs
+ *       'SOCKET' => [
+ *           'WEBSOCKETD' => bool false,        // Todo - remove websockets
+ *           'PORT' => int 8888,
+ *           'DEV' => bool false,
+ *           'SSL' => [
+ *               'KEY' => string '',
+ *               'CERT' => string ''
+ *           ]
+ *       ],
+ *       'ERROR' => [
+ *           'LEVEL' => (int) E_ALL | E_STRICT,
+ *           'STORE' => (bool) true,                // Database if specified and / or File 'LOCATION' in your system
+ *           'SHOW' => (bool) true,                 // Show errors on browser
+ *           'FULL' => (bool) true                  // Generate custom stacktrace will high detail - DO NOT set to TRUE in PRODUCTION
+ *       ],
+ *       'VIEW' => [
+ *           'VIEW' => string '/',          // This is where the MVC() function will map the HTML.PHP and HTML.HBS . See Carbonphp.com/mvc
+ *          'WRAPPER' => string '',         // View::content() will produce this
+ *      ],
+ * ]
+ *
+ *
+ *
+ *
+ */
+
 return [
     'DATABASE' => [
 
-        'DB_DSN' => getenv('MYSQL_DSN') ?: "mysql:host=127.0.0.1;dbname=C6",      // Host and Database get put here
+        'DB_DSN' => getenv('MYSQL_DSN') ?: 'mysql:host=127.0.0.1;dbname=C6',      // Host and Database get put here
 
         'DB_USER' => getenv('MYSQL_USER') ?: 'root',                // User
 
@@ -40,7 +99,7 @@ return [
     ],
 
     'SITE' => [
-        'URL' => 'Carbonphp.com',    // Evaluated and if not the accurate redirect. Local php server okay. Remove for any domain
+        'URL' => 'carbonphp.com',    // Evaluated and if not the accurate redirect. Local php server okay. Remove for any domain
 
         'ROOT' => SERVER_ROOT,     // This was defined in our ../index.php
 
@@ -60,11 +119,11 @@ return [
 
         'BOOTSTRAP' => 'Application/Route.php',     // This file is executed when the startApplication() function is called
 
-        'HTTP' => (bool)true   // I assume that HTTP is okay by default
+        'HTTP' => true   // I assume that HTTP is okay by default
     ],
 
     'SESSION' => [
-        'REMOTE' => (bool) true,             // Store the session in the SQL database
+        'REMOTE' => true,             // Store the session in the SQL database
 
         'SERIALIZE' => [ 'user' ],           // These global variables will be stored between session
 
@@ -89,7 +148,7 @@ return [
 
     /*          TODO - finish building php websockets
     'SOCKET' => [
-        'WEBSOCKETD' => true,
+        'WEBSOCKETD' => false,  // if you'd like to use web
         'PORT' => 8888,
         'DEV' => true,
         'SSL' => [
@@ -101,13 +160,13 @@ return [
 
     // ERRORS on point
     'ERROR' => [
-        'LEVEL' => (int) E_ALL,
+        'LEVEL' =>  E_ALL | E_STRICT,  // php ini level
 
-        'STORE' => (bool) true,      // Database if specified and / or File 'LOCATION' in your system
+        'STORE' =>  true,      // Database if specified and / or File 'LOCATION' in your system
 
-        'SHOW' => (bool) true,       // Show errors on browser
+        'SHOW' =>  true,       // Show errors on browser
 
-        'FULL' => (bool) true        // Generate custom stacktrace will high detail - DO NOT set to TRUE in PRODUCTION
+        'FULL' => true        // Generate custom stacktrace will high detail - DO NOT set to TRUE in PRODUCTION
     ],
 
     'VIEW' => [
