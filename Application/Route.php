@@ -9,7 +9,7 @@ $url = new class extends Route
     public function defaultRoute()  // Sockets will not execute this
     {
         if (!$_SESSION['id']):
-            return $this->wrap()('Home.php');  // don't change how wrap works, I know it looks funny
+            return $this->wrap()('AdminLTE/Home.php');  // don't change how wrap works, I know it looks funny
         else:
             return MVC('user', 'profile');
         endif;
@@ -63,8 +63,8 @@ $url = new class extends Route
 
 $url->structure($url->wrap());
 
-if ((string)$url->match('Home/', 'home.php') ||
-    (string)$url->match('CarbonPHP', 'AdminLTE/home.php') ||
+if ((string)$url->match('Home/', 'AdminLTE/Home.php') ||
+    (string)$url->match('CarbonPHP', 'AdminLTE/Home.php') ||
     (string)$url->match('Installation', 'Documentation/Installation.php') ||
     (string)$url->match('Dependencies', 'Documentation/Dependencies.php') ||
     (string)$url->match('FileStructure', 'Documentation/QuickStart/FileStructure.php') ||

@@ -6,12 +6,12 @@ runtime_config:
   document_root: .
 
 beta_settings:
-  cloud_sql_instances: "statscoach-miles:us-central1:statsdatamine"
+  cloud_sql_instances: "carbonphp-191421:us-central1:carbonphpmaster"
 
 env_variables:
   # Replace USER, PASSWORD, DATABASE, and CONNECTION_NAME with the
   # values obtained when configuring your Cloud SQL instance.
-  MYSQL_DSN: mysql:unix_socket=/cloudsql/carbonphp-191421:us-central1:carbonphp;dbname=C6
+  MYSQL_DSN: mysql:dbname=CarbonPHP;unix_socket=/cloudsql/carbonphp-191421:us-central1:carbonphpmaster;
   MYSQL_USER: root
   MYSQL_PASSWORD: Huskies!99
 
@@ -21,7 +21,7 @@ env_variables:
   #  - 2222/tcp
 
 handlers:
-- url: /(.*)\.[\d]{10}(\.(css|js))          # TODO - stack overflow versioning app.yaml
+- url: /(.*)\.[\d]{10}(\.(css|js))   # TODO - stack overflow versioning app.yaml
   static_files: \1\2
   upload: /((.*\.)(css|js))$
 

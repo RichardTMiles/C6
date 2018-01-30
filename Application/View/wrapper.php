@@ -32,7 +32,7 @@ $logged_in = $_SESSION['id'] ?? false;
                     <?php else: ?>
                         <li><a href="<?= SITE ?>login">Login</a></li>
                     <?php endif; ?>
-                    <li><a href="http://CarbonPHP.com/">Miles.Systems</a></li>
+                    <li><a href="http://Miles.Systems/">Miles.Systems</a></li>
                     <li><a href="http://Stats.Coach/">Stats.Coach</a></li>
                 </ul>
             </div>
