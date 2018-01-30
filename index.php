@@ -15,8 +15,8 @@ if (false === (include SERVER_ROOT . 'Data/Vendors/autoload.php')) {     // Load
     print '<h1>Loading Composer Failed. Please try again.</h1><h2>' . SERVER_ROOT . '</h2>' and die;     // Composer autoload
 }
 
-
 $app = new Carbon\Carbon(include SERVER_ROOT . 'config/Config.php');
+
 
 
 /** At one point I returned the invocation of $app to show that

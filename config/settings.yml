@@ -1,22 +1,22 @@
 # Google credentials and configuration
-google_client_id:      GoogleIsNice
+google_client_id:      600142248567-mhjca82osqlvvg3q02kje76u5nj4kj45.apps.googleusercontent.com
 
-google_client_secret:  OneOfTheFew
+google_client_secret:  fceDlnDDPrDm2VX6b6Puarnc
 
-google_project_id:     HIREMEGOOGLE
+google_project_id:     carbonphp-191421
 
 # options are "mysql", "postgres", "mongodb", or "datastore" -
 # This is the only variable on this page that may stay the same
 bookshelf_backend: mysql  # C6 requires INNODB ( leave this if unsure )
 
 # configure CloudSQL for MySQL or PostgreSQL backend
-cloudsql_connection_name: Thefollowing:issuper:fake
+cloudsql_connection_name: carbonphp-191421:us-central1:carbonphpmaster
 
-cloudsql_database_name: C6
+cloudsql_database_name: CarbonPHP
 
 cloudsql_user: root               # probably should avoid this as well
 
-cloudsql_password: smokey         # I do not recommend using my black labs name as a password
+cloudsql_password: Huskies!99         # I do not recommend using my black labs name as a password
 
 cloudsql_port: 3306
 

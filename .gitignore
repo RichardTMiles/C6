@@ -6,7 +6,6 @@ composer.phar
 # You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
 # composer.lock
 
-/Data/Vendors/
 .DS_Store
 .idea/inspectionProfiles/
 .idea/workspace.xml
@@ -22,3 +21,6 @@ Data/Uploads/Pictures/.DS_Store
 Data/Uploads/Pictures/_notes/
 Data/Uploads/_notes/
 config/Config.php
+/app.yaml
+/config/settings.yml
+/config/lilrichard-933a4edd521a.json
