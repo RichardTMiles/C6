@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\Datastore;
+namespace Google\Cloud\Tests\Unit\Datastore;
 
 use Google\Cloud\Datastore\Blob;
 use Google\Cloud\Datastore\Connection\ConnectionInterface;
@@ -29,11 +29,12 @@ use Google\Cloud\Datastore\Query\Query;
 use Google\Cloud\Datastore\Query\QueryInterface;
 use Google\Cloud\Datastore\Transaction;
 use Prophecy\Argument;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group datastore
  */
-class DatastoreClientTest extends \PHPUnit_Framework_TestCase
+class DatastoreClientTest extends TestCase
 {
     private $connection;
     private $operation;
@@ -97,7 +98,7 @@ class DatastoreClientTest extends \PHPUnit_Framework_TestCase
             'allocateIds' => false
         ]);
 
-        $this->assertTrue(is_array($keys));
+        $this->assertInternalType('array', $keys);
         $this->assertInstanceOf(Key::class, $keys[0]);
         $this->assertEquals($keys[0]->keyObject()['path'][0]['kind'], 'Person');
     }
@@ -109,9 +110,9 @@ class DatastoreClientTest extends \PHPUnit_Framework_TestCase
             'number' => 5
         ]);
 
-        $this->assertTrue(is_array($keys));
+        $this->assertInternalType('array', $keys);
         $this->assertInstanceOf(Key::class, $keys[0]);
-        $this->assertEquals(5, count($keys));
+        $this->assertCount(5, $keys);
     }
 
     public function testKeysAncestors()
@@ -191,7 +192,7 @@ class DatastoreClientTest extends \PHPUnit_Framework_TestCase
 
         $res = $this->datastore->allocateIds($keys);
 
-        $this->assertTrue(is_array($res));
+        $this->assertInternalType('array', $res);
     }
 
     public function testTransaction()

@@ -30,6 +30,7 @@ use Google\Cloud\Datastore\Query\Query;
 use Google\Cloud\Datastore\Query\QueryInterface;
 use Google\Cloud\Datastore\Transaction;
 use Google\Cloud\Dev\Snippet\SnippetTestCase;
+use Google\Cloud\Core\Int64;
 use Prophecy\Argument;
 
 /**
@@ -67,17 +68,9 @@ class DatastoreClientTest extends SnippetTestCase
         $this->assertInstanceOf(DatastoreClient::class, $res->returnVal());
     }
 
-    public function testClassDirectInstantiation()
-    {
-        $snippet = $this->snippetFromClass(DatastoreClient::class, 1);
-        $res = $snippet->invoke('datastore');
-
-        $this->assertInstanceOf(DatastoreClient::class, $res->returnVal());
-    }
-
     public function testMultiTenant()
     {
-        $snippet = $this->snippetFromClass(DatastoreClient::class, 2);
+        $snippet = $this->snippetFromClass(DatastoreClient::class, 1);
         $res = $snippet->invoke('datastore');
 
         $this->assertInstanceOf(DatastoreClient::class, $res->returnVal());
@@ -99,7 +92,7 @@ class DatastoreClientTest extends SnippetTestCase
 
     public function testEmulator()
     {
-        $snippet = $this->snippetFromClass(DatastoreClient::class, 3);
+        $snippet = $this->snippetFromClass(DatastoreClient::class, 2);
         $res = $snippet->invoke('datastore');
 
         $this->assertInstanceOf(DatastoreClient::class, $res->returnVal());
@@ -138,8 +131,8 @@ class DatastoreClientTest extends SnippetTestCase
         $snippet->addLocal('datastore', $this->client);
 
         $res = $snippet->invoke('keys');
-        $this->assertTrue(is_array($res->returnVal()));
-        $this->assertEquals(10, count($res->returnVal()));
+        $this->assertInternalType('array', $res->returnVal());
+        $this->assertCount(10, $res->returnVal());
         $this->assertInstanceOf(Key::class, $res->returnVal()[0]);
         $this->assertEquals('Person', $res->returnVal()[0]->keyObject()['path'][0]['kind']);
     }
@@ -151,8 +144,8 @@ class DatastoreClientTest extends SnippetTestCase
 
         $res = $snippet->invoke('keys');
 
-        $this->assertTrue(is_array($res->returnVal()));
-        $this->assertEquals(3, count($res->returnVal()));
+        $this->assertInternalType('array', $res->returnVal());
+        $this->assertCount(3, $res->returnVal());
         $this->assertInstanceOf(Key::class, $res->returnVal()[0]);
 
         $this->assertEquals(['kind' => 'Person'], $res->returnVal()[0]->keyObject()['path'][2]);
@@ -234,6 +227,24 @@ class DatastoreClientTest extends SnippetTestCase
     {
         $snippet = $this->snippetFromMethod(DatastoreClient::class, 'blob');
         $snippet->addLocal('datastore', $this->client);
+
+        $res = $snippet->invoke('blob');
+        $this->assertInstanceOf(Blob::class, $res->returnVal());
+    }
+
+    public function testInt64()
+    {
+        $snippet = $this->snippetFromMethod(DatastoreClient::class, 'int64');
+        $snippet->addLocal('datastore', $this->client);
+
+        $res = $snippet->invoke('int64');
+        $this->assertInstanceOf(Int64::class, $res->returnVal());
+    }
+
+    public function testBlobWithFile()
+    {
+        $snippet = $this->snippetFromMethod(DatastoreClient::class, 'blob', 1);
+        $snippet->addLocal('datastore', $this->client);
         $snippet->replace("file_get_contents(__DIR__ .'/family-photo.jpg')", "''");
 
         $res = $snippet->invoke('blob');
@@ -294,8 +305,7 @@ class DatastoreClientTest extends SnippetTestCase
         $snippet->addLocal('datastore', $this->client);
 
         $this->connection->commit(Argument::that(function ($args) {
-            if (array_keys($args['mutations'][0])[0] !== 'insert') return false;
-            return true;
+            return array_keys($args['mutations'][0])[0] === 'insert';
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -317,8 +327,7 @@ class DatastoreClientTest extends SnippetTestCase
         $snippet->addLocal('datastore', $this->client);
 
         $this->connection->commit(Argument::that(function ($args) {
-            if (array_keys($args['mutations'][0])[0] !== 'insert') return false;
-            return true;
+            return array_keys($args['mutations'][0])[0] === 'insert';
         }))
             ->shouldBeCalled();
 
@@ -340,8 +349,7 @@ class DatastoreClientTest extends SnippetTestCase
         ]));
 
         $this->connection->commit(Argument::that(function ($args) {
-            if (array_keys($args['mutations'][0])[0] !== 'update') return false;
-            return true;
+            return array_keys($args['mutations'][0])[0] === 'update';
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -365,8 +373,7 @@ class DatastoreClientTest extends SnippetTestCase
         ]);
 
         $this->connection->commit(Argument::that(function ($args) {
-            if (array_keys($args['mutations'][0])[0] !== 'update') return false;
-            return true;
+            return array_keys($args['mutations'][0])[0] === 'update';
         }))
             ->shouldBeCalled();
 
@@ -379,8 +386,7 @@ class DatastoreClientTest extends SnippetTestCase
         $snippet->addLocal('datastore', $this->client);
 
         $this->connection->commit(Argument::that(function ($args) {
-            if (array_keys($args['mutations'][0])[0] !== 'upsert') return false;
-            return true;
+            return array_keys($args['mutations'][0])[0] === 'upsert';
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -400,8 +406,7 @@ class DatastoreClientTest extends SnippetTestCase
         $snippet->addLocal('datastore', $this->client);
 
         $this->connection->commit(Argument::that(function ($args) {
-            if (array_keys($args['mutations'][0])[0] !== 'upsert') return false;
-            return true;
+            return array_keys($args['mutations'][0])[0] === 'upsert';
         }))
             ->shouldBeCalled();
 
@@ -414,8 +419,7 @@ class DatastoreClientTest extends SnippetTestCase
         $snippet->addLocal('datastore', $this->client);
 
         $this->connection->commit(Argument::that(function ($args) {
-            if (array_keys($args['mutations'][0])[0] !== 'delete') return false;
-            return true;
+            return array_keys($args['mutations'][0])[0] === 'delete';
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -435,8 +439,7 @@ class DatastoreClientTest extends SnippetTestCase
         $snippet->addLocal('datastore', $this->client);
 
         $this->connection->commit(Argument::that(function ($args) {
-            if (array_keys($args['mutations'][0])[0] !== 'delete') return false;
-            return true;
+            return array_keys($args['mutations'][0])[0] === 'delete';
         }))
             ->shouldBeCalled();
 

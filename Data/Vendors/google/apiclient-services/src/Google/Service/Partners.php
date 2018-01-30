@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2016 Google Inc.
+ * Copyright 2014 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -37,7 +37,6 @@ class Google_Service_Partners extends Google_Service
   public $clientMessages;
   public $companies;
   public $companies_leads;
-  public $exams;
   public $leads;
   public $offers;
   public $offers_history;
@@ -69,15 +68,20 @@ class Google_Service_Partners extends Google_Service
               'path' => 'v2/analytics',
               'httpMethod' => 'GET',
               'parameters' => array(
+                'requestMetadata.experimentIds' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                  'repeated' => true,
+                ),
                 'requestMetadata.trafficSource.trafficSubId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'requestMetadata.userOverrides.userId' => array(
+                'requestMetadata.partnersSessionId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'requestMetadata.partnersSessionId' => array(
+                'requestMetadata.userOverrides.userId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -100,11 +104,6 @@ class Google_Service_Partners extends Google_Service
                 'requestMetadata.userOverrides.ipAddress' => array(
                   'location' => 'query',
                   'type' => 'string',
-                ),
-                'requestMetadata.experimentIds' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                  'repeated' => true,
                 ),
               ),
             ),
@@ -148,14 +147,14 @@ class Google_Service_Partners extends Google_Service
                   'location' => 'query',
                   'type' => 'string',
                 ),
+                'currencyCode' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
                 'requestMetadata.experimentIds' => array(
                   'location' => 'query',
                   'type' => 'string',
                   'repeated' => true,
-                ),
-                'currencyCode' => array(
-                  'location' => 'query',
-                  'type' => 'string',
                 ),
                 'requestMetadata.trafficSource.trafficSubId' => array(
                   'location' => 'query',
@@ -165,11 +164,11 @@ class Google_Service_Partners extends Google_Service
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'requestMetadata.userOverrides.userId' => array(
+                'requestMetadata.partnersSessionId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'requestMetadata.partnersSessionId' => array(
+                'requestMetadata.userOverrides.userId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -190,18 +189,6 @@ class Google_Service_Partners extends Google_Service
               'path' => 'v2/companies',
               'httpMethod' => 'GET',
               'parameters' => array(
-                'requestMetadata.partnersSessionId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'companyName' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'pageToken' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
                 'industries' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -259,11 +246,11 @@ class Google_Service_Partners extends Google_Service
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'address' => array(
+                'requestMetadata.locale' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'requestMetadata.locale' => array(
+                'address' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -280,11 +267,11 @@ class Google_Service_Partners extends Google_Service
                   'type' => 'string',
                   'repeated' => true,
                 ),
-                'maxMonthlyBudget.units' => array(
+                'requestMetadata.trafficSource.trafficSourceId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'requestMetadata.trafficSource.trafficSourceId' => array(
+                'maxMonthlyBudget.units' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -293,6 +280,18 @@ class Google_Service_Partners extends Google_Service
                   'type' => 'integer',
                 ),
                 'requestMetadata.trafficSource.trafficSubId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.partnersSessionId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'companyName' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'pageToken' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -321,21 +320,16 @@ class Google_Service_Partners extends Google_Service
           )
         )
     );
-    $this->exams = new Google_Service_Partners_Resource_Exams(
+    $this->leads = new Google_Service_Partners_Resource_Leads(
         $this,
         $this->serviceName,
-        'exams',
+        'leads',
         array(
           'methods' => array(
-            'getToken' => array(
-              'path' => 'v2/exams/{examType}/token',
+            'list' => array(
+              'path' => 'v2/leads',
               'httpMethod' => 'GET',
               'parameters' => array(
-                'examType' => array(
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ),
                 'requestMetadata.userOverrides.ipAddress' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -344,6 +338,10 @@ class Google_Service_Partners extends Google_Service
                   'location' => 'query',
                   'type' => 'string',
                   'repeated' => true,
+                ),
+                'orderBy' => array(
+                  'location' => 'query',
+                  'type' => 'string',
                 ),
                 'requestMetadata.trafficSource.trafficSubId' => array(
                   'location' => 'query',
@@ -357,29 +355,6 @@ class Google_Service_Partners extends Google_Service
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'requestMetadata.trafficSource.trafficSourceId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.locale' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-              ),
-            ),
-          )
-        )
-    );
-    $this->leads = new Google_Service_Partners_Resource_Leads(
-        $this,
-        $this->serviceName,
-        'leads',
-        array(
-          'methods' => array(
-            'list' => array(
-              'path' => 'v2/leads',
-              'httpMethod' => 'GET',
-              'parameters' => array(
                 'pageToken' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -393,31 +368,6 @@ class Google_Service_Partners extends Google_Service
                   'type' => 'string',
                 ),
                 'requestMetadata.locale' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.userOverrides.ipAddress' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.experimentIds' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                  'repeated' => true,
-                ),
-                'requestMetadata.trafficSource.trafficSubId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'orderBy' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.partnersSessionId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.userOverrides.userId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -436,19 +386,6 @@ class Google_Service_Partners extends Google_Service
               'path' => 'v2/offers',
               'httpMethod' => 'GET',
               'parameters' => array(
-                'requestMetadata.userOverrides.ipAddress' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.experimentIds' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                  'repeated' => true,
-                ),
-                'requestMetadata.trafficSource.trafficSubId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
                 'requestMetadata.userOverrides.userId' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -462,6 +399,19 @@ class Google_Service_Partners extends Google_Service
                   'type' => 'string',
                 ),
                 'requestMetadata.locale' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.userOverrides.ipAddress' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.experimentIds' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                  'repeated' => true,
+                ),
+                'requestMetadata.trafficSource.trafficSubId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -480,14 +430,6 @@ class Google_Service_Partners extends Google_Service
               'path' => 'v2/offers/history',
               'httpMethod' => 'GET',
               'parameters' => array(
-                'pageToken' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'pageSize' => array(
-                  'location' => 'query',
-                  'type' => 'integer',
-                ),
                 'requestMetadata.trafficSource.trafficSourceId' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -500,14 +442,14 @@ class Google_Service_Partners extends Google_Service
                   'location' => 'query',
                   'type' => 'string',
                 ),
+                'entireCompany' => array(
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ),
                 'requestMetadata.experimentIds' => array(
                   'location' => 'query',
                   'type' => 'string',
                   'repeated' => true,
-                ),
-                'entireCompany' => array(
-                  'location' => 'query',
-                  'type' => 'boolean',
                 ),
                 'orderBy' => array(
                   'location' => 'query',
@@ -524,6 +466,14 @@ class Google_Service_Partners extends Google_Service
                 'requestMetadata.partnersSessionId' => array(
                   'location' => 'query',
                   'type' => 'string',
+                ),
+                'pageToken' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'pageSize' => array(
+                  'location' => 'query',
+                  'type' => 'integer',
                 ),
               ),
             ),
@@ -603,14 +553,6 @@ class Google_Service_Partners extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
-                'requestMetadata.userOverrides.userId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.partnersSessionId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
                 'requestMetadata.trafficSource.trafficSourceId' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -629,6 +571,14 @@ class Google_Service_Partners extends Google_Service
                   'repeated' => true,
                 ),
                 'requestMetadata.trafficSource.trafficSubId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.partnersSessionId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.userOverrides.userId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -642,15 +592,11 @@ class Google_Service_Partners extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
-                'requestMetadata.trafficSource.trafficSubId' => array(
+                'requestMetadata.partnersSessionId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
                 'requestMetadata.userOverrides.userId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.partnersSessionId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -670,6 +616,10 @@ class Google_Service_Partners extends Google_Service
                   'location' => 'query',
                   'type' => 'string',
                   'repeated' => true,
+                ),
+                'requestMetadata.trafficSource.trafficSubId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
                 ),
               ),
             ),'get' => array(
@@ -681,6 +631,31 @@ class Google_Service_Partners extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
+                'requestMetadata.locale' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.userOverrides.ipAddress' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.experimentIds' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                  'repeated' => true,
+                ),
+                'requestMetadata.trafficSource.trafficSubId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.userOverrides.userId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.partnersSessionId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
                 'userView' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -689,54 +664,16 @@ class Google_Service_Partners extends Google_Service
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'requestMetadata.locale' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.userOverrides.ipAddress' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.experimentIds' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                  'repeated' => true,
-                ),
-                'requestMetadata.trafficSource.trafficSubId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.partnersSessionId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.userOverrides.userId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
               ),
             ),'updateProfile' => array(
               'path' => 'v2/users/profile',
               'httpMethod' => 'PATCH',
               'parameters' => array(
-                'requestMetadata.userOverrides.ipAddress' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.experimentIds' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                  'repeated' => true,
-                ),
-                'requestMetadata.trafficSource.trafficSubId' => array(
+                'requestMetadata.userOverrides.userId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
                 'requestMetadata.partnersSessionId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.userOverrides.userId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -745,6 +682,19 @@ class Google_Service_Partners extends Google_Service
                   'type' => 'string',
                 ),
                 'requestMetadata.locale' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.userOverrides.ipAddress' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.experimentIds' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                  'repeated' => true,
+                ),
+                'requestMetadata.trafficSource.trafficSubId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -763,15 +713,11 @@ class Google_Service_Partners extends Google_Service
               'path' => 'v2/partnersstatus',
               'httpMethod' => 'GET',
               'parameters' => array(
-                'requestMetadata.trafficSource.trafficSubId' => array(
+                'requestMetadata.userOverrides.userId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
                 'requestMetadata.partnersSessionId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.userOverrides.userId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -792,11 +738,31 @@ class Google_Service_Partners extends Google_Service
                   'type' => 'string',
                   'repeated' => true,
                 ),
+                'requestMetadata.trafficSource.trafficSubId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
               ),
             ),'updateCompanies' => array(
               'path' => 'v2/companies',
               'httpMethod' => 'PATCH',
               'parameters' => array(
+                'requestMetadata.userOverrides.userId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.partnersSessionId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.trafficSource.trafficSourceId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'requestMetadata.locale' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
                 'requestMetadata.userOverrides.ipAddress' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -811,22 +777,6 @@ class Google_Service_Partners extends Google_Service
                   'repeated' => true,
                 ),
                 'requestMetadata.trafficSource.trafficSubId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.partnersSessionId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.userOverrides.userId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.trafficSource.trafficSourceId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'requestMetadata.locale' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -860,11 +810,11 @@ class Google_Service_Partners extends Google_Service
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'requestMetadata.partnersSessionId' => array(
+                'requestMetadata.userOverrides.userId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'requestMetadata.userOverrides.userId' => array(
+                'requestMetadata.partnersSessionId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),

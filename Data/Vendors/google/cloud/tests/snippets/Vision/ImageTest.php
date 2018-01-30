@@ -17,8 +17,8 @@
 
 namespace Google\Cloud\Tests\Snippets\Vision;
 
+use Google\Cloud\Core\ServiceBuilder;
 use Google\Cloud\Dev\Snippet\SnippetTestCase;
-use Google\Cloud\ServiceBuilder;
 use Google\Cloud\Vision\Image;
 
 /**
@@ -26,10 +26,13 @@ use Google\Cloud\Vision\Image;
  */
 class ImageTest extends SnippetTestCase
 {
-    public function testImageFromServiceBuilder()
+    public function testImage()
     {
         $snippet = $this->snippetFromClass(Image::class, 'default');
-        $snippet->setLine(6, '$imageResource = fopen(\'php://temp\', \'r\');');
+        $snippet->replace(
+            "__DIR__ . '/assets/family-photo.jpg'",
+            "'php://temp'"
+        );
 
         $res = $snippet->invoke('image');
         $this->assertInstanceOf(Image::class, $res->returnVal());
@@ -38,7 +41,10 @@ class ImageTest extends SnippetTestCase
     public function testDirectInstantiation()
     {
         $snippet = $this->snippetFromClass(Image::class, 'direct');
-        $snippet->setLine(4, '$imageResource = fopen(\'php://temp\', \'r\');');
+        $snippet->replace(
+            "__DIR__ . '/assets/family-photo.jpg'",
+            "'php://temp'"
+        );
 
         $res = $snippet->invoke('image');
         $this->assertInstanceOf(Image::class, $res->returnVal());
@@ -76,7 +82,10 @@ class ImageTest extends SnippetTestCase
     public function testFeatureShortcuts()
     {
         $snippet = $this->snippetFromClass(Image::class, 'shortcut');
-        $snippet->setLine(5, '$imageResource = fopen(\'php://temp\', \'r\');');
+        $snippet->replace(
+            "__DIR__ . '/assets/family-photo.jpg'",
+            "'php://temp'"
+        );
 
         $res = $snippet->invoke('image');
         $this->assertInstanceOf(Image::class, $res->returnVal());
@@ -85,10 +94,13 @@ class ImageTest extends SnippetTestCase
     public function testRequestObject()
     {
         $snippet = $this->snippetFromMethod(Image::class, 'requestObject');
-        $snippet->setLine(2, '$imageResource = fopen(\'php://temp\', \'r\');');
+        $snippet->replace(
+            "__DIR__ . '/assets/family-photo.jpg'",
+            "'php://temp'"
+        );
 
         $res = $snippet->invoke('requestObj');
-        $this->assertTrue(array_key_exists('image', $res->returnVal()));
-        $this->assertTrue(array_key_exists('features', $res->returnVal()));
+        $this->assertArrayHasKey('image', $res->returnVal());
+        $this->assertArrayHasKey('features', $res->returnVal());
     }
 }

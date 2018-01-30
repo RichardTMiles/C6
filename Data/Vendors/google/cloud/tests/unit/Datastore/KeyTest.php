@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\Datastore;
+namespace Google\Cloud\Tests\Unit\Datastore;
 
 use Google\Cloud\Datastore\Key;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group datastore
  */
-class KeyTest extends \PHPUnit_Framework_TestCase
+class KeyTest extends TestCase
 {
     public function testWithInitialPath()
     {
@@ -55,7 +56,7 @@ class KeyTest extends \PHPUnit_Framework_TestCase
 
         $key->pathElement('foo', 'bar');
 
-        $this->assertEquals(1, count($key->keyObject()['path']));
+        $this->assertCount(1, $key->keyObject()['path']);
         $this->assertEquals(['kind' => 'foo', 'name' => 'bar'], $key->keyObject()['path'][0]);
     }
 

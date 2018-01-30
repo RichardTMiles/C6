@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\PubSub;
+namespace Google\Cloud\Tests\Unit\PubSub;
 
 use Google\Cloud\PubSub\Message;
 use Google\Cloud\PubSub\Subscription;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group pubsub
  */
-class MessageTest extends \PHPUnit_Framework_TestCase
+class MessageTest extends TestCase
 {
     private $message;
 
@@ -87,8 +88,8 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 
     public function testInfo()
     {
-        $this->assertTrue(is_array($this->message->info()));
-        $this->assertTrue(is_array($this->message->info()['message']));
+        $this->assertInternalType('array', $this->message->info());
+        $this->assertInternalType('array', $this->message->info()['message']);
         $this->assertInstanceOf(Subscription::class, $this->message->info()['subscription']);
         $this->assertEquals(1234, $this->message->info()['ackId']);
     }

@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\BigQuery;
+namespace Google\Cloud\Tests\Unit\BigQuery;
 
 use Google\Cloud\BigQuery\Bytes;
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group bigquery
  */
-class BytesTest extends \PHPUnit_Framework_TestCase
+class BytesTest extends TestCase
 {
     public $value = '1234';
 

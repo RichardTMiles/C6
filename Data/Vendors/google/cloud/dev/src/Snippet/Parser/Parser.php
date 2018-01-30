@@ -137,14 +137,16 @@ class Parser
             $methods = $this->buildMagicMethods($magicMethods, $class->getName());
 
             foreach ($methods as $method) {
-                $res = current($this->examples(
+                $magicExamples = $this->examples(
                     $method['doc'],
                     $class->getName() .'::'. $method['name'],
                     $class->getFileName(),
                     $class->getStartLine()
-                ));
+                );
 
-                $magic[$res->identifier()] = $res;
+                foreach ($magicExamples as $ex) {
+                    $magic[$ex->identifier()] = $ex;
+                }
             }
         }
 
@@ -174,6 +176,10 @@ class Parser
     {
         if (!($method instanceof ReflectionMethod)) {
             $method = new ReflectionMethod($class, $method);
+        }
+
+        if (!$method->isPublic()) {
+            return [];
         }
 
         $doc = new DocBlock($method);

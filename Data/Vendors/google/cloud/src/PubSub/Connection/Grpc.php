@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2016 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,20 @@
 
 namespace Google\Cloud\PubSub\Connection;
 
-use DrSlump\Protobuf\Codec\CodecInterface;
-use Google\Cloud\EmulatorTrait;
-use Google\Cloud\PhpArray;
+use Google\Cloud\Core\EmulatorTrait;
+use Google\Cloud\Core\GrpcRequestWrapper;
+use Google\Cloud\Core\GrpcTrait;
+use Google\Cloud\PubSub\PubSubClient;
 use Google\Cloud\PubSub\V1\PublisherClient;
 use Google\Cloud\PubSub\V1\SubscriberClient;
-use Google\Cloud\GrpcRequestWrapper;
-use Google\Cloud\GrpcTrait;
+use Google\ApiCore\Serializer;
+use Google\Cloud\Iam\V1\Policy;
+use Google\Protobuf\FieldMask;
+use Google\Protobuf\Timestamp;
+use Google\Cloud\PubSub\V1\PubsubMessage;
+use Google\Cloud\PubSub\V1\PushConfig;
+use Google\Cloud\PubSub\V1\Subscription;
 use Grpc\ChannelCredentials;
-use google\iam\v1\Policy;
-use google\pubsub\v1\PubsubMessage;
-use google\pubsub\v1\PushConfig;
 
 /**
  * Implementation of the
@@ -51,25 +54,37 @@ class Grpc implements ConnectionInterface
     private $subscriberClient;
 
     /**
-     * @var CodecInterface
+     * @var Serializer
      */
-    private $codec;
+    private $serializer;
 
     /**
      * @param array $config
      */
     public function __construct(array $config = [])
     {
-        $this->codec = new PhpArray(['publishTime' => function ($v) {
-            return $this->formatTimestampFromApi($v);
-        }]);
-        $config['codec'] = $this->codec;
-        $this->setRequestWrapper(new GrpcRequestWrapper($config));
-        $grpcConfig = $this->getGaxConfig();
-        $emulatorHost = getenv('PUBSUB_EMULATOR_HOST');
-        $baseUri = $this->getEmulatorBaseUri(self::BASE_URI, $emulatorHost);
+        $this->serializer = new Serializer([
+            'publish_time' => function ($v) {
+                return $this->formatTimestampFromApi($v);
+            },
+            'expiration_time' => function ($v) {
+                return $this->formatTimestampFromApi($v);
+            }
+        ]);
 
-        if ($emulatorHost) {
+        $config['serializer'] = $this->serializer;
+        $this->setRequestWrapper(new GrpcRequestWrapper($config));
+        $grpcConfig = $this->getGaxConfig(
+            PubSubClient::VERSION,
+            isset($config['authHttpHandler'])
+                ? $config['authHttpHandler']
+                : null
+        );
+
+        $config += ['emulatorHost' => null];
+        $baseUri = self::BASE_URI;
+        if ((bool) $config['emulatorHost']) {
+            $baseUri = $this->emulatorBaseUri($config['emulatorHost']);
             $grpcConfig += [
                 'serviceAddress' => parse_url($baseUri, PHP_URL_HOST),
                 'port' => parse_url($baseUri, PHP_URL_PORT),
@@ -174,6 +189,28 @@ class Grpc implements ConnectionInterface
     /**
      * @param array $args
      */
+    public function updateSubscription(array $args)
+    {
+        // Get a list of keys used before building subscription, which modifies $args
+        $mask = array_keys($args);
+
+        // Remove immutable properties.
+        $mask = array_values(array_diff($mask, ['name', 'topic']));
+
+        $fieldMask = $this->serializer->decodeMessage(new FieldMask(), ['paths' => $mask]);
+
+        $subscriptionObject = $this->buildSubscription($args);
+
+        return $this->send([$this->subscriberClient, 'updateSubscription'], [
+            $subscriptionObject,
+            $fieldMask,
+            $args
+        ]);
+    }
+
+    /**
+     * @param array $args
+     */
     public function getSubscription(array $args)
     {
         return $this->send([$this->subscriberClient, 'getSubscription'], [
@@ -256,6 +293,60 @@ class Grpc implements ConnectionInterface
     /**
      * @param array $args
      */
+    public function listSnapshots(array $args)
+    {
+        $whitelisted = true;
+        return $this->send([$this->subscriberClient, 'listSnapshots'], [
+            $this->pluck('project', $args),
+            $args
+        ], $whitelisted);
+    }
+
+    /**
+     * @param array $args
+     */
+    public function createSnapshot(array $args)
+    {
+        $whitelisted = true;
+        return $this->send([$this->subscriberClient, 'createSnapshot'], [
+            $this->pluck('name', $args),
+            $this->pluck('subscription', $args),
+            $args
+        ], $whitelisted);
+    }
+
+    /**
+     * @param array $args
+     */
+    public function deleteSnapshot(array $args)
+    {
+        $whitelisted = true;
+        return $this->send([$this->subscriberClient, 'deleteSnapshot'], [
+            $this->pluck('snapshot', $args),
+            $args
+        ], $whitelisted);
+    }
+
+    /**
+     * @param array $args
+     */
+    public function seek(array $args)
+    {
+        if (isset($args['time'])) {
+            $time = $this->formatTimestampForApi($args['time']);
+            $args['time'] = $this->serializer->decodeMessage(new Timestamp(), $time);
+        }
+
+        $whitelisted = true;
+        return $this->send([$this->subscriberClient, 'seek'], [
+            $this->pluck('subscription', $args),
+            $args
+        ], $whitelisted);
+    }
+
+    /**
+     * @param array $args
+     */
     public function getTopicIamPolicy(array $args)
     {
         return $this->send([$this->publisherClient, 'getIamPolicy'], [
@@ -329,11 +420,7 @@ class Grpc implements ConnectionInterface
      */
     private function buildMessage(array $message)
     {
-        if (isset($message['attributes'])) {
-            $message['attributes'] = $this->formatLabelsForApi($message['attributes']);
-        }
-
-        return (new PubsubMessage())->deserialize($message, $this->codec);
+        return $this->serializer->decodeMessage(new PubsubMessage(), $message);
     }
 
     /**
@@ -342,7 +429,7 @@ class Grpc implements ConnectionInterface
      */
     private function buildPolicy(array $policy)
     {
-        return (new Policy())->deserialize($policy, $this->codec);
+        return $this->serializer->decodeMessage(new Policy(), $policy);
     }
 
     /**
@@ -351,10 +438,30 @@ class Grpc implements ConnectionInterface
      */
     private function buildPushConfig(array $pushConfig)
     {
-        if (isset($pushConfig['attributes'])) {
-            $pushConfig['attributes'] = $this->formatLabelsForApi($pushConfig['attributes']);
-        }
+        return $this->serializer->decodeMessage(new PushConfig(), $pushConfig);
+    }
 
-        return (new PushConfig())->deserialize($pushConfig, $this->codec);
+    /**
+     * Create a Subscription proto message from an array of arguments.
+     *
+     * @param array $args
+     * @param bool $required
+     * @return Subscription
+     */
+    private function buildSubscription(array &$args, $required = false)
+    {
+        $pushConfig = $this->pluck('pushConfig', $args, $required);
+        $pushConfig = $pushConfig
+            ? $this->buildPushConfig($pushConfig)
+            : null;
+
+        return $this->serializer->decodeMessage(new Subscription(), array_filter([
+            'name' => $this->pluck('name', $args, $required),
+            'topic' => $this->pluck('topic', $args, $required),
+            'pushConfig' => $pushConfig,
+            'ackDeadlineSeconds' => $this->pluck('ackDeadlineSeconds', $args, $required),
+            'retainAckedMessages' => $this->pluck('retainAckedMessages', $args, $required),
+            'messageRetentionDuration' => $this->pluck('messageRetentionDuration', $args, $required),
+        ]));
     }
 }

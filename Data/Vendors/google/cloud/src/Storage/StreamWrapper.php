@@ -17,8 +17,8 @@
 
 namespace Google\Cloud\Storage;
 
-use Google\Cloud\Exception\NotFoundException;
-use Google\Cloud\Exception\ServiceException;
+use Google\Cloud\Core\Exception\NotFoundException;
+use Google\Cloud\Core\Exception\ServiceException;
 use Google\Cloud\Storage\Bucket;
 use GuzzleHttp\Psr7\CachingStream;
 use GuzzleHttp\Psr7;
@@ -71,9 +71,14 @@ class StreamWrapper
     private static $clients = [];
 
     /**
-     * @var \Generator Used for iterating through a directory
+     * @var ObjectsItemIterator Used for iterating through a directory
      */
-    private $directoryGenerator;
+    private $directoryIterator;
+
+    /**
+     * @var StorageObject
+     */
+    private $object;
 
     /**
      * Ensure we close the stream when this StreamWrapper is destroyed.
@@ -166,7 +171,7 @@ class StreamWrapper
         } elseif ($mode == 'r') {
             try {
                 // Lazy read from the source
-                $options['httpOptions']['stream'] = true;
+                $options['restOptions']['stream'] = true;
                 $this->stream = new ReadStream(
                     $this->bucket->object($this->file)->downloadAsStream($options)
                 );
@@ -305,13 +310,13 @@ class StreamWrapper
      */
     public function dir_readdir()
     {
-        $object = $this->directoryGenerator->current();
+        $object = $this->directoryIterator->current();
         if ($object) {
-            $this->directoryGenerator->next();
+            $this->directoryIterator->next();
             return $object->name();
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     /**
@@ -322,7 +327,7 @@ class StreamWrapper
     public function dir_rewinddir()
     {
         try {
-            $this->directoryGenerator = $this->bucket->objects([
+            $this->directoryIterator = $this->bucket->objects([
                 'prefix' => $this->file,
                 'fields' => 'items/name,nextPageToken'
             ]);
@@ -381,12 +386,16 @@ class StreamWrapper
      */
     public function rename($from, $to)
     {
-        $url = parse_url($to);
+        $url = (array) parse_url($to) + [
+            'path' => '',
+            'host' => ''
+        ];
+
         $destinationBucket = $url['host'];
         $destinationPath = substr($url['path'], 1);
 
         $this->dir_opendir($from, []);
-        foreach ($this->directoryGenerator as $file) {
+        foreach ($this->directoryIterator as $file) {
             $name = $file->name();
             $newPath = str_replace($this->file, $destinationPath, $name);
 
@@ -474,9 +483,9 @@ class StreamWrapper
         // if directory
         if ($this->isDirectory($this->file)) {
             return $this->urlStatDirectory();
-        } else {
-            return $this->urlStatFile();
         }
+
+        return $this->urlStatFile();
     }
 
     /**
@@ -487,7 +496,11 @@ class StreamWrapper
      */
     private function openPath($path)
     {
-        $url = parse_url($path);
+        $url = (array) parse_url($path) + [
+            'scheme' => '',
+            'path' => '',
+            'host' => ''
+        ];
         $this->protocol = $url['scheme'];
         $this->file = ltrim($url['path'], '/');
         $client = self::getClient($this->protocol);
@@ -505,9 +518,9 @@ class StreamWrapper
     {
         if (substr($path, -1) == '/') {
             return $path;
-        } else {
-            return $path . '/';
         }
+
+        return $path . '/';
     }
 
     /**
@@ -674,9 +687,9 @@ class StreamWrapper
         } elseif ($mode & 0040) {
             // If any group user can read, assume it should be projectPrivate.
             return 'projectPrivate';
-        } else {
-            // Otherwise, assume only the project/bucket owner can use the bucket.
-            return 'private';
         }
+
+        // Otherwise, assume only the project/bucket owner can use the bucket.
+        return 'private';
     }
 }

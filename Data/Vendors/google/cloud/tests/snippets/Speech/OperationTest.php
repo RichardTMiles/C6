@@ -20,6 +20,7 @@ namespace Google\Cloud\Tests\Snippets\Speech;
 use Google\Cloud\Dev\Snippet\SnippetTestCase;
 use Google\Cloud\Speech\Connection\ConnectionInterface;
 use Google\Cloud\Speech\Operation;
+use Google\Cloud\Speech\Result;
 use Google\Cloud\Speech\SpeechClient;
 use Prophecy\Argument;
 
@@ -47,27 +48,34 @@ class OperationTest extends SnippetTestCase
         ];
 
         $this->connection = $this->prophesize(ConnectionInterface::class);
-        $this->operation = new \SpeechOperationStub($this->connection->reveal(), $this->opData['name'], $this->opData);
+        $this->operation = \Google\Cloud\Dev\stub(Operation::class, [
+            $this->connection->reveal(),
+            $this->opData['name'],
+            $this->opData
+        ]);
     }
 
-    // /**
-    //  * @expectedException InvalidArgumentException
-    //  */
-    // public function testClass()
-    // {
-    //     $snippet = $this->snippetFromClass(Operation::class);
+    public function testClass()
+    {
+        $snippet = $this->snippetFromClass(Operation::class);
 
-    //     $connectionStub = $this->prophesize(ConnectionInterface::class);
+        $connectionStub = $this->prophesize(ConnectionInterface::class);
 
-    //     $connectionStub->asyncRecognize(Argument::any())
-    //         ->willReturn(['name' => 'foo']);
+        $connectionStub->longRunningRecognize(Argument::any())
+            ->willReturn(['name' => 'foo']);
 
-    //     $snippet->addLocal('connectionStub', $connectionStub->reveal());
+        $snippet->addLocal('connectionStub', $connectionStub->reveal());
+        $snippet->insertAfterLine(4, '$reflection = new \ReflectionClass($speech);
+            $property = $reflection->getProperty(\'connection\');
+            $property->setAccessible(true);
+            $property->setValue($speech, $connectionStub);
+            $property->setAccessible(false);'
+        );
 
-    //     $snippet->setLine(5, '$audioFileStream = fopen(\'php://temp\', \'r\');');
+        $snippet->replace("__DIR__  . '/audio.flac'", '"php://temp"');
 
-    //     $res = $snippet->invoke('operation');
-    // }
+        $res = $snippet->invoke('operation');
+    }
 
     public function testIsComplete()
     {
@@ -84,7 +92,7 @@ class OperationTest extends SnippetTestCase
         $snippet->addLocal('operation', $this->operation);
 
         $res = $snippet->invoke('results');
-        $this->assertEquals($this->opData['response']['results'][0]['alternatives'], $res->returnVal());
+        $this->assertContainsOnlyInstancesOf(Result::class, $res->returnVal());
     }
 
     public function testExists()
@@ -114,7 +122,7 @@ class OperationTest extends SnippetTestCase
             ->shouldBeCalled()
             ->willReturn($this->opData);
 
-        $this->operation->setConnection($this->connection->reveal());
+        $this->operation->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
         $this->assertEquals(print_r($this->opData['response'], true), $res->output());

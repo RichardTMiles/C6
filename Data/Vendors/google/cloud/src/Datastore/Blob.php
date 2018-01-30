@@ -17,6 +17,7 @@
 
 namespace Google\Cloud\Datastore;
 
+use Google\Cloud\Core\Blob as CoreBlob;
 use GuzzleHttp\Psr7;
 use Psr\Http\Message\StreamInterface;
 
@@ -27,10 +28,9 @@ use Psr\Http\Message\StreamInterface;
  *
  * Example:
  * ```
- * use Google\Cloud\ServiceBuilder;
+ * use Google\Cloud\Datastore\DatastoreClient;
  *
- * $cloud = new ServiceBuilder();
- * $datastore = $cloud->datastore();
+ * $datastore = new DatastoreClient();
  *
  * $blob = $datastore->blob(file_get_contents(__DIR__ .'/family-photo.jpg'));
  * ```
@@ -41,46 +41,7 @@ use Psr\Http\Message\StreamInterface;
  * echo (string) $blob;
  * ```
  */
-class Blob
+class Blob extends CoreBlob
 {
-    /**
-     * @var mixed
-     */
-    private $value;
 
-    /**
-     * Create a blob
-     *
-     * @param string|resource|StreamInterface $value The blob value
-     */
-    public function __construct($value)
-    {
-        $this->value = Psr7\stream_for($value);
-    }
-
-    /**
-     * Get the blob contents as a stream
-     *
-     * Example:
-     * ```
-     * $value = $blob->get();
-     * ```
-     *
-     * @return StreamInterface
-     */
-    public function get()
-    {
-        return $this->value;
-    }
-
-    /**
-     * Cast the blob to a string
-     *
-     * @access private
-     * @return string
-     */
-    public function __toString()
-    {
-        return (string) $this->value;
-    }
 }

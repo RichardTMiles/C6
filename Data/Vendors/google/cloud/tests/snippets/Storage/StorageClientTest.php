@@ -17,9 +17,13 @@
 
 namespace Google\Cloud\Tests\Snippets\Storage;
 
+use Google\Cloud\Core\Iterator\ItemIterator;
+use Google\Cloud\Core\RequestWrapper;
+use Google\Cloud\Core\Timestamp;
+use Google\Cloud\Core\Upload\SignedUrlUploader;
 use Google\Cloud\Dev\Snippet\SnippetTestCase;
 use Google\Cloud\Storage\Bucket;
-use Google\Cloud\Storage\Connection\ConnectionInterface;
+use Google\Cloud\Storage\Connection\Rest;
 use Google\Cloud\Storage\StorageClient;
 use Prophecy\Argument;
 
@@ -29,27 +33,23 @@ use Prophecy\Argument;
 class StorageClientTest extends SnippetTestCase
 {
     const BUCKET = 'my-bucket';
+    const PROJECT_ID = 'my-project';
 
     private $connection;
     private $client;
 
     public function setUp()
     {
-        $this->connection = $this->prophesize(ConnectionInterface::class);
-        $this->client = new \StorageClientStub;
-        $this->client->setConnection($this->connection->reveal());
+        $this->connection = $this->prophesize(Rest::class);
+        $this->connection->projectId()
+            ->willReturn(self::PROJECT_ID);
+        $this->client = \Google\Cloud\Dev\stub(StorageClient::class);
+        $this->client->___setProperty('connection', $this->connection->reveal());
     }
 
     public function testClass()
     {
         $snippet = $this->snippetFromClass(StorageClient::class);
-        $res = $snippet->invoke('storage');
-        $this->assertInstanceOf(StorageClient::class, $res->returnVal());
-    }
-
-    public function testClassDirectInstantiation()
-    {
-        $snippet = $this->snippetFromClass(StorageClient::class, 1);
         $res = $snippet->invoke('storage');
         $this->assertInstanceOf(StorageClient::class, $res->returnVal());
     }
@@ -77,10 +77,10 @@ class StorageClientTest extends SnippetTestCase
                 ]
             ]);
 
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('buckets');
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
 
         $buckets = iterator_to_array($res->returnVal());
         $this->assertEquals('album 1', $buckets[0]->name());
@@ -101,10 +101,10 @@ class StorageClientTest extends SnippetTestCase
                 ]
             ]);
 
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('buckets');
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
         $this->assertEquals('album 1', explode("\n", $res->output())[0]);
         $this->assertEquals('album 2', explode("\n", $res->output())[1]);
     }
@@ -118,9 +118,47 @@ class StorageClientTest extends SnippetTestCase
             ->shouldBeCalled()
             ->willReturn([]);
 
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('bucket');
         $this->assertInstanceOf(Bucket::class, $res->returnVal());
+    }
+
+    public function testCreateBucketWithLogging()
+    {
+        $snippet = $this->snippetFromMethod(StorageClient::class, 'createBucket', 1);
+        $snippet->addLocal('storage', $this->client);
+
+        $this->connection->insertBucket(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->client->___setProperty('connection', $this->connection->reveal());
+
+        $res = $snippet->invoke('bucket');
+        $this->assertInstanceOf(Bucket::class, $res->returnVal());
+    }
+
+    public function testSignedUrlUploader()
+    {
+        $rw = $this->prophesize(RequestWrapper::class);
+        $this->connection->requestWrapper()->willReturn($rw->reveal());
+
+        $snippet = $this->snippetFromMethod(StorageClient::class, 'signedUrlUploader');
+        $snippet->addLocal('storage', $this->client);
+        $snippet->addLocal('uri', 'test');
+        $snippet->replace('/path/to/myfile.doc', 'php://temp');
+
+        $res = $snippet->invoke('uploader');
+        $this->assertInstanceOf(SignedUrlUploader::class, $res->returnVal());
+    }
+
+    public function testTimestamp()
+    {
+        $snippet = $this->snippetFromMethod(StorageClient::class, 'timestamp');
+        $snippet->addLocal('storage', $this->client);
+
+        $res = $snippet->invoke('timestamp');
+        $this->assertInstanceOf(Timestamp::class, $res->returnVal());
     }
 }

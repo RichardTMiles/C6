@@ -15,21 +15,26 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\Logging;
+namespace Google\Cloud\Tests\Unit\Logging;
 
+use Google\Cloud\Logging\Connection\Grpc;
 use Google\Cloud\Logging\Logger;
 use Google\Cloud\Logging\LoggingClient;
 use Google\Cloud\Logging\Metric;
 use Google\Cloud\Logging\PsrLogger;
 use Google\Cloud\Logging\Sink;
 use Google\Cloud\Logging\Connection\ConnectionInterface;
+use Google\Cloud\Tests\GrpcTestTrait;
 use Prophecy\Argument;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group logging
  */
-class LoggingClientTest extends \PHPUnit_Framework_TestCase
+class LoggingClientTest extends TestCase
 {
+    use GrpcTestTrait;
+
     public $connection;
     public $formattedProjectId;
     public $sinkName = 'mySink';
@@ -43,6 +48,35 @@ class LoggingClientTest extends \PHPUnit_Framework_TestCase
         $this->formattedProjectId = "projects/$this->projectId";
         $this->connection = $this->prophesize(ConnectionInterface::class);
         $this->client = new LoggingTestClient(['projectId' => $this->projectId]);
+    }
+
+    public function testUsesGrpcConnectionByDefault()
+    {
+        $this->checkAndSkipGrpcTests();
+        $client = new LoggingTestClient(['projectId' => 'project']);
+
+        $this->assertInstanceOf(Grpc::class, $client->getConnection());
+    }
+
+    public function testPsrBatchLogger()
+    {
+        $psrBatchLogger = LoggingClient::psrBatchLogger('app');
+        $this->assertInstanceOf(PsrLogger::class, $psrBatchLogger);
+        $r = new \ReflectionObject($psrBatchLogger);
+        $p = $r->getProperty('batchEnabled');
+        $p->setAccessible(true);
+        $this->assertTrue($p->getValue($psrBatchLogger));
+        $psrBatchLogger = LoggingClient::psrBatchLogger(
+            'app',
+            ['clientConfig' => ['projectId' => 'my-project']]);
+        $this->assertInstanceOf(PsrLogger::class, $psrBatchLogger);
+        $r = new \ReflectionObject($psrBatchLogger);
+        $p = $r->getProperty('clientConfig');
+        $p->setAccessible(true);
+        $this->assertEquals(
+            ['projectId' => 'my-project'],
+            $p->getValue($psrBatchLogger)
+        );
     }
 
     public function testCreatesSink()
@@ -208,7 +242,6 @@ class LoggingClientTest extends \PHPUnit_Framework_TestCase
     {
         $secondProjectId = 'secondProjectId';
         $this->connection->listEntries([
-            'pageToken' => null,
             'resourceNames' => [
                 'projects/' . $this->projectId,
                 'projects/' . $secondProjectId
@@ -281,5 +314,10 @@ class LoggingTestClient extends LoggingClient
     public function setConnection($connection)
     {
         $this->connection = $connection;
+    }
+
+    public function getConnection()
+    {
+        return $this->connection;
     }
 }

@@ -24,6 +24,7 @@ use Google\Cloud\Logging\LoggingClient;
 use Google\Cloud\Logging\Metric;
 use Google\Cloud\Logging\PsrLogger;
 use Google\Cloud\Logging\Sink;
+use Google\Cloud\Core\Iterator\ItemIterator;
 use Prophecy\Argument;
 
 /**
@@ -37,21 +38,13 @@ class LoggingClientTest extends SnippetTestCase
     public function setUp()
     {
         $this->connection = $this->prophesize(ConnectionInterface::class);
-        $this->client = new \LoggingClientStub;
-        $this->client->setConnection($this->connection->reveal());
+        $this->client = \Google\Cloud\Dev\stub(LoggingClient::class);
+        $this->client->___setProperty('connection', $this->connection->reveal());
     }
 
     public function testClass()
     {
         $snippet = $this->snippetFromClass(LoggingClient::class);
-        $res = $snippet->invoke('logging');
-
-        $this->assertInstanceOf(LoggingClient::class, $res->returnVal());
-    }
-
-    public function testClassDirectInstantiation()
-    {
-        $snippet = $this->snippetFromClass(LoggingClient::class, 1);
         $res = $snippet->invoke('logging');
 
         $this->assertInstanceOf(LoggingClient::class, $res->returnVal());
@@ -93,10 +86,10 @@ class LoggingClientTest extends SnippetTestCase
                 ]
             ]);
 
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('sinks');
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
         $this->assertEquals('Sink 1', explode(PHP_EOL, $res->output())[0]);
         $this->assertEquals('Sink 2', explode(PHP_EOL, $res->output())[1]);
     }
@@ -110,7 +103,7 @@ class LoggingClientTest extends SnippetTestCase
             ->shouldBeCalled()
             ->willReturn([]);
 
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('metric');
         $this->assertInstanceOf(Metric::class, $res->returnVal());
@@ -139,10 +132,10 @@ class LoggingClientTest extends SnippetTestCase
                 ]
             ]);
 
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('metrics');
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
         $this->assertEquals('Metric 1', explode(PHP_EOL, $res->output())[0]);
         $this->assertEquals('Metric 2', explode(PHP_EOL, $res->output())[1]);
     }
@@ -161,10 +154,10 @@ class LoggingClientTest extends SnippetTestCase
                 ]
             ]);
 
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('entries');
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
         $this->assertEquals('Entry 1', explode(PHP_EOL, $res->output())[0]);
         $this->assertEquals('Entry 2', explode(PHP_EOL, $res->output())[1]);
     }
@@ -175,8 +168,7 @@ class LoggingClientTest extends SnippetTestCase
         $snippet->addLocal('logging', $this->client);
 
         $this->connection->listEntries(Argument::that(function ($arg) {
-            if (strpos($arg['filter'], 'logName') === false) return false;
-            return true;
+            return strpos($arg['filter'], 'logName') !== false;
         }))
             ->shouldBeCalled()
             ->willReturn([
@@ -186,10 +178,10 @@ class LoggingClientTest extends SnippetTestCase
                 ]
             ]);
 
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('entries');
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
         $this->assertEquals('Entry 1', explode(PHP_EOL, $res->output())[0]);
         $this->assertEquals('Entry 2', explode(PHP_EOL, $res->output())[1]);
     }
@@ -197,6 +189,19 @@ class LoggingClientTest extends SnippetTestCase
     public function testPsrLogger()
     {
         $snippet = $this->snippetFromMethod(LoggingClient::class, 'psrLogger');
+        $snippet->addLocal('logging', $this->client);
+
+        $res = $snippet->invoke('psrLogger');
+        $this->assertInstanceOf(PsrLogger::class, $res->returnVal());
+    }
+
+    public function testPsrBatchLogger()
+    {
+        $snippet = $this->snippetFromMethod(
+            LoggingClient::class,
+            'psrLogger',
+            1
+        );
         $snippet->addLocal('logging', $this->client);
 
         $res = $snippet->invoke('psrLogger');

@@ -17,14 +17,15 @@
 
 namespace Google\Cloud\BigQuery\Connection;
 
+use Google\Cloud\BigQuery\BigQueryClient;
 use Google\Cloud\BigQuery\Connection\ConnectionInterface;
-use Google\Cloud\RequestBuilder;
-use Google\Cloud\RequestWrapper;
-use Google\Cloud\RestTrait;
-use Google\Cloud\Upload\AbstractUploader;
-use Google\Cloud\Upload\MultipartUploader;
-use Google\Cloud\Upload\ResumableUploader;
-use Google\Cloud\UriTrait;
+use Google\Cloud\Core\RequestBuilder;
+use Google\Cloud\Core\RequestWrapper;
+use Google\Cloud\Core\RestTrait;
+use Google\Cloud\Core\Upload\AbstractUploader;
+use Google\Cloud\Core\Upload\MultipartUploader;
+use Google\Cloud\Core\Upload\ResumableUploader;
+use Google\Cloud\Core\UriTrait;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\Request;
 
@@ -46,7 +47,8 @@ class Rest implements ConnectionInterface
     public function __construct(array $config = [])
     {
         $config += [
-            'serviceDefinitionPath' => __DIR__ . '/ServiceDefinition/bigquery-v2.json'
+            'serviceDefinitionPath' => __DIR__ . '/ServiceDefinition/bigquery-v2.json',
+            'componentVersion' => BigQueryClient::VERSION
         ];
 
         $this->setRequestWrapper(new RequestWrapper($config));
@@ -244,16 +246,24 @@ class Rest implements ConnectionInterface
         $args += [
             'projectId' => null,
             'data' => null,
-            'configuration' => []
+            'configuration' => [],
+            'labels' => [],
+            'dryRun' => false,
+            'jobReference' => []
         ];
 
         $args['data'] = Psr7\stream_for($args['data']);
-        $args['metadata']['configuration'] = $args['configuration'];
-        unset($args['configuration']);
+        $args['metadata'] = $this->pluckArray([
+            'labels',
+            'dryRun',
+            'jobReference',
+            'configuration'
+        ], $args);
 
         $uploaderOptionKeys = [
-            'httpOptions',
+            'restOptions',
             'retries',
+            'requestTimeout',
             'metadata'
         ];
 

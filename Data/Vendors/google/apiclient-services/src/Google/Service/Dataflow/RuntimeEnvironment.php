@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright 2016 Google Inc.
+ * Copyright 2014 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,14 +15,25 @@
  * the License.
  */
 
-class Google_Service_Dataflow_RuntimeEnvironment extends Google_Model
+class Google_Service_Dataflow_RuntimeEnvironment extends Google_Collection
 {
+  protected $collection_key = 'additionalExperiments';
+  public $additionalExperiments;
   public $bypassTempDirValidation;
+  public $machineType;
   public $maxWorkers;
   public $serviceAccountEmail;
   public $tempLocation;
   public $zone;
 
+  public function setAdditionalExperiments($additionalExperiments)
+  {
+    $this->additionalExperiments = $additionalExperiments;
+  }
+  public function getAdditionalExperiments()
+  {
+    return $this->additionalExperiments;
+  }
   public function setBypassTempDirValidation($bypassTempDirValidation)
   {
     $this->bypassTempDirValidation = $bypassTempDirValidation;
@@ -30,6 +41,14 @@ class Google_Service_Dataflow_RuntimeEnvironment extends Google_Model
   public function getBypassTempDirValidation()
   {
     return $this->bypassTempDirValidation;
+  }
+  public function setMachineType($machineType)
+  {
+    $this->machineType = $machineType;
+  }
+  public function getMachineType()
+  {
+    return $this->machineType;
   }
   public function setMaxWorkers($maxWorkers)
   {

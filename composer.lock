@@ -4,23 +4,26 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "ad66148c77a5420891e9bb8563c40f61",
+    "content-hash": "18e10859334a0a96f6a4c536d2079138",
     "packages": [
         {
             "name": "almasaeed2010/adminlte",
-            "version": "v2.4.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/almasaeed2010/AdminLTE.git",
-                "reference": "156f56c3c183a3b8486c47b122c7fa8819510a90"
+                "reference": "51e96d8ea9208f6004002901ccd5f20bfb17d23e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/almasaeed2010/AdminLTE/zipball/156f56c3c183a3b8486c47b122c7fa8819510a90",
-                "reference": "156f56c3c183a3b8486c47b122c7fa8819510a90",
+                "url": "https://api.github.com/repos/almasaeed2010/AdminLTE/zipball/51e96d8ea9208f6004002901ccd5f20bfb17d23e",
+                "reference": "51e96d8ea9208f6004002901ccd5f20bfb17d23e",
                 "shasum": ""
             },
-            "type": "library",
+            "require": {
+                "composer/installers": "1.*"
+            },
+            "type": "template",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
@@ -44,7 +47,7 @@
                 "theme",
                 "web"
             ],
-            "time": "2017-10-09T16:32:18+00:00"
+            "time": "2017-11-29T11:44:04+00:00"
         },
         {
             "name": "bower-asset/jquery",
@@ -80,7 +83,7 @@
         },
         {
             "name": "bower-asset/jquery-backstretch",
-            "version": "2.1.16",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jquery-backstretch/jquery-backstretch.git",
@@ -107,23 +110,26 @@
                     "test",
                     ".gitignore",
                     "src"
-                ]
+                ],
+                "branch-alias": {
+                    "dev-master": "2.1.15-dev"
+                }
             },
             "description": "A simple jQuery plugin that allows you to add a dynamically-resized, slideshow-capable background image to any page or element.",
             "time": "2017-06-22T16:27:38+00:00"
         },
         {
             "name": "bower-asset/jquery-form",
-            "version": "v4.2.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jquery-form/form.git",
-                "reference": "4beae57bc92402e2d03ca66b5ae2942d0c94c695"
+                "reference": "8281f8909563601f6a8f8fb5e1ec57715bd7c151"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jquery-form/form/zipball/4beae57bc92402e2d03ca66b5ae2942d0c94c695",
-                "reference": "4beae57bc92402e2d03ca66b5ae2942d0c94c695",
+                "url": "https://api.github.com/repos/jquery-form/form/zipball/8281f8909563601f6a8f8fb5e1ec57715bd7c151",
+                "reference": "8281f8909563601f6a8f8fb5e1ec57715bd7c151",
                 "shasum": ""
             },
             "require": {
@@ -152,20 +158,20 @@
                 "json",
                 "json-form"
             ],
-            "time": "2017-08-09T20:56:53+00:00"
+            "time": "2017-08-21T17:27:29+00:00"
         },
         {
             "name": "bower-asset/jquery-pjax",
-            "version": "v2.0.1",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/defunkt/jquery-pjax.git",
-                "reference": "0f63686a4be744c948c2dd7bd64d257d3fe80c20"
+                "reference": "153262eda33e31119eabb97cd5f14365580a3b35"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/defunkt/jquery-pjax/zipball/0f63686a4be744c948c2dd7bd64d257d3fe80c20",
-                "reference": "0f63686a4be744c948c2dd7bd64d257d3fe80c20",
+                "url": "https://api.github.com/repos/defunkt/jquery-pjax/zipball/153262eda33e31119eabb97cd5f14365580a3b35",
+                "reference": "153262eda33e31119eabb97cd5f14365580a3b35",
                 "shasum": ""
             },
             "require": {
@@ -184,20 +190,20 @@
                     "test/"
                 ]
             },
-            "time": "2017-05-20T18:38:49+00:00"
+            "time": "2017-05-23T11:23:11+00:00"
         },
         {
             "name": "bower-asset/mustache.js",
-            "version": "v2.3.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/janl/mustache.js.git",
-                "reference": "23beb3a8805c9a857e3ea777431481599fab503e"
+                "reference": "b283da5c8c26dbf78c357a1f67bfed26d18f5e32"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/janl/mustache.js/zipball/23beb3a8805c9a857e3ea777431481599fab503e",
-                "reference": "23beb3a8805c9a857e3ea777431481599fab503e",
+                "url": "https://api.github.com/repos/janl/mustache.js/zipball/b283da5c8c26dbf78c357a1f67bfed26d18f5e32",
+                "reference": "b283da5c8c26dbf78c357a1f67bfed26d18f5e32",
                 "shasum": ""
             },
             "type": "bower-asset-library",
@@ -218,7 +224,127 @@
                 "template",
                 "templates"
             ],
-            "time": "2016-11-08T16:24:16+00:00"
+            "time": "2017-08-26T16:14:01+00:00"
+        },
+        {
+            "name": "composer/installers",
+            "version": "v1.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/composer/installers.git",
+                "reference": "049797d727261bf27f2690430d935067710049c2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/composer/installers/zipball/049797d727261bf27f2690430d935067710049c2",
+                "reference": "049797d727261bf27f2690430d935067710049c2",
+                "shasum": ""
+            },
+            "require": {
+                "composer-plugin-api": "^1.0"
+            },
+            "replace": {
+                "roundcube/plugin-installer": "*",
+                "shama/baton": "*"
+            },
+            "require-dev": {
+                "composer/composer": "1.0.*@dev",
+                "phpunit/phpunit": "^4.8.36"
+            },
+            "type": "composer-plugin",
+            "extra": {
+                "class": "Composer\\Installers\\Plugin",
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Composer\\Installers\\": "src/Composer/Installers"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kyle Robinson Young",
+                    "email": "kyle@dontkry.com",
+                    "homepage": "https://github.com/shama"
+                }
+            ],
+            "description": "A multi-framework Composer library installer",
+            "homepage": "https://composer.github.io/installers/",
+            "keywords": [
+                "Craft",
+                "Dolibarr",
+                "Eliasis",
+                "Hurad",
+                "ImageCMS",
+                "Kanboard",
+                "Lan Management System",
+                "MODX Evo",
+                "Mautic",
+                "Maya",
+                "OXID",
+                "Plentymarkets",
+                "Porto",
+                "RadPHP",
+                "SMF",
+                "Thelia",
+                "WolfCMS",
+                "agl",
+                "aimeos",
+                "annotatecms",
+                "attogram",
+                "bitrix",
+                "cakephp",
+                "chef",
+                "cockpit",
+                "codeigniter",
+                "concrete5",
+                "croogo",
+                "dokuwiki",
+                "drupal",
+                "eZ Platform",
+                "elgg",
+                "expressionengine",
+                "fuelphp",
+                "grav",
+                "installer",
+                "itop",
+                "joomla",
+                "kohana",
+                "laravel",
+                "lavalite",
+                "lithium",
+                "magento",
+                "majima",
+                "mako",
+                "mediawiki",
+                "modulework",
+                "modx",
+                "moodle",
+                "osclass",
+                "phpbb",
+                "piwik",
+                "ppi",
+                "puppet",
+                "pxcms",
+                "reindex",
+                "roundcube",
+                "shopware",
+                "silverstripe",
+                "sydes",
+                "symfony",
+                "typo3",
+                "wordpress",
+                "yawik",
+                "zend",
+                "zikula"
+            ],
+            "time": "2017-12-29T09:13:20+00:00"
         },
         {
             "name": "facebook/graph-sdk",
@@ -280,20 +406,23 @@
         },
         {
             "name": "firebase/php-jwt",
-            "version": "v4.0.0",
+            "version": "v5.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/firebase/php-jwt.git",
-                "reference": "dccf163dc8ed7ed6a00afc06c51ee5186a428d35"
+                "reference": "9984a4d3a32ae7673d6971ea00bae9d0a1abba0e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/dccf163dc8ed7ed6a00afc06c51ee5186a428d35",
-                "reference": "dccf163dc8ed7ed6a00afc06c51ee5186a428d35",
+                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/9984a4d3a32ae7673d6971ea00bae9d0a1abba0e",
+                "reference": "9984a4d3a32ae7673d6971ea00bae9d0a1abba0e",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": " 4.8.35"
             },
             "type": "library",
             "autoload": {
@@ -319,27 +448,27 @@
             ],
             "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
             "homepage": "https://github.com/firebase/php-jwt",
-            "time": "2016-07-18T04:51:16+00:00"
+            "time": "2017-06-27T22:17:23+00:00"
         },
         {
             "name": "google/apiclient",
-            "version": "v2.1.3",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/google/google-api-php-client.git",
-                "reference": "43996f09df274158fd04fce98e8a82effe5f3717"
+                "reference": "ffb8b9ba2d5c212c34e0f00d93b48ea4bceda882"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/google/google-api-php-client/zipball/43996f09df274158fd04fce98e8a82effe5f3717",
-                "reference": "43996f09df274158fd04fce98e8a82effe5f3717",
+                "url": "https://api.github.com/repos/google/google-api-php-client/zipball/ffb8b9ba2d5c212c34e0f00d93b48ea4bceda882",
+                "reference": "ffb8b9ba2d5c212c34e0f00d93b48ea4bceda882",
                 "shasum": ""
             },
             "require": {
-                "firebase/php-jwt": "~2.0|~3.0|~4.0",
-                "google/apiclient-services": "^0.11",
-                "google/auth": "^0.11",
-                "guzzlehttp/guzzle": "~5.2|~6.0",
+                "firebase/php-jwt": "~2.0|~3.0|~4.0|~5.0",
+                "google/apiclient-services": "~0.13",
+                "google/auth": "^1.0",
+                "guzzlehttp/guzzle": "~5.3.1|~6.0",
                 "guzzlehttp/psr7": "^1.2",
                 "monolog/monolog": "^1.17",
                 "php": ">=5.4",
@@ -347,7 +476,7 @@
             },
             "require-dev": {
                 "cache/filesystem-adapter": "^0.3.2",
-                "phpunit/phpunit": "~4",
+                "phpunit/phpunit": "~4.8.36",
                 "squizlabs/php_codesniffer": "~2.3",
                 "symfony/css-selector": "~2.1",
                 "symfony/dom-crawler": "~2.1"
@@ -378,20 +507,20 @@
             "keywords": [
                 "google"
             ],
-            "time": "2017-03-22T18:32:04+00:00"
+            "time": "2018-01-26T20:12:54+00:00"
         },
         {
             "name": "google/apiclient-services",
-            "version": "v0.11",
+            "version": "v0.44",
             "source": {
                 "type": "git",
                 "url": "https://github.com/google/google-api-php-client-services.git",
-                "reference": "48c554aee06f2fd5700d7bdfa4fa6b82d184eb52"
+                "reference": "7f1b3a3f387fc3435f27003977ebf5989f8bcca2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/google/google-api-php-client-services/zipball/48c554aee06f2fd5700d7bdfa4fa6b82d184eb52",
-                "reference": "48c554aee06f2fd5700d7bdfa4fa6b82d184eb52",
+                "url": "https://api.github.com/repos/google/google-api-php-client-services/zipball/7f1b3a3f387fc3435f27003977ebf5989f8bcca2",
+                "reference": "7f1b3a3f387fc3435f27003977ebf5989f8bcca2",
                 "shasum": ""
             },
             "require": {
@@ -415,25 +544,25 @@
             "keywords": [
                 "google"
             ],
-            "time": "2017-03-13T17:40:44+00:00"
+            "time": "2018-01-28T00:23:18+00:00"
         },
         {
             "name": "google/auth",
-            "version": "v0.11.1",
+            "version": "v1.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/google/google-auth-library-php.git",
-                "reference": "a240674b08a09949fd5597f7590b3ed83663a12d"
+                "reference": "da0062d279c9459350808a4fb63dbc08b90d6b90"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/google/google-auth-library-php/zipball/a240674b08a09949fd5597f7590b3ed83663a12d",
-                "reference": "a240674b08a09949fd5597f7590b3ed83663a12d",
+                "url": "https://api.github.com/repos/google/google-auth-library-php/zipball/da0062d279c9459350808a4fb63dbc08b90d6b90",
+                "reference": "da0062d279c9459350808a4fb63dbc08b90d6b90",
                 "shasum": ""
             },
             "require": {
-                "firebase/php-jwt": "~2.0|~3.0|~4.0",
-                "guzzlehttp/guzzle": "~5.3|~6.0",
+                "firebase/php-jwt": "~2.0|~3.0|~4.0|~5.0",
+                "guzzlehttp/guzzle": "~5.3.1|~6.0",
                 "guzzlehttp/psr7": "~1.2",
                 "php": ">=5.4",
                 "psr/cache": "^1.0",
@@ -441,13 +570,12 @@
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^1.11",
-                "phpunit/phpunit": "3.7.*"
+                "guzzlehttp/promises": "0.1.1|^1.3",
+                "phpunit/phpunit": "^4.8.36|^5.7",
+                "sebastian/comparator": ">=1.2.3"
             },
             "type": "library",
             "autoload": {
-                "classmap": [
-                    "src/"
-                ],
                 "psr-4": {
                     "Google\\Auth\\": "src"
                 }
@@ -463,49 +591,88 @@
                 "google",
                 "oauth2"
             ],
-            "time": "2016-11-02T14:59:14+00:00"
+            "time": "2018-01-24T18:28:42+00:00"
         },
         {
             "name": "google/cloud",
-            "version": "v0.21.1",
+            "version": "v0.52.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/GoogleCloudPlatform/google-cloud-php.git",
-                "reference": "68bbbc030c256bc30f9adfab1830eb6e462a0958"
+                "reference": "54e7a442af7539eec6ed8795d0a10e0a051a28b2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/GoogleCloudPlatform/google-cloud-php/zipball/68bbbc030c256bc30f9adfab1830eb6e462a0958",
-                "reference": "68bbbc030c256bc30f9adfab1830eb6e462a0958",
+                "url": "https://api.github.com/repos/GoogleCloudPlatform/google-cloud-php/zipball/54e7a442af7539eec6ed8795d0a10e0a051a28b2",
+                "reference": "54e7a442af7539eec6ed8795d0a10e0a051a28b2",
                 "shasum": ""
             },
             "require": {
-                "google/auth": "^0.11",
+                "google/gax": "^0.30",
+                "google/proto-client": "^0.31",
                 "guzzlehttp/guzzle": "^5.3|^6.0",
                 "guzzlehttp/psr7": "^1.2",
                 "monolog/monolog": "~1",
                 "php": ">=5.5",
                 "psr/http-message": "1.0.*",
+                "ramsey/uuid": "~3",
                 "rize/uri-template": "~0.3"
+            },
+            "replace": {
+                "google/cloud-bigquery": "1.0.2",
+                "google/cloud-bigtable": "0.2.0",
+                "google/cloud-container": "0.2.0",
+                "google/cloud-core": "1.15.3",
+                "google/cloud-dataproc": "0.2.0",
+                "google/cloud-datastore": "1.2.2",
+                "google/cloud-debugger": "0.3.0",
+                "google/cloud-dlp": "0.5.1",
+                "google/cloud-error-reporting": "0.8.0",
+                "google/cloud-firestore": "0.4.0",
+                "google/cloud-language": "0.12.0",
+                "google/cloud-logging": "1.9.0",
+                "google/cloud-monitoring": "0.8.0",
+                "google/cloud-oslogin": "0.2.0",
+                "google/cloud-pubsub": "0.12.0",
+                "google/cloud-spanner": "1.1.1",
+                "google/cloud-speech": "0.11.0",
+                "google/cloud-storage": "1.3.3",
+                "google/cloud-trace": "0.6.0",
+                "google/cloud-translate": "1.1.1",
+                "google/cloud-videointelligence": "0.9.0",
+                "google/cloud-vision": "0.9.0"
             },
             "require-dev": {
                 "erusev/parsedown": "^1.6",
-                "google/gax": "^0.6",
-                "google/proto-client-php": "^0.7",
-                "james-heinrich/getid3": "^1.9",
                 "league/json-guard": "^0.3",
                 "phpdocumentor/reflection": "^3.0",
-                "phpunit/phpunit": "4.8.*",
+                "phpseclib/phpseclib": "^2",
+                "phpunit/phpunit": "^4.8|^5.0",
                 "squizlabs/php_codesniffer": "2.*",
                 "symfony/console": "^3.0",
+                "symfony/lock": "3.3.x-dev#1ba6ac9",
                 "vierbergenlars/php-semver": "^3.0"
             },
             "suggest": {
-                "google/gax": "Required to support gRPC",
-                "google/proto-client-php": "Required to support gRPC",
-                "james-heinrich/getid3": "Allows the Google Cloud Speech client to determine sample rate and encoding of audio inputs"
+                "google/cloud-bigquerydatatransfer": "Client library for the BigQuery Data Transfer API.",
+                "phpseclib/phpseclib": "May be used in place of OpenSSL for creating signed Cloud Storage URLs. Please require version ^2."
             },
+            "bin": [
+                "src/Core/bin/google-cloud-batch",
+                "src/Debugger/bin/google-cloud-debugger"
+            ],
             "type": "library",
+            "extra": {
+                "component": {
+                    "id": "google-cloud",
+                    "target": "git@github.com:GoogleCloudPlatform/google-cloud-php.git",
+                    "path": "src",
+                    "entry": [
+                        "Version.php",
+                        "ServiceBuilder.php"
+                    ]
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "Google\\Cloud\\": "src"
@@ -530,6 +697,7 @@
             "keywords": [
                 "big query",
                 "bigquery",
+                "bigtable",
                 "cloud",
                 "datastore",
                 "gcs",
@@ -540,9 +708,11 @@
                 "google apis client",
                 "google cloud",
                 "google cloud platform",
+                "language",
                 "natural language",
                 "pub sub",
                 "pubsub",
+                "spanner",
                 "speech",
                 "stackdriver logging",
                 "storage",
@@ -550,7 +720,180 @@
                 "translation",
                 "vision"
             ],
-            "time": "2017-02-23T20:14:16+00:00"
+            "time": "2018-01-23T20:20:20+00:00"
+        },
+        {
+            "name": "google/gax",
+            "version": "0.30.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/googleapis/gax-php.git",
+                "reference": "c16fe4fd7d32e21ffbeaeae27a3ec08ee0bd6121"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/googleapis/gax-php/zipball/c16fe4fd7d32e21ffbeaeae27a3ec08ee0bd6121",
+                "reference": "c16fe4fd7d32e21ffbeaeae27a3ec08ee0bd6121",
+                "shasum": ""
+            },
+            "require": {
+                "google/auth": "^1.2.0",
+                "google/protobuf": "^3.5.1",
+                "grpc/grpc": "^1.4",
+                "guzzlehttp/promises": "^1.3",
+                "guzzlehttp/psr7": "^1.2",
+                "php": ">=5.5"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8.36",
+                "squizlabs/php_codesniffer": "2.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Google\\Api\\": "src/Api",
+                    "Google\\ApiCore\\": "src/ApiCore",
+                    "Google\\Cloud\\": "src/Cloud",
+                    "Google\\Iam\\": "src/Iam",
+                    "Google\\Jison\\": "src/Jison",
+                    "Google\\LongRunning\\": "src/LongRunning",
+                    "Google\\Rpc\\": "src/Rpc",
+                    "Google\\Type\\": "src/Type",
+                    "GPBMetadata\\Google\\": "metadata"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "Google API Core for PHP",
+            "homepage": "https://github.com/googleapis/gax-php",
+            "keywords": [
+                "google"
+            ],
+            "time": "2018-01-22T21:49:54+00:00"
+        },
+        {
+            "name": "google/proto-client",
+            "version": "0.31.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/googleapis/proto-client-php.git",
+                "reference": "786e591a2aa28de571cfb95db33fb1ae21afbd0a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/googleapis/proto-client-php/zipball/786e591a2aa28de571cfb95db33fb1ae21afbd0a",
+                "reference": "786e591a2aa28de571cfb95db33fb1ae21afbd0a",
+                "shasum": ""
+            },
+            "require": {
+                "google/protobuf": "^3.4",
+                "php": ">=5.5"
+            },
+            "require-dev": {
+                "google/gax": ">=0.25.0",
+                "phpunit/phpunit": "^4.8.36"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Google\\": "src/Google/",
+                    "GPBMetadata\\": "src/GPBMetadata/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "Generated proto and gRPC classes for Google Cloud Platform in PHP",
+            "homepage": "https://github.com/googleapis/proto-client-php",
+            "keywords": [
+                "google"
+            ],
+            "time": "2018-01-22T20:04:52+00:00"
+        },
+        {
+            "name": "google/protobuf",
+            "version": "v3.5.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/google/protobuf.git",
+                "reference": "860bd12fec5c69e6529565165532b3d5108a7d97"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/google/protobuf/zipball/860bd12fec5c69e6529565165532b3d5108a7d97",
+                "reference": "860bd12fec5c69e6529565165532b3d5108a7d97",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": ">=4.8.0"
+            },
+            "suggest": {
+                "ext-bcmath": "Need to support JSON deserialization"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Google\\Protobuf\\": "php/src/Google/Protobuf",
+                    "GPBMetadata\\Google\\Protobuf\\": "php/src/GPBMetadata/Google/Protobuf"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "proto library for PHP",
+            "homepage": "https://developers.google.com/protocol-buffers/",
+            "keywords": [
+                "proto"
+            ],
+            "time": "2018-01-05T21:42:10+00:00"
+        },
+        {
+            "name": "grpc/grpc",
+            "version": "1.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/grpc/grpc-php.git",
+                "reference": "8d190d91ddb9d980f685d9caf79bca62d7edc1e6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/grpc/grpc-php/zipball/8d190d91ddb9d980f685d9caf79bca62d7edc1e6",
+                "reference": "8d190d91ddb9d980f685d9caf79bca62d7edc1e6",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.0"
+            },
+            "require-dev": {
+                "google/auth": "v0.9"
+            },
+            "suggest": {
+                "ext-protobuf": "For better performance, install the protobuf C extension.",
+                "google/protobuf": "To get started using grpc quickly, install the native protobuf library."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Grpc\\": "src/lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "gRPC library for PHP",
+            "homepage": "https://grpc.io",
+            "keywords": [
+                "rpc"
+            ],
+            "time": "2017-09-11T20:50:39+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -813,7 +1156,7 @@
         },
         {
             "name": "mustache/mustache",
-            "version": "v2.12.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bobthecow/mustache.php.git",
@@ -856,6 +1199,54 @@
                 "templating"
             ],
             "time": "2017-07-11T12:54:05+00:00"
+        },
+        {
+            "name": "paragonie/random_compat",
+            "version": "v2.0.11",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/paragonie/random_compat.git",
+                "reference": "5da4d3c796c275c55f057af5a643ae297d96b4d8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/paragonie/random_compat/zipball/5da4d3c796c275c55f057af5a643ae297d96b4d8",
+                "reference": "5da4d3c796c275c55f057af5a643ae297d96b4d8",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.2.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.*|5.*"
+            },
+            "suggest": {
+                "ext-libsodium": "Provides a modern crypto API that can be used to generate random bytes."
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "lib/random.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Paragon Initiative Enterprises",
+                    "email": "security@paragonie.com",
+                    "homepage": "https://paragonie.com"
+                }
+            ],
+            "description": "PHP 5.x polyfill for random_bytes() and random_int() from PHP 7",
+            "keywords": [
+                "csprng",
+                "pseudorandom",
+                "random"
+            ],
+            "time": "2017-09-27T21:40:39+00:00"
         },
         {
             "name": "phpseclib/phpseclib",
@@ -1047,7 +1438,7 @@
         },
         {
             "name": "psr/log",
-            "version": "1.0.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
@@ -1093,38 +1484,55 @@
             "time": "2016-10-10T12:19:37+00:00"
         },
         {
-            "name": "richardtmiles/carbonphp",
-            "version": "dev-master",
+            "name": "ramsey/uuid",
+            "version": "3.7.3",
             "source": {
                 "type": "git",
-                "url": "https://github.com/RichardTMiles/CarbonPHP.git",
-                "reference": "23ec5603027c36fade6c6dd6c04c804eb461bf09"
+                "url": "https://github.com/ramsey/uuid.git",
+                "reference": "44abcdad877d9a46685a3a4d221e3b2c4b87cb76"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/23ec5603027c36fade6c6dd6c04c804eb461bf09",
-                "reference": "23ec5603027c36fade6c6dd6c04c804eb461bf09",
+                "url": "https://api.github.com/repos/ramsey/uuid/zipball/44abcdad877d9a46685a3a4d221e3b2c4b87cb76",
+                "reference": "44abcdad877d9a46685a3a4d221e3b2c4b87cb76",
                 "shasum": ""
             },
             "require": {
-                "bower-asset/jquery-form": "^4.2.2",
-                "bower-asset/jquery-pjax": "^2.0.1",
-                "bower-asset/mustache.js": "^2.3.0",
-                "mustache/mustache": "^2.12",
-                "php": "^7.1",
-                "psr/log": "^1.0"
+                "paragonie/random_compat": "^1.0|^2.0",
+                "php": "^5.4 || ^7.0"
+            },
+            "replace": {
+                "rhumsaa/uuid": "self.version"
+            },
+            "require-dev": {
+                "codeception/aspect-mock": "^1.0 | ~2.0.0",
+                "doctrine/annotations": "~1.2.0",
+                "goaop/framework": "1.0.0-alpha.2 | ^1.0 | ^2.1",
+                "ircmaxell/random-lib": "^1.1",
+                "jakub-onderka/php-parallel-lint": "^0.9.0",
+                "mockery/mockery": "^0.9.9",
+                "moontoast/math": "^1.1",
+                "php-mock/php-mock-phpunit": "^0.3|^1.1",
+                "phpunit/phpunit": "^4.7|^5.0",
+                "squizlabs/php_codesniffer": "^2.3"
             },
             "suggest": {
-                "almasaeed2010/adminlte": ">=2.4",
-                "bower-asset/jquery-backstretch": "^2.1.16"
+                "ext-libsodium": "Provides the PECL libsodium extension for use with the SodiumRandomGenerator",
+                "ext-uuid": "Provides the PECL UUID extension for use with the PeclUuidTimeGenerator and PeclUuidRandomGenerator",
+                "ircmaxell/random-lib": "Provides RandomLib for use with the RandomLibAdapter",
+                "moontoast/math": "Provides support for converting UUID to 128-bit integer (in string form).",
+                "ramsey/uuid-console": "A console application for generating UUIDs with ramsey/uuid",
+                "ramsey/uuid-doctrine": "Allows the use of Ramsey\\Uuid\\Uuid as Doctrine field type."
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
-                    "Carbon\\": "Structure/",
-                    "Carbon\\Error\\": "Error/",
-                    "Carbon\\Helpers\\": "Helpers/",
-                    "Carbon\\Interfaces\\": "Interfaces/"
+                    "Ramsey\\Uuid\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -1133,21 +1541,27 @@
             ],
             "authors": [
                 {
-                    "name": "Richard Miles",
-                    "email": "Richard@Miles.systems",
-                    "homepage": "http://www.CarbonPHP.com",
-                    "role": "Developer"
+                    "name": "Marijn Huizendveld",
+                    "email": "marijn.huizendveld@gmail.com"
+                },
+                {
+                    "name": "Thibaud Fabre",
+                    "email": "thibaud@aztech.io"
+                },
+                {
+                    "name": "Ben Ramsey",
+                    "email": "ben@benramsey.com",
+                    "homepage": "https://benramsey.com"
                 }
             ],
-            "description": "Edit the DOM in PHP. A PHP 7+ tool kit designed for SEO optimization.",
-            "homepage": "https://github.com/richardtmiles/carbonphp",
+            "description": "Formerly rhumsaa/uuid. A PHP 5.4+ library for generating RFC 4122 version 1, 3, 4, and 5 universally unique identifiers (UUID).",
+            "homepage": "https://github.com/ramsey/uuid",
             "keywords": [
-                "carbon",
-                "io",
-                "pipes",
-                "sockets"
+                "guid",
+                "identifier",
+                "uuid"
             ],
-            "time": "2018-01-24T06:27:50+00:00"
+            "time": "2018-01-20T00:28:24+00:00"
         },
         {
             "name": "rize/uri-template",
@@ -1249,8 +1663,65 @@
             "time": "2018-01-24T00:40:23+00:00"
         },
         {
+            "name": "richardtmiles/carbonphp",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/RichardTMiles/CarbonPHP.git",
+                "reference": "f85f03d228116d62b391cfad3548c1210c704fb6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/f85f03d228116d62b391cfad3548c1210c704fb6",
+                "reference": "f85f03d228116d62b391cfad3548c1210c704fb6",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1",
+                "psr/log": "dev-master"
+            },
+            "suggest": {
+                "almasaeed2010/adminlte": "^2.4",
+                "bower-asset/jquery-backstretch": "^2.1.16",
+                "bower-asset/jquery-form": "dev-master",
+                "bower-asset/jquery-pjax": "dev-master",
+                "bower-asset/mustache.js": "dev-master",
+                "mustache/mustache": "dev-master"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Carbon\\": "Structure/",
+                    "Carbon\\Error\\": "Error/",
+                    "Carbon\\Helpers\\": "Helpers/",
+                    "Carbon\\Interfaces\\": "Interfaces/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Richard Miles",
+                    "email": "Richard@Miles.systems",
+                    "homepage": "http://www.CarbonPHP.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Edit the DOM in PHP. A PHP 7+ tool kit designed for SEO optimization.",
+            "homepage": "https://github.com/richardtmiles/carbonphp",
+            "keywords": [
+                "carbon",
+                "io",
+                "pipes",
+                "sockets"
+            ],
+            "time": "2018-01-30T06:23:33+00:00"
+        },
+        {
             "name": "symfony/browser-kit",
-            "version": "v3.4.3",
+            "version": "v3.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/browser-kit.git",
@@ -1307,16 +1778,16 @@
         },
         {
             "name": "symfony/console",
-            "version": "v3.4.3",
+            "version": "v3.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "8394c8ef121949e8f858f13bc1e34f05169e4e7d"
+                "reference": "26b6f419edda16c19775211987651cb27baea7f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/8394c8ef121949e8f858f13bc1e34f05169e4e7d",
-                "reference": "8394c8ef121949e8f858f13bc1e34f05169e4e7d",
+                "url": "https://api.github.com/repos/symfony/console/zipball/26b6f419edda16c19775211987651cb27baea7f1",
+                "reference": "26b6f419edda16c19775211987651cb27baea7f1",
                 "shasum": ""
             },
             "require": {
@@ -1372,20 +1843,20 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "https://symfony.com",
-            "time": "2018-01-03T07:37:34+00:00"
+            "time": "2018-01-29T09:03:43+00:00"
         },
         {
             "name": "symfony/debug",
-            "version": "v4.0.3",
+            "version": "v4.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/debug.git",
-                "reference": "9ae4223a661b56a9abdce144de4886cca37f198f"
+                "reference": "c77bb31d0f6310a2ac11e657475d396a92e5dc54"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/debug/zipball/9ae4223a661b56a9abdce144de4886cca37f198f",
-                "reference": "9ae4223a661b56a9abdce144de4886cca37f198f",
+                "url": "https://api.github.com/repos/symfony/debug/zipball/c77bb31d0f6310a2ac11e657475d396a92e5dc54",
+                "reference": "c77bb31d0f6310a2ac11e657475d396a92e5dc54",
                 "shasum": ""
             },
             "require": {
@@ -1428,11 +1899,11 @@
             ],
             "description": "Symfony Debug Component",
             "homepage": "https://symfony.com",
-            "time": "2018-01-03T17:15:19+00:00"
+            "time": "2018-01-18T22:19:33+00:00"
         },
         {
             "name": "symfony/dom-crawler",
-            "version": "v4.0.3",
+            "version": "v4.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dom-crawler.git",
@@ -1488,7 +1959,7 @@
         },
         {
             "name": "symfony/filesystem",
-            "version": "v3.4.3",
+            "version": "v3.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
@@ -1596,16 +2067,16 @@
         },
         {
             "name": "symfony/process",
-            "version": "v3.4.3",
+            "version": "v3.4.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "ff69f110c6b33fd33cd2089ba97d6112f44ef0ba"
+                "reference": "09a5172057be8fc677840e591b17f385e58c7c0d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/ff69f110c6b33fd33cd2089ba97d6112f44ef0ba",
-                "reference": "ff69f110c6b33fd33cd2089ba97d6112f44ef0ba",
+                "url": "https://api.github.com/repos/symfony/process/zipball/09a5172057be8fc677840e591b17f385e58c7c0d",
+                "reference": "09a5172057be8fc677840e591b17f385e58c7c0d",
                 "shasum": ""
             },
             "require": {
@@ -1641,7 +2112,7 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "https://symfony.com",
-            "time": "2018-01-03T07:37:34+00:00"
+            "time": "2018-01-29T09:03:43+00:00"
         },
         {
             "name": "twig/twig",
@@ -1711,11 +2182,18 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "stability-flags": {
+        "google/apiclient": 20,
+        "mustache/mustache": 20,
+        "almasaeed2010/adminlte": 20,
+        "bower-asset/mustache.js": 20,
+        "bower-asset/jquery-form": 20,
+        "bower-asset/jquery-pjax": 20,
+        "bower-asset/jquery-backstretch": 20,
         "richardtmiles/carbonphp": 20
     },
-    "prefer-stable": false,
+    "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "7.1.*"

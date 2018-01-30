@@ -17,14 +17,21 @@
 
 namespace Google\Cloud\Tests\Snippets\Storage;
 
+use Google\Cloud\Core\Exception\GoogleException;
+use Google\Cloud\Core\Iam\Iam;
+use Google\Cloud\Core\Iterator\ItemIterator;
+use Google\Cloud\Core\Upload\MultipartUploader;
+use Google\Cloud\Core\Upload\ResumableUploader;
+use Google\Cloud\Core\Upload\StreamableUploader;
 use Google\Cloud\Dev\Snippet\SnippetTestCase;
-use Google\Cloud\Exception\GoogleException;
+use Google\Cloud\PubSub\PubSubClient;
+use Google\Cloud\PubSub\Topic;
 use Google\Cloud\Storage\Acl;
 use Google\Cloud\Storage\Bucket;
-use Google\Cloud\Storage\Connection\ConnectionInterface;
+use Google\Cloud\Storage\Connection\Rest;
+use Google\Cloud\Storage\Notification;
+use Google\Cloud\Storage\ObjectIterator;
 use Google\Cloud\Storage\StorageObject;
-use Google\Cloud\Upload\MultipartUploader;
-use Google\Cloud\Upload\ResumableUploader;
 use Prophecy\Argument;
 
 /**
@@ -33,14 +40,22 @@ use Prophecy\Argument;
 class BucketTest extends SnippetTestCase
 {
     const BUCKET = 'my-bucket';
+    const PROJECT_ID = 'my-project';
+    const NOTIFICATION_ID = '1234';
 
     private $connection;
     private $bucket;
 
     public function setUp()
     {
-        $this->connection = $this->prophesize(ConnectionInterface::class);
-        $this->bucket = new \BucketStub($this->connection->reveal(), self::BUCKET);
+        $this->connection = $this->prophesize(Rest::class);
+        $this->connection->projectId()
+            ->willReturn(self::PROJECT_ID);
+        $this->bucket = \Google\Cloud\Dev\stub(Bucket::class, [
+            $this->connection->reveal(),
+            self::BUCKET,
+            []
+        ]);
     }
 
     public function testClass()
@@ -79,7 +94,7 @@ class BucketTest extends SnippetTestCase
         $this->connection->getBucket(Argument::any())
             ->shouldBeCalled();
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
         $this->assertEquals('Bucket exists!', $res->output());
@@ -103,7 +118,7 @@ class BucketTest extends SnippetTestCase
             ->shouldBeCalled()
             ->willReturn($uploader->reveal());
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('object');
         $this->assertInstanceOf(StorageObject::class, $res->returnVal());
@@ -130,7 +145,7 @@ class BucketTest extends SnippetTestCase
             ->shouldBeCalled()
             ->willReturn($uploader->reveal());
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('object');
         $this->assertInstanceOf(StorageObject::class, $res->returnVal());
@@ -157,7 +172,7 @@ class BucketTest extends SnippetTestCase
             ->shouldBeCalled()
             ->willReturn($uploader->reveal());
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('object');
         $this->assertInstanceOf(StorageObject::class, $res->returnVal());
@@ -191,9 +206,29 @@ class BucketTest extends SnippetTestCase
             ->shouldBeCalled()
             ->willReturn($uploader->reveal());
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('object');
+    }
+
+    public function testGetStreamableUploader()
+    {
+        $snippet = $this->snippetFromMethod(Bucket::class, 'getStreamableUploader');
+        $snippet->addLocal('bucket', $this->bucket);
+        $snippet->addUse(GoogleException::class);
+        $snippet->replace("data.txt", 'php://temp');
+
+        $uploader = $this->prophesize(StreamableUploader::class);
+        $uploader->upload()
+            ->shouldBeCalledTimes(1);
+
+        $this->connection->insertObject(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn($uploader->reveal());
+
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
+
+        $res = $snippet->invoke();
     }
 
     public function testObject()
@@ -214,17 +249,96 @@ class BucketTest extends SnippetTestCase
             ->shouldBeCalled()
             ->willReturn([
                 'items' => [
-                    ['name' => 'object 1'],
-                    ['name' => 'object 2']
+                    [
+                        'name' => 'object 1',
+                        'generation' => 'abc'
+                    ],
+                    [
+                        'name' => 'object 2',
+                        'generation' => 'def'
+                    ]
                 ]
             ]);
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('objects');
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ObjectIterator::class, $res->returnVal());
         $this->assertEquals('object 1', explode("\n", $res->output())[0]);
         $this->assertEquals('object 2', explode("\n", $res->output())[1]);
+    }
+
+    public function testCreateNotificationBasicTopic()
+    {
+        $snippet = $this->snippetFromMethod(Bucket::class, 'createNotification');
+        $snippet->addLocal('bucket', $this->bucket);
+
+        $this->assertSnippetBuildsNotification($snippet, Argument::any());
+    }
+
+    public function testCreateNotificationFullyQualifiedTopic()
+    {
+        $snippet = $this->snippetFromMethod(Bucket::class, 'createNotification', 1);
+        $snippet->addLocal('bucket', $this->bucket);
+
+        $this->assertSnippetBuildsNotification($snippet, Argument::any());
+    }
+
+    public function testCreateNotificationTopicClass()
+    {
+        $snippet = $this->snippetFromMethod(Bucket::class, 'createNotification', 2);
+        $pubSub = $this->prophesize(PubSubClient::class);
+        $pubSub->topic(Argument::any())
+            ->willReturn(
+                $this->prophesize(Topic::class)->reveal()
+            );
+        $snippet->addLocal('pubSub', $pubSub->reveal());
+        $snippet->addLocal('bucket', $this->bucket);
+
+        $this->assertSnippetBuildsNotification($snippet, Argument::any());
+    }
+
+    public function testCreateNotificationWithEventTypes()
+    {
+        $snippet = $this->snippetFromMethod(Bucket::class, 'createNotification', 3);
+        $snippet->addLocal('bucket', $this->bucket);
+
+        $this->assertSnippetBuildsNotification(
+            $snippet,
+            Argument::withEntry('event_types', [
+                'OBJECT_DELETE',
+                'OBJECT_METADATA_UPDATE'
+            ])
+        );
+    }
+
+    public function testNotification()
+    {
+        $snippet = $this->snippetFromMethod(Bucket::class, 'notification');
+        $snippet->addLocal('bucket', $this->bucket);
+        $res = $snippet->invoke('notification');
+
+        $this->assertInstanceOf(Notification::class, $res->returnVal());
+    }
+
+    public function testNotifications()
+    {
+        $snippet = $this->snippetFromMethod(Bucket::class, 'notifications');
+        $snippet->addLocal('bucket', $this->bucket);
+        $this->connection->listNotifications(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn([
+                'items' => [
+                    ['id' => '123'],
+                    ['id' => '321']
+                ]
+            ]);
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
+        $res = $snippet->invoke('notifications');
+
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
+        $this->assertEquals('123', explode("\n", $res->output())[0]);
+        $this->assertEquals('321', explode("\n", $res->output())[1]);
     }
 
     public function testDelete()
@@ -235,7 +349,7 @@ class BucketTest extends SnippetTestCase
         $this->connection->deleteBucket(Argument::any())
             ->shouldBeCalled();
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $snippet->invoke();
     }
@@ -254,7 +368,7 @@ class BucketTest extends SnippetTestCase
             ->shouldBeCalled()
             ->willReturn('foo');
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
     }
@@ -271,7 +385,7 @@ class BucketTest extends SnippetTestCase
                 'generation' => 'foo'
             ]);
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('singleObject');
         $this->assertInstanceOf(StorageObject::class, $res->returnVal());
@@ -290,7 +404,7 @@ class BucketTest extends SnippetTestCase
                 'generation' => 'foo'
             ]);
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('singleObject');
         $this->assertInstanceOf(StorageObject::class, $res->returnVal());
@@ -309,7 +423,7 @@ class BucketTest extends SnippetTestCase
                 'location' => $loc
             ]);
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
         $this->assertEquals($loc, $res->output());
@@ -327,7 +441,7 @@ class BucketTest extends SnippetTestCase
                 'location' => $loc
             ]);
 
-        $this->bucket->setConnection($this->connection->reveal());
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
         $this->assertEquals($loc, $res->output());
@@ -340,5 +454,25 @@ class BucketTest extends SnippetTestCase
 
         $res = $snippet->invoke();
         $this->assertEquals(self::BUCKET, $res->output());
+    }
+
+    public function testIam()
+    {
+        $snippet = $this->snippetFromMethod(Bucket::class, 'iam');
+        $snippet->addLocal('bucket', $this->bucket);
+
+        $res = $snippet->invoke('iam');
+        $this->assertInstanceOf(Iam::class, $res->returnVal());
+    }
+
+    private function assertSnippetBuildsNotification($snippet, $expectedArgs)
+    {
+        $this->connection->insertNotification($expectedArgs)
+            ->willReturn(['id' => self::NOTIFICATION_ID])
+            ->shouldBeCalledTimes(1);
+        $this->bucket->___setProperty('connection', $this->connection->reveal());
+        $res = $snippet->invoke('notification');
+
+        $this->assertInstanceOf(Notification::class, $res->returnVal());
     }
 }

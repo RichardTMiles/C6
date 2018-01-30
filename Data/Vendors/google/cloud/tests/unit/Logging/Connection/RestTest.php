@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\Logging\Connection;
+namespace Google\Cloud\Tests\Unit\Logging\Connection;
 
+use Google\Cloud\Core\RequestBuilder;
+use Google\Cloud\Core\RequestWrapper;
 use Google\Cloud\Logging\Connection\Rest;
-use Google\Cloud\RequestBuilder;
-use Google\Cloud\RequestWrapper;
+use Google\Cloud\Logging\LoggingClient;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Prophecy\Argument;
 use Psr\Http\Message\RequestInterface;
 use Rize\UriTemplate;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group logging
  */
-class RestTest extends \PHPUnit_Framework_TestCase
+class RestTest extends TestCase
 {
     private $requestWrapper;
     private $successBody;

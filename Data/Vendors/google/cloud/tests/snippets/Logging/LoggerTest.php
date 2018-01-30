@@ -21,6 +21,7 @@ use Google\Cloud\Dev\Snippet\SnippetTestCase;
 use Google\Cloud\Logging\Connection\ConnectionInterface;
 use Google\Cloud\Logging\Entry;
 use Google\Cloud\Logging\Logger;
+use Google\Cloud\Core\Iterator\ItemIterator;
 use Prophecy\Argument;
 
 /**
@@ -37,11 +38,11 @@ class LoggerTest extends SnippetTestCase
     public function setUp()
     {
         $this->connection = $this->prophesize(ConnectionInterface::class);
-        $this->logger = new \LoggerStub(
+        $this->logger = \Google\Cloud\Dev\stub(Logger::class, [
             $this->connection->reveal(),
             self::NAME,
             self::PROJECT
-        );
+        ]);
     }
 
     public function testClass()
@@ -60,7 +61,7 @@ class LoggerTest extends SnippetTestCase
         $this->connection->deleteLog(Argument::any())
             ->shouldBeCalled();
 
-        $this->logger->setConnection($this->connection->reveal());
+        $this->logger->___setProperty('connection', $this->connection->reveal());
 
         $snippet->invoke();
     }
@@ -79,10 +80,10 @@ class LoggerTest extends SnippetTestCase
                 ]
             ]);
 
-        $this->logger->setConnection($this->connection->reveal());
+        $this->logger->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('entries');
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
         $this->assertEquals('foo', explode(PHP_EOL, $res->output())[0]);
         $this->assertEquals('bar', explode(PHP_EOL, $res->output())[1]);
     }
@@ -105,10 +106,10 @@ class LoggerTest extends SnippetTestCase
                 ]
             ]);
 
-        $this->logger->setConnection($this->connection->reveal());
+        $this->logger->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('entries');
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
         $this->assertEquals('foo', explode(PHP_EOL, $res->output())[0]);
         $this->assertEquals('bar', explode(PHP_EOL, $res->output())[1]);
     }
@@ -149,7 +150,7 @@ class LoggerTest extends SnippetTestCase
         $this->connection->writeEntries(Argument::any())
             ->shouldBeCalled();
 
-        $this->logger->setConnection($this->connection->reveal());
+        $this->logger->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
     }
@@ -163,7 +164,7 @@ class LoggerTest extends SnippetTestCase
         $this->connection->writeEntries(Argument::any())
             ->shouldBeCalled();
 
-        $this->logger->setConnection($this->connection->reveal());
+        $this->logger->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
     }
@@ -176,7 +177,7 @@ class LoggerTest extends SnippetTestCase
         $this->connection->writeEntries(Argument::any())
             ->shouldBeCalled();
 
-        $this->logger->setConnection($this->connection->reveal());
+        $this->logger->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
     }
@@ -189,7 +190,7 @@ class LoggerTest extends SnippetTestCase
         $this->connection->writeEntries(Argument::any())
             ->shouldBeCalled();
 
-        $this->logger->setConnection($this->connection->reveal());
+        $this->logger->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
     }

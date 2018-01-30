@@ -15,22 +15,30 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\PubSub;
+namespace Google\Cloud\Tests\Unit\PubSub;
 
-use Generator;
+use Google\Cloud\Core\Duration;
+use Google\Cloud\Core\Iterator\ItemIterator;
+use Google\Cloud\Core\Timestamp;
 use Google\Cloud\PubSub\Connection\ConnectionInterface;
 use Google\Cloud\PubSub\Connection\Grpc;
 use Google\Cloud\PubSub\Connection\Rest;
+use Google\Cloud\PubSub\Message;
 use Google\Cloud\PubSub\PubSubClient;
+use Google\Cloud\PubSub\Snapshot;
 use Google\Cloud\PubSub\Subscription;
 use Google\Cloud\PubSub\Topic;
+use Google\Cloud\Tests\GrpcTestTrait;
 use Prophecy\Argument;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group pubsub
  */
-class PubSubClientTest extends \PHPUnit_Framework_TestCase
+class PubSubClientTest extends TestCase
 {
+    use GrpcTestTrait;
+
     private $connection;
 
     private $client;
@@ -47,9 +55,7 @@ class PubSubClientTest extends \PHPUnit_Framework_TestCase
 
     public function testUsesGrpcConnectionByDefault()
     {
-        if (!extension_loaded('grpc')) {
-            $this->markTestSkipped('Must have the grpc extension installed to run this test.');
-        }
+        $this->checkAndSkipGrpcTests();
         $client = new PubSubClientStub(['projectId' => 'project']);
 
         $this->assertInstanceOf(Grpc::class, $client->getConnection());
@@ -121,7 +127,7 @@ class PubSubClientTest extends \PHPUnit_Framework_TestCase
             'foo' => 'bar'
         ]);
 
-        $this->assertInstanceOf(Generator::class, $topics);
+        $this->assertInstanceOf(ItemIterator::class, $topics);
 
         $arr = iterator_to_array($topics);
         $this->assertInstanceOf(Topic::class, $arr[0]);
@@ -144,7 +150,9 @@ class PubSubClientTest extends \PHPUnit_Framework_TestCase
 
         $this->connection->listTopics(Argument::that(function ($options) {
             if ($options['foo'] !== 'bar') return false;
-            if ($options['pageToken'] !== 'foo' && !is_null($options['pageToken'])) return false;
+            if (isset($options['pageToken']) && $options['pageToken'] !== 'foo') {
+                return false;
+            }
 
             return true;
         }))->willReturn([
@@ -167,7 +175,7 @@ class PubSubClientTest extends \PHPUnit_Framework_TestCase
             if ($i == 6) break;
         }
 
-        $this->assertEquals(6, count($arr));
+        $this->assertCount(6, $arr);
     }
 
     public function testSubscribe()
@@ -230,7 +238,7 @@ class PubSubClientTest extends \PHPUnit_Framework_TestCase
             'foo' => 'bar'
         ]);
 
-        $this->assertInstanceOf(Generator::class, $subscriptions);
+        $this->assertInstanceOf(ItemIterator::class, $subscriptions);
 
         $arr = iterator_to_array($subscriptions);
         $this->assertInstanceOf(Subscription::class, $arr[0]);
@@ -256,7 +264,9 @@ class PubSubClientTest extends \PHPUnit_Framework_TestCase
 
         $this->connection->listSubscriptions(Argument::that(function ($options) {
             if ($options['foo'] !== 'bar') return false;
-            if ($options['pageToken'] !== 'foo' && !is_null($options['pageToken'])) return false;
+            if (isset($options['pageToken']) && $options['pageToken'] !== 'foo') {
+                return false;
+            }
 
             return true;
         }))->willReturn([
@@ -279,7 +289,131 @@ class PubSubClientTest extends \PHPUnit_Framework_TestCase
             if ($i == 6) break;
         }
 
-        $this->assertEquals(6, count($arr));
+        $this->assertCount(6, $arr);
+    }
+
+    public function testCreateSnapshot()
+    {
+        $this->connection->createSnapshot(Argument::any())
+            ->shouldBeCalled()
+            ->willReturn([]);
+
+        $this->client->setConnection($this->connection->reveal());
+
+        $subscription = $this->client->subscription('bar');
+
+        $res = $this->client->createSnapshot('foo', $subscription);
+        $this->assertInstanceOf(Snapshot::class, $res);
+        $this->assertEquals('projects/project/snapshots/foo', $res->name());
+    }
+
+    public function testSnapshot()
+    {
+        $res = $this->client->snapshot('foo');
+        $this->assertInstanceOf(Snapshot::class, $res);
+        $this->assertEquals('projects/project/snapshots/foo', $res->name());
+    }
+
+    public function testSnapshots()
+    {
+        $snapshotResult = [
+            [
+                'name' => 'projects/project/snapshots/snapshot-a'
+            ], [
+                'name' => 'projects/project/snapshots/snapshot-b'
+            ], [
+                'name' => 'projects/project/snapshots/snapshot-c'
+            ]
+        ];
+
+        $this->connection->listSnapshots(Argument::withEntry('foo', 'bar'))
+            ->willReturn([
+                'snapshots' => $snapshotResult
+            ])->shouldBeCalledTimes(1);
+
+        $this->client->setConnection($this->connection->reveal());
+
+        $snapshots = $this->client->snapshots([
+            'foo' => 'bar'
+        ]);
+
+        $this->assertInstanceOf(ItemIterator::class, $snapshots);
+
+        $arr = iterator_to_array($snapshots);
+        $this->assertInstanceOf(Snapshot::class, $arr[0]);
+        $this->assertEquals($arr[0]->info()['name'], $snapshotResult[0]['name']);
+        $this->assertEquals($arr[1]->info()['name'], $snapshotResult[1]['name']);
+        $this->assertEquals($arr[2]->info()['name'], $snapshotResult[2]['name']);
+    }
+
+    public function testSnapshotsPaged()
+    {
+        $snapshotResult = [
+            [
+                'name' => 'projects/project/snapshots/snapshot-a'
+            ], [
+                'name' => 'projects/project/snapshots/snapshot-b'
+            ], [
+                'name' => 'projects/project/snapshots/snapshot-c'
+            ]
+        ];
+
+        $this->connection->listSnapshots(Argument::that(function ($options) {
+            if ($options['foo'] !== 'bar') return false;
+            if (isset($options['pageToken']) && $options['pageToken'] !== 'foo') {
+                return false;
+            }
+
+            return true;
+        }))->willReturn([
+            'snapshots' => $snapshotResult,
+            'nextPageToken' => 'foo'
+        ])->shouldBeCalledTimes(2);
+
+        $this->client->setConnection($this->connection->reveal());
+
+        $snapshots = $this->client->snapshots([
+            'foo' => 'bar'
+        ]);
+
+        // enumerate the iterator and kill after it loops twice.
+        $arr = [];
+        $i = 0;
+        foreach ($snapshots as $snapshot) {
+            $i++;
+            $arr[] = $snapshot;
+            if ($i == 6) break;
+        }
+
+        $this->assertCount(6, $arr);
+    }
+
+    public function testConsume()
+    {
+        $requestData = [
+            'message' => [
+                'data' => 'foo'
+            ]
+        ];
+
+        $res = $this->client->consume($requestData);
+        $this->assertInstanceOf(Message::class, $res);
+    }
+
+    public function testTimestamp()
+    {
+        $dt = new \DateTime;
+        $ts = $this->client->timestamp($dt);
+        $this->assertInstanceOf(Timestamp::class, $ts);
+        $this->assertEquals($ts->get(), $dt);
+    }
+
+    public function testDuration()
+    {
+        $val = ['seconds' => 1, 'nanos' => 2];
+        $dur = $this->client->duration($val['seconds'], $val['nanos']);
+        $this->assertInstanceOf(Duration::class, $dur);
+        $this->assertEquals($dur->get(), $val);
     }
 }
 

@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\BigQuery;
+namespace Google\Cloud\Tests\Unit\BigQuery;
 
 use Google\Cloud\BigQuery\InsertResponse;
 use Prophecy\Argument;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group bigquery
  */
-class InsertResponseTest extends \PHPUnit_Framework_TestCase
+class InsertResponseTest extends TestCase
 {
     public function testSuccess()
     {

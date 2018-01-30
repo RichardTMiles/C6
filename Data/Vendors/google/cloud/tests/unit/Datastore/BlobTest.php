@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\Datastore;
+namespace Google\Cloud\Tests\Unit\Datastore;
 
 use Google\Cloud\Datastore\Blob;
 use GuzzleHttp\Psr7;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group datastore
  */
-class BlobTest extends \PHPUnit_Framework_TestCase
+class BlobTest extends TestCase
 {
     public function testBlobString()
     {

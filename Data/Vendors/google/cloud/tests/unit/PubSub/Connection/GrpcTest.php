@@ -15,31 +15,36 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\PubSub\Connection;
+namespace Google\Cloud\Tests\Unit\PubSub\Connection;
 
+use Google\Cloud\Core\GrpcRequestWrapper;
+use Google\Cloud\Core\GrpcTrait;
 use Google\Cloud\PubSub\Connection\Grpc;
-use Google\Cloud\GrpcRequestWrapper;
+use Google\Cloud\Tests\GrpcTestTrait;
+use Google\ApiCore\Serializer;
+use Google\Protobuf\FieldMask;
+use Google\Protobuf\Timestamp;
 use Prophecy\Argument;
-use google\iam\v1\Binding;
-use google\iam\v1\Policy;
-use google\pubsub\v1\PubsubMessage;
-use google\pubsub\v1\PubsubMessage\AttributesEntry as MessageAttributesEntry;
-use google\pubsub\v1\PushConfig\AttributesEntry as PushConfigAttributesEntry;
-use google\pubsub\v1\PushConfig;
+use Google\Cloud\Iam\V1\Binding;
+use Google\Cloud\Iam\V1\Policy;
+use Google\Cloud\PubSub\V1\PubsubMessage;
+use Google\Cloud\PubSub\V1\PushConfig;
+use Google\Cloud\PubSub\V1\Subscription;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group pubsub
  */
-class GrpcTest extends \PHPUnit_Framework_TestCase
+class GrpcTest extends TestCase
 {
-    private $requestWrapper;
+    use GrpcTestTrait;
+    use GrpcTrait;
+
     private $successMessage;
 
     public function setUp()
     {
-        if (!extension_loaded('grpc')) {
-            $this->markTestSkipped('Must have the grpc extension installed to run this test.');
-        }
+        $this->checkAndSkipGrpcTests();
 
         $this->requestWrapper = $this->prophesize(GrpcRequestWrapper::class);
         $this->successMessage = 'success';
@@ -64,37 +69,76 @@ class GrpcTest extends \PHPUnit_Framework_TestCase
 
     public function methodProvider()
     {
+        if ($this->shouldSkipGrpcTests()) {
+            return [];
+        }
+
         $value = 'value';
         $pageSizeSetting = ['pageSize' => 3];
         $messageData = '123';
         $attributeKey = 'testing';
         $attributeValue = '123';
+        $attributes = ['testing' => 123];
         $pbMessage = new PubsubMessage();
         $pbMessage->setData('123');
-        $pbMessageAttribute = new MessageAttributesEntry();
-        $pbMessageAttribute->setKey($attributeKey);
-        $pbMessageAttribute->setValue($attributeValue);
-        $pbMessage->addAttributes($pbMessageAttribute);
+        $pbMessage->setAttributes($attributes);
         $bindingRole = 'test_role';
         $bindingMember = 'test_member';
-        $pbPolicy = new Policy();
+        $bindingMembers = [$bindingMember];
         $pbBinding = new Binding();
         $pbBinding->setRole($bindingRole);
-        $pbBinding->addMembers($bindingMember);
-        $pbPolicy->addBindings($pbBinding);
+        $pbBinding->setMembers($bindingMembers);
+        $pbBindings = [$pbBinding];
+        $pbPolicy = new Policy();
+        $pbPolicy->setBindings($pbBindings);
         $permissions = ['fake' => 'permissions'];
         $pbPushConfig = new PushConfig();
         $pushEndpoint = 'http://www.example.com';
         $pbPushConfig->setPushEndpoint($pushEndpoint);
-        $pbPushAttribute = new PushConfigAttributesEntry();
-        $pbPushAttribute->setKey($attributeKey);
-        $pbPushAttribute->setValue($attributeValue);
-        $pbPushConfig->addAttributes($pbPushAttribute);
+        $pbPushAttributes = ['testing' => 123];
+        $pbPushConfig->setAttributes($pbPushAttributes);
         $ackIds = ['1', '2', '3'];
         $maxMessages = 100;
         $ackDeadlineSeconds = 1;
 
+        $snapshotName = 'projects/foo/snapshots/bar';
+        $subscriptionName = 'projects/foo/subscriptions/bar';
+        $subscription = new Subscription;
+        $subscription->setName($subscriptionName);
+        $subscription->setRetainAckedMessages(true);
+
+        $serializer = new Serializer();
+        $fieldMask = $serializer->decodeMessage(new FieldMask(), ['paths' => ['retainAckedMessages']]);
+
+        $time = (new \DateTime)->format('Y-m-d\TH:i:s.u\Z');
+        $timestamp = $serializer->decodeMessage(new Timestamp(), $this->formatTimestampForApi($time));
+
         return [
+            [
+                'updateSubscription',
+                ['name' => 'projects/foo/subscriptions/bar', 'retainAckedMessages' => true],
+                [$subscription, $fieldMask, []]
+            ],
+            [
+                'listSnapshots',
+                ['project' => 'projectId'],
+                ['projectId', []]
+            ],
+            [
+                'createSnapshot',
+                ['name' => $snapshotName, 'subscription' => $subscriptionName],
+                [$snapshotName, $subscriptionName, []]
+            ],
+            [
+                'deleteSnapshot',
+                ['snapshot' => $snapshotName],
+                [$snapshotName, []]
+            ],
+            [
+                'seek',
+                ['subscription' => $subscriptionName, 'time' => $time],
+                [$subscriptionName, ['time' => $timestamp]]
+            ],
             [
                 'createTopic',
                 ['name' => $value],

@@ -17,15 +17,16 @@
 
 namespace Google\Cloud\Storage\Connection;
 
-use Google\Cloud\RequestBuilder;
-use Google\Cloud\RequestWrapper;
-use Google\Cloud\RestTrait;
+use Google\Cloud\Core\RequestBuilder;
+use Google\Cloud\Core\RequestWrapper;
+use Google\Cloud\Core\RestTrait;
+use Google\Cloud\Core\Upload\AbstractUploader;
+use Google\Cloud\Core\Upload\MultipartUploader;
+use Google\Cloud\Core\Upload\ResumableUploader;
+use Google\Cloud\Core\Upload\StreamableUploader;
+use Google\Cloud\Core\UriTrait;
 use Google\Cloud\Storage\Connection\ConnectionInterface;
-use Google\Cloud\Upload\AbstractUploader;
-use Google\Cloud\Upload\MultipartUploader;
-use Google\Cloud\Upload\ResumableUploader;
-use Google\Cloud\Upload\StreamableUploader;
-use Google\Cloud\UriTrait;
+use Google\Cloud\Storage\StorageClient;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\Request;
 
@@ -40,7 +41,12 @@ class Rest implements ConnectionInterface
 
     const BASE_URI = 'https://www.googleapis.com/storage/v1/';
     const UPLOAD_URI = 'https://www.googleapis.com/upload/storage/v1/b/{bucket}/o{?query*}';
-    const DOWNLOAD_URI = 'https://storage.googleapis.com/{bucket}/{object}{?query*}';
+    const DOWNLOAD_URI = 'https://www.googleapis.com/storage/v1/b/{bucket}/o/{object}{?query*}';
+
+    /**
+     * @var string
+     */
+    private $projectId;
 
     /**
      * @param array $config
@@ -48,7 +54,8 @@ class Rest implements ConnectionInterface
     public function __construct(array $config = [])
     {
         $config += [
-            'serviceDefinitionPath' => __DIR__ . '/ServiceDefinition/storage-v1.json'
+            'serviceDefinitionPath' => __DIR__ . '/ServiceDefinition/storage-v1.json',
+            'componentVersion' => StorageClient::VERSION
         ];
 
         $this->setRequestWrapper(new RequestWrapper($config));
@@ -56,6 +63,16 @@ class Rest implements ConnectionInterface
             $config['serviceDefinitionPath'],
             self::BASE_URI
         ));
+
+        $this->projectId = $this->pluck('projectId', $config, false);
+    }
+
+    /**
+     * @return string
+     */
+    public function projectId()
+    {
+        return $this->projectId;
     }
 
     /**
@@ -202,11 +219,12 @@ class Rest implements ConnectionInterface
         $args += [
             'bucket' => null,
             'object' => null,
-            'generation' => null
+            'generation' => null,
+            'userProject' => null
         ];
 
         $requestOptions = array_intersect_key($args, [
-            'httpOptions' => null,
+            'restOptions' => null,
             'retries' => null
         ]);
 
@@ -215,7 +233,8 @@ class Rest implements ConnectionInterface
             'object' => $args['object'],
             'query' => [
                 'generation' => $args['generation'],
-                'alt' => 'media'
+                'alt' => 'media',
+                'userProject' => $args['userProject']
             ]
         ]);
 
@@ -246,7 +265,8 @@ class Rest implements ConnectionInterface
             'bucket' => $args['bucket'],
             'query' => [
                 'predefinedAcl' => $args['predefinedAcl'],
-                'uploadType' => $uploadType
+                'uploadType' => $uploadType,
+                'userProject' => $args['userProject']
             ]
         ];
 
@@ -270,7 +290,8 @@ class Rest implements ConnectionInterface
             'resumable' => null,
             'streamable' => null,
             'predefinedAcl' => null,
-            'metadata' => []
+            'metadata' => [],
+            'userProject' => null,
         ];
 
         $args['data'] = Psr7\stream_for($args['data']);
@@ -295,16 +316,74 @@ class Rest implements ConnectionInterface
             : Psr7\mimetype_from_filename($args['metadata']['name']);
 
         $uploaderOptionKeys = [
-            'httpOptions',
+            'restOptions',
             'retries',
+            'requestTimeout',
             'chunkSize',
             'contentType',
-            'metadata'
+            'metadata',
+            'uploadProgressCallback'
         ];
 
         $args['uploaderOptions'] = array_intersect_key($args, array_flip($uploaderOptionKeys));
         $args = array_diff_key($args, array_flip($uploaderOptionKeys));
 
         return $args;
+    }
+
+    /**
+     * @param  array $args
+     */
+    public function getBucketIamPolicy(array $args)
+    {
+        return $this->send('buckets', 'getIamPolicy', $args);
+    }
+
+    /**
+     * @param  array $args
+     */
+    public function setBucketIamPolicy(array $args)
+    {
+        return $this->send('buckets', 'setIamPolicy', $args);
+    }
+
+    /**
+     * @param  array $args
+     */
+    public function testBucketIamPermissions(array $args)
+    {
+        return $this->send('buckets', 'testIamPermissions', $args);
+    }
+
+    /**
+     * @param array $args
+     */
+    public function getNotification(array $args = [])
+    {
+        return $this->send('notifications', 'get', $args);
+    }
+
+    /**
+     * @param array $args
+     */
+    public function deleteNotification(array $args = [])
+    {
+        return $this->send('notifications', 'delete', $args);
+    }
+
+    /**
+     * @param array $args
+     */
+    public function insertNotification(array $args = [])
+    {
+        return $this->send('notifications', 'insert', $args);
+    }
+
+    /**
+     * @param array $args
+     */
+    public function listNotifications(array $args = [])
+    {
+        return $this->send('notifications', 'list', $args);
     }
 }

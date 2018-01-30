@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2016 Google Inc.
+ * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,9 @@ namespace Google\Cloud\PubSub;
  *
  * Example:
  * ```
- * use Google\Cloud\ServiceBuilder;
+ * use Google\Cloud\PubSub\PubSubClient;
  *
- * $cloud = new ServiceBuilder();
- * $pubsub = $cloud->pubsub();
+ * $pubsub = new PubSubClient();
  * $subscription = $pubsub->subscription('my-new-subscription');
  *
  * $messages = $subscription->pull();

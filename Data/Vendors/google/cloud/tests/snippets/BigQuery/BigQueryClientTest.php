@@ -25,9 +25,12 @@ use Google\Cloud\BigQuery\Timestamp;
 use Google\Cloud\BigQuery\Connection\ConnectionInterface;
 use Google\Cloud\BigQuery\Dataset;
 use Google\Cloud\BigQuery\Job;
+use Google\Cloud\BigQuery\QueryJobConfiguration;
 use Google\Cloud\BigQuery\QueryResults;
+use Google\Cloud\BigQuery\ValueMapper;
+use Google\Cloud\Core\Int64;
+use Google\Cloud\Core\Iterator\ItemIterator;
 use Google\Cloud\Dev\Snippet\SnippetTestCase;
-use Google\Cloud\Int64;
 use Prophecy\Argument;
 
 /**
@@ -35,6 +38,11 @@ use Prophecy\Argument;
  */
 class BigQueryClientTest extends SnippetTestCase
 {
+    const JOB_ID = 'myJobId';
+    const PROJECT_ID = 'my-awesome-project';
+    const CREATE_DISPOSITION = 'CREATE_NEVER';
+    const QUERY_STRING = 'SELECT commit FROM `bigquery-public-data.github_repos.commits` LIMIT 100';
+
     private $connection;
     private $client;
     private $result = [
@@ -62,8 +70,8 @@ class BigQueryClientTest extends SnippetTestCase
     public function setUp()
     {
         $this->connection = $this->prophesize(ConnectionInterface::class);
-        $this->client = new \BigQueryClientStub;
-        $this->client->setConnection($this->connection->reveal());
+        $this->client = \Google\Cloud\Dev\stub(BigQueryTestClient::class);
+        $this->client->___setProperty('connection', $this->connection->reveal());
     }
 
     public function testClass()
@@ -74,20 +82,51 @@ class BigQueryClientTest extends SnippetTestCase
         $this->assertInstanceOf(BigQueryClient::class, $res->returnVal());
     }
 
-    public function testClassDirectInstantiation()
+    public function testQuery()
     {
-        $snippet = $this->snippetFromClass(BigQueryClient::class, 1);
-        $res = $snippet->invoke('bigQuery');
+        $snippet = $this->snippetFromMethod(BigQueryClient::class, 'query');
+        $snippet->addLocal('bigQuery', $this->client);
+        $config = $snippet->invoke('queryJobConfig')
+            ->returnVal();
 
-        $this->assertInstanceOf(BigQueryClient::class, $res->returnVal());
+        $this->assertInstanceOf(QueryJobConfiguration::class, $config);
+        $this->assertEquals(
+            self::QUERY_STRING,
+            $config->toArray()['configuration']['query']['query']
+        );
+    }
+
+    public function testQueryWithFluentSetters()
+    {
+        $snippet = $this->snippetFromMethod(BigQueryClient::class, 'query', 1);
+        $snippet->addLocal('bigQuery', $this->client);
+        $config = $snippet->invoke('queryJobConfig')
+            ->returnVal();
+        $array = $config->toArray();
+
+        $this->assertInstanceOf(QueryJobConfiguration::class, $config);
+        $this->assertEquals(self::QUERY_STRING, $array['configuration']['query']['query']);
+        $this->assertEquals(self::CREATE_DISPOSITION, $array['configuration']['query']['createDisposition']);
+    }
+
+    public function testQueryWithArrayOfOptions()
+    {
+        $snippet = $this->snippetFromMethod(BigQueryClient::class, 'query', 2);
+        $snippet->addLocal('bigQuery', $this->client);
+        $config = $snippet->invoke('queryJobConfig')
+            ->returnVal();
+        $array = $config->toArray();
+
+        $this->assertInstanceOf(QueryJobConfiguration::class, $config);
+        $this->assertEquals(self::QUERY_STRING, $array['configuration']['query']['query']);
+        $this->assertEquals(self::CREATE_DISPOSITION, $array['configuration']['query']['createDisposition']);
     }
 
     public function testRunQuery()
     {
         $snippet = $this->snippetFromMethod(BigQueryClient::class, 'runQuery');
         $snippet->addLocal('bigQuery', $this->client);
-        $snippet->replace('sleep(1);', '');
-        $this->connection->query(Argument::any())
+        $this->connection->insertJob(Argument::any())
             ->shouldBeCalled()
             ->willReturn([
                 'jobComplete' => false,
@@ -98,7 +137,7 @@ class BigQueryClientTest extends SnippetTestCase
         $this->connection->getQueryResults(Argument::any())
             ->shouldBeCalledTimes(1)
             ->willReturn($this->result);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('queryResults');
 
         $this->assertInstanceOf(QueryResults::class, $res->returnVal());
@@ -109,28 +148,40 @@ class BigQueryClientTest extends SnippetTestCase
     {
         $snippet = $this->snippetFromMethod(BigQueryClient::class, 'runQuery', 1);
         $snippet->addLocal('bigQuery', $this->client);
-        $snippet->replace('sleep(1);', '');
+        $expectedQuery = 'SELECT commit FROM `bigquery-public-data.github_repos.commits`' .
+                         'WHERE author.date < @date AND message = @message LIMIT 100';
         $this->connection
-            ->query(Argument::withEntry('queryParameters', [
-                [
-                    'name' => 'date',
-                    'parameterType' => [
-                        'type' => 'TIMESTAMP'
-                    ],
-                    'parameterValue' => [
-                        'value' => '1980-01-01 12:15:00.000000+00:00'
-                    ]
-                ],
-                [
-                    'name' => 'message',
-                    'parameterType' => [
-                        'type' => 'STRING'
-                    ],
-                    'parameterValue' => [
-                        'value' => 'A commit message.'
+            ->insertJob([
+                'projectId' => self::PROJECT_ID,
+                'jobReference' => ['projectId' => self::PROJECT_ID, 'jobId' => self::JOB_ID],
+                'configuration' => [
+                    'query' => [
+                        'parameterMode' => 'named',
+                        'useLegacySql' => false,
+                        'queryParameters' => [
+                            [
+                                'name' => 'date',
+                                'parameterType' => [
+                                    'type' => 'TIMESTAMP'
+                                ],
+                                'parameterValue' => [
+                                    'value' => '1980-01-01 12:15:00.000000+00:00'
+                                ]
+                            ],
+                            [
+                                'name' => 'message',
+                                'parameterType' => [
+                                    'type' => 'STRING'
+                                ],
+                                'parameterValue' => [
+                                    'value' => 'A commit message.'
+                                ]
+                            ]
+                        ],
+                        'query' => $expectedQuery
                     ]
                 ]
-            ]))
+            ])
             ->shouldBeCalledTimes(1)
             ->willReturn([
                 'jobComplete' => false,
@@ -141,7 +192,7 @@ class BigQueryClientTest extends SnippetTestCase
         $this->connection->getQueryResults(Argument::any())
             ->shouldBeCalledTimes(1)
             ->willReturn($this->result);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('queryResults');
 
         $this->assertInstanceOf(QueryResults::class, $res->returnVal());
@@ -152,18 +203,29 @@ class BigQueryClientTest extends SnippetTestCase
     {
         $snippet = $this->snippetFromMethod(BigQueryClient::class, 'runQuery', 2);
         $snippet->addLocal('bigQuery', $this->client);
-        $snippet->replace('sleep(1);', '');
+        $expectedQuery = 'SELECT commit FROM `bigquery-public-data.github_repos.commits` WHERE message = ? LIMIT 100';
         $this->connection
-            ->query(Argument::withEntry('queryParameters', [
-                [
-                    'parameterType' => [
-                        'type' => 'STRING'
-                    ],
-                    'parameterValue' => [
-                        'value' => 'A commit message.'
+            ->insertJob([
+                'projectId' => self::PROJECT_ID,
+                'jobReference' => ['projectId' => self::PROJECT_ID, 'jobId' => self::JOB_ID],
+                'configuration' => [
+                    'query' => [
+                        'parameterMode' => 'positional',
+                        'useLegacySql' => false,
+                        'queryParameters' => [
+                            [
+                                'parameterType' => [
+                                    'type' => 'STRING'
+                                ],
+                                'parameterValue' => [
+                                    'value' => 'A commit message.'
+                                ]
+                            ]
+                        ],
+                        'query' => $expectedQuery
                     ]
                 ]
-            ]))
+            ])
             ->shouldBeCalledTimes(1)
             ->willReturn([
                 'jobComplete' => false,
@@ -174,18 +236,17 @@ class BigQueryClientTest extends SnippetTestCase
         $this->connection->getQueryResults(Argument::any())
             ->shouldBeCalledTimes(1)
             ->willReturn($this->result);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('queryResults');
 
         $this->assertInstanceOf(QueryResults::class, $res->returnVal());
         $this->assertEquals('abcd', $res->output());
     }
 
-    public function testRunQueryAsJob()
+    public function testStartQuery()
     {
-        $snippet = $this->snippetFromMethod(BigQueryClient::class, 'runQueryAsJob');
+        $snippet = $this->snippetFromMethod(BigQueryClient::class, 'startQuery');
         $snippet->addLocal('bigQuery', $this->client);
-        $snippet->replace('sleep(1);', '');
         $this->connection->insertJob(Argument::any())
             ->shouldBeCalledTimes(1)
             ->willReturn([
@@ -205,7 +266,7 @@ class BigQueryClientTest extends SnippetTestCase
                 ],
                 $this->result
             );
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('queryResults');
 
         $this->assertInstanceOf(QueryResults::class, $res->returnVal());
@@ -216,7 +277,7 @@ class BigQueryClientTest extends SnippetTestCase
     {
         $snippet = $this->snippetFromMethod(BigQueryClient::class, 'job');
         $snippet->addLocal('bigQuery', $this->client);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('job');
 
         $this->assertInstanceOf(Job::class, $res->returnVal());
@@ -237,10 +298,10 @@ class BigQueryClientTest extends SnippetTestCase
                     ]
                 ]
             ]);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('jobs');
 
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
         $this->assertEquals('job', trim($res->output()));
     }
 
@@ -248,7 +309,7 @@ class BigQueryClientTest extends SnippetTestCase
     {
         $snippet = $this->snippetFromMethod(BigQueryClient::class, 'dataset');
         $snippet->addLocal('bigQuery', $this->client);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('dataset');
 
         $this->assertInstanceOf(Dataset::class, $res->returnVal());
@@ -269,10 +330,10 @@ class BigQueryClientTest extends SnippetTestCase
                     ]
                 ]
             ]);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('datasets');
 
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
         $this->assertEquals('dataset', trim($res->output()));
     }
 
@@ -283,7 +344,7 @@ class BigQueryClientTest extends SnippetTestCase
         $this->connection->insertDataset(Argument::any())
             ->shouldBeCalledTimes(1)
             ->willReturn([]);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('dataset');
 
         $this->assertInstanceOf(Dataset::class, $res->returnVal());
@@ -293,7 +354,7 @@ class BigQueryClientTest extends SnippetTestCase
     {
         $snippet = $this->snippetFromMethod(BigQueryClient::class, 'bytes');
         $snippet->addLocal('bigQuery', $this->client);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('bytes');
 
         $this->assertInstanceOf(Bytes::class, $res->returnVal());
@@ -303,7 +364,7 @@ class BigQueryClientTest extends SnippetTestCase
     {
         $snippet = $this->snippetFromMethod(BigQueryClient::class, 'date');
         $snippet->addLocal('bigQuery', $this->client);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('date');
 
         $this->assertInstanceOf(Date::class, $res->returnVal());
@@ -313,7 +374,7 @@ class BigQueryClientTest extends SnippetTestCase
     {
         $snippet = $this->snippetFromMethod(BigQueryClient::class, 'int64');
         $snippet->addLocal('bigQuery', $this->client);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('int64');
 
         $this->assertInstanceOf(Int64::class, $res->returnVal());
@@ -323,7 +384,7 @@ class BigQueryClientTest extends SnippetTestCase
     {
         $snippet = $this->snippetFromMethod(BigQueryClient::class, 'time');
         $snippet->addLocal('bigQuery', $this->client);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('time');
 
         $this->assertInstanceOf(Time::class, $res->returnVal());
@@ -333,9 +394,29 @@ class BigQueryClientTest extends SnippetTestCase
     {
         $snippet = $this->snippetFromMethod(BigQueryClient::class, 'timestamp');
         $snippet->addLocal('bigQuery', $this->client);
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
         $res = $snippet->invoke('timestamp');
 
         $this->assertInstanceOf(Timestamp::class, $res->returnVal());
+    }
+}
+
+class BigQueryTestClient extends BigQueryClient
+{
+    public function query($query, array $options = [])
+    {
+        return (new QueryJobConfigurationStub(
+            new ValueMapper(false),
+            BigQueryClientTest::PROJECT_ID,
+            $options
+        ))->query($query);
+    }
+}
+
+class QueryJobConfigurationStub extends QueryJobConfiguration
+{
+    protected function generateJobId()
+    {
+        return BigQueryClientTest::JOB_ID;
     }
 }

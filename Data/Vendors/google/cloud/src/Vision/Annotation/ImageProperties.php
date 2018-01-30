@@ -22,12 +22,11 @@ namespace Google\Cloud\Vision\Annotation;
  *
  * Example:
  * ```
- * use Google\Cloud\ServiceBuilder;
+ * use Google\Cloud\Vision\VisionClient;
  *
- * $cloud = new ServiceBuilder();
- * $vision = $cloud->vision();
+ * $vision = new VisionClient();
  *
- * $imageResource = fopen(__DIR__ .'/assets/family-photo.jpg', 'r');
+ * $imageResource = fopen(__DIR__ . '/assets/family-photo.jpg', 'r');
  * $image = $vision->image($imageResource, [ 'imageProperties' ]);
  * $annotation = $vision->annotate($image);
  *
@@ -44,6 +43,8 @@ namespace Google\Cloud\Vision\Annotation;
  *
  *     @return array
  * }
+ *
+ * @see https://cloud.google.com/vision/docs/reference/rest/v1/images/annotate#ImageProperties ImageProperties
  */
 class ImageProperties extends AbstractFeature
 {

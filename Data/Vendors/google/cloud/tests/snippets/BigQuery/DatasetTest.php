@@ -20,6 +20,8 @@ namespace Google\Cloud\Tests\Snippets\BigQuery;
 use Google\Cloud\BigQuery\Connection\ConnectionInterface;
 use Google\Cloud\BigQuery\Dataset;
 use Google\Cloud\BigQuery\Table;
+use Google\Cloud\BigQuery\ValueMapper;
+use Google\Cloud\Core\Iterator\ItemIterator;
 use Google\Cloud\Dev\Snippet\SnippetTestCase;
 use Prophecy\Argument;
 
@@ -30,9 +32,11 @@ class DatasetTest extends SnippetTestCase
 {
     private $identity;
     private $connection;
+    private $mapper;
 
     public function setUp()
     {
+        $this->mapper = new ValueMapper(false);
         $this->identity = ['datasetId' => 'id', 'projectId' => 'projectId'];
         $this->connection = $this->prophesize(ConnectionInterface::class);
     }
@@ -43,6 +47,7 @@ class DatasetTest extends SnippetTestCase
             $connection->reveal(),
             $this->identity['datasetId'],
             $this->identity['projectId'],
+            $this->mapper,
             $info
         );
     }
@@ -112,7 +117,7 @@ class DatasetTest extends SnippetTestCase
         $snippet->addLocal('dataset', $dataset);
         $res = $snippet->invoke('tables');
 
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
         $this->assertEquals('table', trim($res->output()));
     }
 
@@ -131,27 +136,27 @@ class DatasetTest extends SnippetTestCase
 
     public function testInfo()
     {
-        $friendlyName = 'Friendly.';
-        $dataset = $this->getDataset($this->connection, ['friendlyName' => $friendlyName]);
+        $selfLink = 'https://www.googleapis.com/bigquery/v2/projects/my-project/datasets/mynewdataset';
+        $dataset = $this->getDataset($this->connection, ['selfLink' => $selfLink]);
         $snippet = $this->snippetFromMethod(Dataset::class, 'info');
         $snippet->addLocal('dataset', $dataset);
         $res = $snippet->invoke();
 
-        $this->assertEquals($friendlyName, $res->output());
+        $this->assertEquals($selfLink, $res->output());
     }
 
     public function testReload()
     {
-        $friendlyName = 'Friendly.';
+        $selfLink = 'https://www.googleapis.com/bigquery/v2/projects/my-project/datasets/mynewdataset';
         $this->connection->getDataset(Argument::any())
             ->shouldBeCalledTimes(1)
-            ->willReturn(['friendlyName' => $friendlyName]);
+            ->willReturn(['selfLink' => $selfLink]);
         $dataset = $this->getDataset($this->connection);
         $snippet = $this->snippetFromMethod(Dataset::class, 'reload');
         $snippet->addLocal('dataset', $dataset);
         $res = $snippet->invoke();
 
-        $this->assertEquals($friendlyName, $res->output());
+        $this->assertEquals($selfLink, $res->output());
     }
 
     public function testId()

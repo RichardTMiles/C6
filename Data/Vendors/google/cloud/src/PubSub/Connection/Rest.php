@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2016 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@
 
 namespace Google\Cloud\PubSub\Connection;
 
-use Google\Cloud\RequestBuilder;
-use Google\Cloud\RequestWrapper;
-use Google\Cloud\EmulatorTrait;
-use Google\Cloud\RestTrait;
-use Google\Cloud\UriTrait;
+use Google\Cloud\Core\EmulatorTrait;
+use Google\Cloud\Core\RequestBuilder;
+use Google\Cloud\Core\RequestWrapper;
+use Google\Cloud\Core\RestTrait;
+use Google\Cloud\Core\UriTrait;
+use Google\Cloud\PubSub\PubSubClient;
 
 /**
  * Implementation of the
@@ -43,16 +44,17 @@ class Rest implements ConnectionInterface
      */
     public function __construct(array $config = [])
     {
-        $emulatorHost = getenv('PUBSUB_EMULATOR_HOST');
+        $config += ['emulatorHost' => null];
 
-        $baseUri = $this->getEmulatorBaseUri(self::BASE_URI, $emulatorHost);
-
-        if ($emulatorHost) {
+        $baseUri = self::BASE_URI;
+        if ((bool) $config['emulatorHost']) {
+            $baseUri = $this->emulatorBaseUri($config['emulatorHost']);
             $config['shouldSignRequest'] = false;
         }
 
         $config += [
-            'serviceDefinitionPath' => __DIR__ . '/ServiceDefinition/pubsub-v1.json'
+            'serviceDefinitionPath' => __DIR__ . '/ServiceDefinition/pubsub-v1.json',
+            'componentVersion' => PubSubClient::VERSION
         ];
 
         $this->setRequestWrapper(new RequestWrapper($config));
@@ -146,6 +148,14 @@ class Rest implements ConnectionInterface
     /**
      * @param array $args
      */
+    public function updateSubscription(array $args)
+    {
+        return $this->send('subscriptions', 'patch', $args);
+    }
+
+    /**
+     * @param array $args
+     */
     public function getSubscription(array $args)
     {
         return $this->send('subscriptions', 'get', $args);
@@ -197,6 +207,42 @@ class Rest implements ConnectionInterface
     public function acknowledge(array $args)
     {
         return $this->send('subscriptions', 'acknowledge', $args);
+    }
+
+    /**
+     * @param array $args
+     */
+    public function listSnapshots(array $args)
+    {
+        $whitelisted = true;
+        return $this->send('snapshots', 'list', $args, $whitelisted);
+    }
+
+    /**
+     * @param array $args
+     */
+    public function createSnapshot(array $args)
+    {
+        $whitelisted = true;
+        return $this->send('snapshots', 'create', $args, $whitelisted);
+    }
+
+    /**
+     * @param array $args
+     */
+    public function deleteSnapshot(array $args)
+    {
+        $whitelisted = true;
+        return $this->send('snapshots', 'delete', $args, $whitelisted);
+    }
+
+    /**
+     * @param array $args
+     */
+    public function seek(array $args)
+    {
+        $whitelisted = true;
+        return $this->send('subscriptions', 'seek', $args, $whitelisted);
     }
 
     /**

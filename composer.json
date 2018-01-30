@@ -1,7 +1,8 @@
 {
   "name": "richardtmiles/c6",
   "description": "The best MVC framework",
-  "minimum-stability": "stable",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "license": "MIT",
   "config": {
     "vendor-dir": "Data/Vendors"
@@ -12,7 +13,6 @@
       "Controller\\": "Application/Controller/",
       "Model\\": "Application/Model/",
       "Tables\\": "Application/Tables/"
-
     }
   },
   "authors": [
@@ -23,19 +23,22 @@
   ],
 
   "require-dev": {
-    "richardtmiles/carbonphp": "dev-master",
+    "richardtmiles/carbonphp" : "dev-master",
     "google/cloud-tools": "^0.6"
   },
 
   "require": {
     "php": "7.1.*",
-    "google/cloud": "^0.21",
-    "richardtmiles/carbonphp": "dev-master",
-    "almasaeed2010/adminlte": "^2.4",
-    "bower-asset/jquery-backstretch": "^2.1",
-    "google/apiclient": "^2.0",
-    "facebook/graph-sdk": "^5.5",
-    "mustache/mustache": "^2.12"
+    "google/cloud": ">=0.21",
+    "facebook/graph-sdk": "^5.6.1",
+    "google/apiclient": "dev-master",
+    "mustache/mustache": "dev-master",
+    "almasaeed2010/adminlte": "dev-master",
+    "bower-asset/mustache.js": "dev-master",
+    "bower-asset/jquery-form": "dev-master",
+    "bower-asset/jquery-pjax": "dev-master",
+    "bower-asset/jquery-backstretch": "dev-master"
+
   }
 
 }

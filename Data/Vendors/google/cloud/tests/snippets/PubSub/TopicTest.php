@@ -17,11 +17,14 @@
 
 namespace Google\Cloud\Tests\Snippets\PubSub;
 
+use Google\Cloud\Core\Iam\Iam;
 use Google\Cloud\Dev\Snippet\SnippetTestCase;
-use Google\Cloud\Iam\Iam;
 use Google\Cloud\PubSub\Connection\ConnectionInterface;
+use Google\Cloud\PubSub\BatchPublisher;
+use Google\Cloud\PubSub\PubSubClient;
 use Google\Cloud\PubSub\Subscription;
 use Google\Cloud\PubSub\Topic;
+use Google\Cloud\Core\Iterator\ItemIterator;
 use Prophecy\Argument;
 
 /**
@@ -33,23 +36,25 @@ class TopicTest extends SnippetTestCase
     const SUBSCRIPTION = 'projects/my-awesome-project/subscriptions/my-new-subscription';
 
     private $connection;
+    private $pubsub;
     private $topic;
 
     public function setUp()
     {
         $this->connection = $this->prophesize(ConnectionInterface::class);
-        $this->topic = new \TopicStub(
+        $this->pubsub = \Google\Cloud\Dev\stub(PubSubClient::class);
+        $this->topic = \Google\Cloud\Dev\stub(Topic::class, [
             $this->connection->reveal(),
             'my-awesome-project',
             self::TOPIC,
             false
-        );
+        ]);
     }
 
     public function testClass()
     {
         $snippet = $this->snippetFromClass(Topic::class);
-        $snippet->addLocal('pubsub', new \PubSubClientStub(['transport' => 'rest']));
+        $snippet->addLocal('pubsub', $this->pubsub);
 
         $res = $snippet->invoke('topic');
         $this->assertInstanceOf(Topic::class, $res->returnVal());
@@ -59,7 +64,7 @@ class TopicTest extends SnippetTestCase
     public function testClassWithFullyQualifiedName()
     {
         $snippet = $this->snippetFromClass(Topic::class, 1);
-        $snippet->addLocal('pubsub', new \PubSubClientStub(['transport' => 'rest']));
+        $snippet->addLocal('pubsub', $this->pubsub);
 
         $res = $snippet->invoke('topic');
         $this->assertInstanceOf(Topic::class, $res->returnVal());
@@ -84,7 +89,7 @@ class TopicTest extends SnippetTestCase
             ->shouldBeCalled()
             ->willReturn([]);
 
-        $this->topic->setConnection($this->connection->reveal());
+        $this->topic->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('topicInfo');
         $this->assertEquals([], $res->returnVal());
@@ -98,7 +103,7 @@ class TopicTest extends SnippetTestCase
         $this->connection->deleteTopic(Argument::any())
             ->shouldBeCalled();
 
-        $this->topic->setConnection($this->connection->reveal());
+        $this->topic->___setProperty('connection', $this->connection->reveal());
 
         $snippet->invoke();
     }
@@ -112,7 +117,7 @@ class TopicTest extends SnippetTestCase
             ->shouldBeCalled()
             ->willReturn([]);
 
-        $this->topic->setConnection($this->connection->reveal());
+        $this->topic->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
         $this->assertEquals('Topic exists', $res->output());
@@ -129,7 +134,7 @@ class TopicTest extends SnippetTestCase
                 'name' => self::TOPIC
             ]);
 
-        $this->topic->setConnection($this->connection->reveal());
+        $this->topic->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
         $this->assertEquals(self::TOPIC, $res->output());
@@ -146,7 +151,7 @@ class TopicTest extends SnippetTestCase
                 'name' => self::TOPIC
             ]);
 
-        $this->topic->setConnection($this->connection->reveal());
+        $this->topic->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke();
         $this->assertEquals(self::TOPIC, $res->output());
@@ -160,7 +165,7 @@ class TopicTest extends SnippetTestCase
         $this->connection->publishMessage(Argument::any())
             ->shouldBeCalled();
 
-        $this->topic->setConnection($this->connection->reveal());
+        $this->topic->___setProperty('connection', $this->connection->reveal());
 
         $snippet->invoke();
     }
@@ -173,7 +178,21 @@ class TopicTest extends SnippetTestCase
         $this->connection->publishMessage(Argument::any())
             ->shouldBeCalled();
 
-        $this->topic->setConnection($this->connection->reveal());
+        $this->topic->___setProperty('connection', $this->connection->reveal());
+
+        $snippet->invoke();
+    }
+
+    public function testBatchPublisher()
+    {
+        $snippet = $this->snippetFromMethod(Topic::class, 'batchPublisher');
+        $batchPublisher = $this->prophesize(BatchPublisher::class);
+        $batchPublisher->publish(Argument::type('array'))
+            ->willReturn(true);
+        $topic = $this->prophesize(Topic::class);
+        $topic->batchPublisher()
+            ->willReturn($batchPublisher->reveal());
+        $snippet->addLocal('topic', $topic->reveal());
 
         $snippet->invoke();
     }
@@ -189,7 +208,7 @@ class TopicTest extends SnippetTestCase
                 'name' => self::SUBSCRIPTION
             ]);
 
-        $this->topic->setConnection($this->connection->reveal());
+        $this->topic->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('subscription');
         $this->assertInstanceOf(Subscription::class, $res->returnVal());
@@ -217,14 +236,14 @@ class TopicTest extends SnippetTestCase
                 ]
             ]);
 
-        $this->topic->setConnection($this->connection->reveal());
+        $this->topic->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('subscriptions');
-        $this->assertInstanceOf(\Generator::class, $res->returnVal());
+        $this->assertInstanceOf(ItemIterator::class, $res->returnVal());
         $this->assertEquals(self::SUBSCRIPTION, $res->output());
     }
 
-    public function iam()
+    public function testIam()
     {
         $snippet = $this->snippetFromMethod(Topic::class, 'iam');
         $snippet->addLocal('topic', $this->topic);

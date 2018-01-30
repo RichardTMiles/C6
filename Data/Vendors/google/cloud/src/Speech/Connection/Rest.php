@@ -17,10 +17,11 @@
 
 namespace Google\Cloud\Speech\Connection;
 
-use Google\Cloud\RequestBuilder;
-use Google\Cloud\RequestWrapper;
-use Google\Cloud\RestTrait;
-use Google\Cloud\UriTrait;
+use Google\Cloud\Core\RequestBuilder;
+use Google\Cloud\Core\RequestWrapper;
+use Google\Cloud\Core\RestTrait;
+use Google\Cloud\Core\UriTrait;
+use Google\Cloud\Speech\SpeechClient;
 
 /**
  * Implementation of the
@@ -39,7 +40,8 @@ class Rest implements ConnectionInterface
     public function __construct(array $config = [])
     {
         $config += [
-            'serviceDefinitionPath' => __DIR__ . '/ServiceDefinition/speech-v1beta1.json'
+            'serviceDefinitionPath' => __DIR__ . '/ServiceDefinition/speech-v1.json',
+            'componentVersion' => SpeechClient::VERSION
         ];
 
         $this->setRequestWrapper(new RequestWrapper($config));
@@ -53,18 +55,18 @@ class Rest implements ConnectionInterface
      * @param array $args
      * @return array
      */
-    public function syncRecognize(array $args = [])
+    public function recognize(array $args = [])
     {
-        return $this->send('speech', 'syncrecognize', $args);
+        return $this->send('speech', 'recognize', $args);
     }
 
     /**
      * @param array $args
      * @return array
      */
-    public function asyncRecognize(array $args = [])
+    public function longRunningRecognize(array $args = [])
     {
-        return $this->send('speech', 'asyncrecognize', $args);
+        return $this->send('speech', 'longrunningrecognize', $args);
     }
 
     /**

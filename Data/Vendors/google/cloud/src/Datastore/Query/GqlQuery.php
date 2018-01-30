@@ -17,7 +17,7 @@
 
 namespace Google\Cloud\Datastore\Query;
 
-use Google\Cloud\ArrayTrait;
+use Google\Cloud\Core\ArrayTrait;
 use Google\Cloud\Datastore\DatastoreTrait;
 use Google\Cloud\Datastore\EntityMapper;
 use InvalidArgumentException;
@@ -27,7 +27,7 @@ use InvalidArgumentException;
  *
  * By default, parameters MUST be bound using named or positional bindings.
  * Literals are disabled by default, and must be enabled by setting
- * `$options['allowLiterals']` to `true`. As with any SQL-style language, using
+ * `$options['allowLiterals']` to `true`. As with any SQL dialect, using
  * parameter binding is highly recommended.
  *
  * Idiomatic usage is via {@see Google\Cloud\Datastore\DatastoreClient::gqlQuery()}.
@@ -35,10 +35,9 @@ use InvalidArgumentException;
  *
  * Example:
  * ```
- * use Google\Cloud\ServiceBuilder;
+ * use Google\Cloud\Datastore\DatastoreClient;
  *
- * $cloud = new ServiceBuilder();
- * $datastore = $cloud->datastore();
+ * $datastore = new DatastoreClient();
  *
  * $query = $datastore->gqlQuery('SELECT * FROM Companies WHERE companyName = @companyName', [
  *     'bindings' => [

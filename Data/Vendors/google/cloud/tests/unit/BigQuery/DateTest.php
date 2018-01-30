@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\BigQuery;
+namespace Google\Cloud\Tests\Unit\BigQuery;
 
 use Google\Cloud\BigQuery\Date;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group bigquery
  */
-class DateTest extends \PHPUnit_Framework_TestCase
+class DateTest extends TestCase
 {
     public function testGet()
     {

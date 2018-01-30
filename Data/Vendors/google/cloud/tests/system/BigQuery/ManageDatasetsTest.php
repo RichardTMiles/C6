@@ -19,6 +19,7 @@ namespace Google\Cloud\Tests\System\BigQuery;
 
 /**
  * @group bigquery
+ * @group bigquery-dataset
  */
 class ManageDatasetsTest extends BigQueryTestCase
 {
@@ -31,7 +32,7 @@ class ManageDatasetsTest extends BigQueryTestCase
         ];
 
         foreach ($datasetsToCreate as $datasetToCreate) {
-            self::$deletionQueue[] = self::$client->createDataset($datasetToCreate);
+            $this->createDataset(self::$client, $datasetToCreate);
         }
 
         $datasets = self::$client->datasets();
@@ -56,8 +57,7 @@ class ManageDatasetsTest extends BigQueryTestCase
         ];
         $this->assertFalse(self::$client->dataset($id)->exists());
 
-        $dataset = self::$client->createDataset($id, $options);
-        self::$deletionQueue[] = $dataset;
+        $dataset = $this->createDataset(self::$client, $id, $options);
 
         $this->assertTrue(self::$client->dataset($id)->exists());
         $this->assertEquals($id, $dataset->id());
@@ -73,6 +73,19 @@ class ManageDatasetsTest extends BigQueryTestCase
         $info = self::$dataset->update($metadata);
 
         $this->assertEquals($metadata['friendlyName'], $info['friendlyName']);
+    }
+
+    /**
+     * @expectedException Google\Cloud\Core\Exception\FailedPreconditionException
+     */
+    public function testUpdateDatasetConcurrentUpdateFails()
+    {
+        $data = [
+            'friendlyName' => 'foo',
+            'etag' => 'blah'
+        ];
+
+        self::$dataset->update($data);
     }
 
     public function testReloadsDataset()

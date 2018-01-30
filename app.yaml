@@ -11,9 +11,11 @@ beta_settings:
 env_variables:
   # Replace USER, PASSWORD, DATABASE, and CONNECTION_NAME with the
   # values obtained when configuring your Cloud SQL instance.
-  MYSQL_DSN: mysql:dbname=CarbonPHP;unix_socket=/cloudsql/carbonphp-191421:us-central1:carbonphpmaster;
+  # the blank spaces should be filled with personal info
+
+  MYSQL_DSN: mysql:dbname=      ;unix_socket=/cloudsql/          ;
   MYSQL_USER: root
-  MYSQL_PASSWORD: Huskies!99
+  MYSQL_PASSWORD:
 
 
 # network:

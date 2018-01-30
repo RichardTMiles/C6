@@ -17,27 +17,343 @@
 
 namespace Google\Cloud\Tests\System\BigQuery;
 
+use Google\Cloud\BigQuery\Bytes;
 use Google\Cloud\BigQuery\Date;
-use Google\Cloud\ExponentialBackoff;
+use Google\Cloud\Core\ExponentialBackoff;
+use Google\Cloud\BigQuery\Time;
+use Google\Cloud\BigQuery\Timestamp;
+use Google\Cloud\BigQuery\ValueMapper;
 use GuzzleHttp\Psr7;
 
 /**
  * @group bigquery
+ * @group bigquery-load
  */
 class LoadDataAndQueryTest extends BigQueryTestCase
 {
     private static $expectedRows = 0;
+    private $row;
+
+    public function setUp()
+    {
+        $this->row = [
+            'Name' => 'Dave',
+            'Age' => 101,
+            'Weight' => 100.5,
+            'IsMagic' => true,
+            'Spells' => [
+                [
+                    'Name' => 'Summon Dragon',
+                    'LastUsed' => self::$client->timestamp(new \DateTime('2000-01-01 23:59:56 UTC')),
+                    'DiscoveredBy' => 'Bobby',
+                    'Properties' => [
+                        [
+                            'Name' => 'Fire',
+                            'Power' => 300.2
+                        ]
+                    ],
+                    'Icon' => self::$client->bytes('icon')
+                ]
+            ],
+            'ImportantDates' => [
+                'TeaTime' => self::$client->time(new \DateTime('15:15:12')),
+                'NextVacation' => self::$client->date(new \DateTime('2020-10-11')),
+                'FavoriteTime' => new \DateTime('1920-01-01 15:15:12')
+            ],
+            'FavoriteNumbers' => [10, 11]
+        ];
+    }
+
+    public function testInsertRowToTable()
+    {
+        self::$expectedRows++;
+        $insertResponse = self::$table->insertRow($this->row);
+        sleep(1);
+        $rows = iterator_to_array(self::$table->rows());
+        $actualRow = $rows[0];
+
+        $this->assertTrue($insertResponse->isSuccessful());
+        $this->assertEquals(self::$expectedRows, count($rows));
+
+        $expectedRow = $this->row;
+        $expectedBytes = $expectedRow['Spells'][0]['Icon'];
+        $actualBytes = $actualRow['Spells'][0]['Icon'];
+        unset($expectedRow['Spells'][0]['Icon']);
+        unset($actualRow['Spells'][0]['Icon']);
+
+        $this->assertEquals($expectedRow, $actualRow);
+        $this->assertEquals((string) $expectedBytes, (string) $actualBytes);
+    }
+
+    /**
+     * @depends testInsertRowToTable
+     * @dataProvider useLegacySqlProvider
+     */
+    public function testRunQuery($useLegacySql)
+    {
+        $queryString =  sprintf(
+            $useLegacySql
+                ? 'SELECT Name, Age, Weight, IsMagic, Spells.* FROM [%s.%s]'
+                : 'SELECT Name, Age, Weight, IsMagic, Spells FROM `%s.%s`',
+            self::$dataset->id(),
+            self::$table->id()
+        );
+        $query = self::$client->query($queryString)
+            ->useLegacySql($useLegacySql);
+        $results = self::$client->runQuery($query);
+        $backoff = new ExponentialBackoff(8);
+        $backoff->execute(function () use ($results) {
+            $results->reload();
+
+            if (!$results->isComplete()) {
+                throw new \Exception();
+            }
+        });
+
+        if (!$results->isComplete()) {
+            $this->fail('Query did not complete within the allotted time.');
+        }
+
+        $actualRow = iterator_to_array($results->rows())[0];
+
+        if ($useLegacySql) {
+            $spells = $this->row['Spells'][0];
+
+            $this->assertEquals($this->row['Name'], $actualRow['Name']);
+            $this->assertEquals($this->row['Age'], $actualRow['Age']);
+            $this->assertEquals($this->row['Weight'], $actualRow['Weight']);
+            $this->assertEquals($this->row['IsMagic'], $actualRow['IsMagic']);
+            $this->assertEquals($spells['Name'], $actualRow['Spells_Name']);
+            $this->assertEquals($spells['LastUsed'], $actualRow['Spells_LastUsed']);
+            $this->assertEquals($spells['DiscoveredBy'], $actualRow['Spells_DiscoveredBy']);
+            $this->assertEquals($spells['Properties'][0]['Name'], $actualRow['Spells_Properties_Name']);
+            $this->assertEquals($spells['Properties'][0]['Power'], $actualRow['Spells_Properties_Power']);
+            $this->assertEquals((string) $spells['Icon'], (string) $actualRow['Spells_Icon']);
+        } else {
+            $expectedRow = $this->row;
+            $expectedBytes = $expectedRow['Spells'][0]['Icon'];
+            $actualBytes = $actualRow['Spells'][0]['Icon'];
+            unset($expectedRow['ImportantDates']);
+            unset($expectedRow['FavoriteNumbers']);
+            unset($expectedRow['Spells'][0]['Icon']);
+            unset($actualRow['Spells'][0]['Icon']);
+
+            $this->assertEquals($expectedRow, $actualRow);
+            $this->assertEquals((string) $expectedBytes, (string) $actualBytes);
+        }
+    }
+
+    /**
+     * @depends testInsertRowToTable
+     * @dataProvider useLegacySqlProvider
+     */
+    public function testStartQuery($useLegacySql)
+    {
+        $queryString = sprintf(
+            $useLegacySql
+                ? 'SELECT FavoriteNumbers, ImportantDates.* FROM [%s.%s]'
+                : 'SELECT FavoriteNumbers, ImportantDates FROM `%s.%s`',
+            self::$dataset->id(),
+            self::$table->id()
+        );
+        $query = self::$client->query($queryString)
+            ->useLegacySql($useLegacySql);
+        $job = self::$client->startQuery($query);
+        $results = $job->queryResults();
+        $backoff = new ExponentialBackoff(8);
+        $backoff->execute(function () use ($results) {
+            $results->reload();
+
+            if (!$results->isComplete()) {
+                throw new \Exception();
+            }
+        });
+
+        if (!$results->isComplete()) {
+            $this->fail('Query did not complete within the allotted time.');
+        }
+
+        $actualRows = iterator_to_array($results->rows());
+
+        if ($useLegacySql) {
+            $dates = $this->row['ImportantDates'];
+            $numbers = $this->row['FavoriteNumbers'];
+
+            $this->assertEquals($numbers[0], $actualRows[0]['FavoriteNumbers']);
+            $this->assertEquals($numbers[1], $actualRows[1]['FavoriteNumbers']);
+            $this->assertEquals($dates['TeaTime'], $actualRows[0]['ImportantDates_TeaTime']);
+            $this->assertEquals($dates['NextVacation'], $actualRows[0]['ImportantDates_NextVacation']);
+            $this->assertEquals($dates['FavoriteTime'], $actualRows[0]['ImportantDates_FavoriteTime']);
+        } else {
+            $expectedRow = [
+                'FavoriteNumbers' => $this->row['FavoriteNumbers'],
+                'ImportantDates' => $this->row['ImportantDates']
+            ];
+
+            $this->assertEquals($expectedRow, $actualRows[0]);
+        }
+    }
+
+    public function useLegacySqlProvider()
+    {
+        return [
+            [true],
+            [false]
+        ];
+    }
+
+    public function testRunQueryWithNamedParameters()
+    {
+        $queryString = 'SELECT'
+            . '@structType as structType,'
+            . '@arrayStruct as arrayStruct,'
+            . '@nestedStruct as nestedStruct,'
+            . '@arrayType as arrayType,'
+            . '@name as name,'
+            . '@int as int,'
+            . '@float as float,'
+            . '@timestamp as timestamp,'
+            . '@datetime as datetime,'
+            . '@date as date,'
+            . '@time as time,'
+            . '@bytes as bytes';
+
+        $bytes = self::$client->bytes('123');
+        $params = [
+            'structType' => [
+                'hello' => 'world'
+            ],
+            'arrayStruct' => [
+                [
+                    'hello' => 'world'
+                ]
+            ],
+            'nestedStruct' => [
+                'hello' => [
+                    'wor' => 'ld'
+                ]
+            ],
+            'arrayType' => [1,2,3],
+            'name' => 'Dave',
+            'int' => 5,
+            'float' => 5.5,
+            'timestamp' => self::$client->timestamp(new \DateTime('2003-02-05 11:15:02.421827Z')),
+            'datetime' => new \DateTime('2003-02-05 11:15:02.421827Z'),
+            'date' => self::$client->date(new \DateTime('2003-12-12')),
+            'time' => self::$client->time(new \DateTime('11:15:02')),
+            'bytes' => $bytes
+        ];
+        $query = self::$client->query($queryString)
+            ->parameters($params);
+        $results = self::$client->runQuery($query);
+
+        $backoff = new ExponentialBackoff(8);
+        $backoff->execute(function () use ($results) {
+            $results->reload();
+
+            if (!$results->isComplete()) {
+                throw new \Exception();
+            }
+        });
+
+        if (!$results->isComplete()) {
+            $this->fail('Query did not complete within the allotted time.');
+        }
+
+        $actualRow = iterator_to_array($results->rows())[0];
+        $actualBytes = $actualRow['bytes'];
+        unset($params['bytes']);
+        unset($actualRow['bytes']);
+
+        $this->assertEquals($params, $actualRow);
+        $this->assertEquals((string) $bytes, (string) $actualBytes);
+    }
+
+    public function testRunQueryWithPositionalParameters()
+    {
+        $query = self::$client->query('SELECT 1 IN UNNEST(?) AS arr')
+            ->parameters([
+                [1, 2, 3]
+            ]);
+        $results = self::$client->runQuery($query);
+
+        if (!$results->isComplete()) {
+            $this->fail('Query did not complete within the allotted time.');
+        }
+
+        $actualRows = iterator_to_array($results->rows());
+        $expectedRows = [
+            ['arr' => true]
+        ];
+
+        $this->assertEquals($expectedRows, $actualRows);
+    }
+
+    public function testStartQueryWithNamedParameters()
+    {
+        $query = self::$client->query('SELECT @int as int')
+            ->parameters([
+                'int' => 5
+            ]);
+        $job = self::$client->startQuery($query);
+        $results = $job->queryResults();
+        $backoff = new ExponentialBackoff(8);
+        $backoff->execute(function () use ($results) {
+            $results->reload();
+
+            if (!$results->isComplete()) {
+                throw new \Exception();
+            }
+        });
+
+        if (!$results->isComplete()) {
+            $this->fail('Query did not complete within the allotted time.');
+        }
+
+        $actualRows = iterator_to_array($results->rows());
+        $expectedRows = [['int' => 5]];
+
+        $this->assertEquals($expectedRows, $actualRows);
+    }
+
+    public function testStartQueryWithPositionalParameters()
+    {
+        $query = self::$client->query('SELECT 1 IN UNNEST(?) AS arr')
+            ->parameters([
+                [1, 2, 3]
+            ]);
+        $job = self::$client->startQuery($query);
+        $results = $job->queryResults();
+        $backoff = new ExponentialBackoff(8);
+        $backoff->execute(function () use ($results) {
+            $results->reload();
+
+            if (!$results->isComplete()) {
+                throw new \Exception();
+            }
+        });
+
+        if (!$results->isComplete()) {
+            $this->fail('Query did not complete within the allotted time.');
+        }
+
+        $actualRows = iterator_to_array($results->rows());
+        $expectedRows = [
+            ['arr' => true]
+        ];
+
+        $this->assertEquals($expectedRows, $actualRows);
+    }
 
     /**
      * @dataProvider rowProvider
      */
     public function testLoadsDataToTable($data)
     {
-        $job = self::$table->load($data, [
-            'jobConfig' => [
-                'sourceFormat' => 'CSV'
-            ]
-        ]);
+        $loadJobConfig = self::$table->load($data)
+            ->sourceFormat('NEWLINE_DELIMITED_JSON');
+
+        $job = self::$table->startJob($loadJobConfig);
         $backoff = new ExponentialBackoff(8);
         $backoff->execute(function () use ($job) {
             $job->reload();
@@ -51,7 +367,7 @@ class LoadDataAndQueryTest extends BigQueryTestCase
             $this->fail('Job failed to complete within the allotted time.');
         }
 
-        self::$expectedRows += count(file(__DIR__ . '/../data/table-data.csv'));
+        self::$expectedRows += count(file(__DIR__ . '/../data/table-data.json'));
         $actualRows = count(iterator_to_array(self::$table->rows()));
 
         $this->assertEquals(self::$expectedRows, $actualRows);
@@ -59,11 +375,11 @@ class LoadDataAndQueryTest extends BigQueryTestCase
 
     public function rowProvider()
     {
-        $data = file_get_contents(__DIR__ . '/../data/table-data.csv');
+        $data = file_get_contents(__DIR__ . '/../data/table-data.json');
 
         return [
             [$data],
-            [fopen(__DIR__ . '/../data/table-data.csv', 'r')],
+            [fopen(__DIR__ . '/../data/table-data.json', 'r')],
             [Psr7\stream_for($data)]
         ];
     }
@@ -74,15 +390,12 @@ class LoadDataAndQueryTest extends BigQueryTestCase
     public function testLoadsDataFromStorageToTable()
     {
         $object = self::$bucket->upload(
-            fopen(__DIR__ . '/../data/table-data.csv', 'r')
+            fopen(__DIR__ . '/../data/table-data.json', 'r')
         );
-        self::$deletionQueue[] = $object;
 
-        $job = self::$table->loadFromStorage($object, [
-            'jobConfig' => [
-                'sourceFormat' => 'CSV'
-            ]
-        ]);
+        $loadJobConfig = self::$table->loadFromStorage($object)
+            ->sourceFormat('NEWLINE_DELIMITED_JSON');
+        $job = self::$table->startJob($loadJobConfig);
         $backoff = new ExponentialBackoff(8);
         $backoff->execute(function () use ($job) {
             $job->reload();
@@ -95,263 +408,55 @@ class LoadDataAndQueryTest extends BigQueryTestCase
             $this->fail('Job failed to complete within the allotted time.');
         }
 
-        self::$expectedRows += count(file(__DIR__ . '/../data/table-data.csv'));
+        self::$expectedRows += count(file(__DIR__ . '/../data/table-data.json'));
         $actualRows = count(iterator_to_array(self::$table->rows()));
 
         $this->assertEquals(self::$expectedRows, $actualRows);
     }
 
     /**
-     * @depends testLoadsDataFromStorageToTable
-     */
-    public function testInsertRowToTable()
-    {
-        self::$expectedRows++;
-        $insertResponse = self::$table->insertRow([
-            'city' => 'Detroit',
-            'state' => 'MI'
-        ]);
-
-        $this->assertTrue($insertResponse->isSuccessful());
-    }
-
-    /**
-     * @depends testInsertRowToTable
+     * @depends testLoadsDataToTable
      */
     public function testInsertRowsToTable()
     {
         $rows = [
-            [
-                'data' => [
-                    'city' => 'Detroit',
-                    'state' => 'MI'
-                ]
-            ],
-            [
-                'data' => [
-                    'city' => 'Ann Arbor',
-                    'state' => 'MI'
-                ]
-            ]
+            ['data' => $this->row],
+            ['data' => $this->row]
         ];
         self::$expectedRows += count($rows);
         $insertResponse = self::$table->insertRows($rows);
+        $actualRows = count(iterator_to_array(self::$table->rows()));
 
         $this->assertTrue($insertResponse->isSuccessful());
-    }
-
-    /**
-     * @depends testInsertRowsToTable
-     */
-    public function testRunQuery()
-    {
-        $results = self::$client->runQuery(
-            sprintf(
-                'SELECT * FROM [%s.%s]',
-                self::$dataset->id(),
-                self::$table->id()
-            )
-        );
-        $backoff = new ExponentialBackoff(8);
-        $backoff->execute(function () use ($results) {
-            $results->reload();
-
-            if (!$results->isComplete()) {
-                throw new \Exception();
-            }
-        });
-
-        if (!$results->isComplete()) {
-            $this->fail('Query did not complete within the allotted time.');
-        }
-
-        $actualRows = count(iterator_to_array($results->rows()));
-
         $this->assertEquals(self::$expectedRows, $actualRows);
     }
 
-    public function testRunQueryWithNamedParameters()
+    public function testInsertRowsToTableWithAutoCreate()
     {
-        $date = '2000-01-01';
-        $query = 'WITH data AS'
-            . '(SELECT "Dave" as name, DATE("1999-01-01") as date, 1.1 as floatNum, 1 as intNum, false as boolVal '
-            . 'UNION ALL '
-            . 'SELECT "John" as name, DATE("2000-01-01") as date, 1.2 as floatNum, 2 as intNum, true as boolVal) '
-            . 'SELECT * FROM data '
-            . 'WHERE name = @name AND date >= @date AND floatNum = @numbers.floatNum AND intNum = @numbers.intNum AND boolVal = @boolVal';
-
-        $results = self::$client->runQuery($query, [
-            'parameters' => [
-                'name' => 'John',
-                'date' => self::$client->date(new \DateTime($date)),
-                'numbers' => [
-                    'floatNum' => 1.2,
-                    'intNum' => 2,
-                ],
-                'boolVal' => true
-            ]
-        ]);
-        $backoff = new ExponentialBackoff(8);
-        $backoff->execute(function () use ($results) {
-            $results->reload();
-
-            if (!$results->isComplete()) {
-                throw new \Exception();
-            }
-        });
-
-        if (!$results->isComplete()) {
-            $this->fail('Query did not complete within the allotted time.');
-        }
-
-        $actualRows = iterator_to_array($results->rows());
-        $expectedRows = [
-            [
-                'name' => 'John',
-                'floatNum' => 1.2,
-                'intNum' => 2,
-                'boolVal' => true,
-                'date' => new Date(new \DateTime($date))
-            ]
+        $tName = uniqid(BigQueryTestCase::TESTING_PREFIX);
+        $rows = [
+            ['data' => ['hello' => 'world']]
         ];
+        $insertResponse = self::$dataset->table($tName)
+            ->insertRows($rows, [
+                'autoCreate' => true,
+                'tableMetadata' => [
+                    'schema' => [
+                        'fields' => [
+                            [
+                                'name' => 'hello',
+                                'type' => 'STRING'
+                            ]
+                        ]
+                    ]
+                ]
+            ]);
+        $results = self::$dataset
+            ->table($tName)
+            ->rows();
+        $actualRows = count(iterator_to_array($results));
 
-        $this->assertEquals($expectedRows, $actualRows);
-    }
-
-    public function testRunQueryWithPositionalParameters()
-    {
-        $results = self::$client->runQuery('SELECT 1 IN UNNEST(?) AS arr', [
-            'parameters' => [
-                [1, 2, 3]
-            ]
-        ]);
-        $backoff = new ExponentialBackoff(8);
-        $backoff->execute(function () use ($results) {
-            $results->reload();
-
-            if (!$results->isComplete()) {
-                throw new \Exception();
-            }
-        });
-
-        if (!$results->isComplete()) {
-            $this->fail('Query did not complete within the allotted time.');
-        }
-
-        $actualRows = iterator_to_array($results->rows());
-        $expectedRows = [
-            ['arr' => true]
-        ];
-
-        $this->assertEquals($expectedRows, $actualRows);
-    }
-
-    /**
-     * @depends testInsertRowsToTable
-     */
-    public function testRunQueryAsJob()
-    {
-        $job = self::$client->runQueryAsJob(
-            sprintf(
-                'SELECT * FROM [%s.%s]',
-                self::$dataset->id(),
-                self::$table->id()
-            )
-        );
-        $results = $job->queryResults();
-        $backoff = new ExponentialBackoff(8);
-        $backoff->execute(function () use ($results) {
-            $results->reload();
-
-            if (!$results->isComplete()) {
-                throw new \Exception();
-            }
-        });
-
-        if (!$results->isComplete()) {
-            $this->fail('Query did not complete within the allotted time.');
-        }
-
-        $actualRows = count(iterator_to_array($results->rows()));
-
-        $this->assertEquals(self::$expectedRows, $actualRows);
-    }
-
-    public function testRunQueryAsJobWithNamedParameters()
-    {
-        $date = '2000-01-01';
-        $query = 'WITH data AS'
-            . '(SELECT "Dave" as name, DATE("1999-01-01") as date, 1.1 as floatNum, 1 as intNum, true as boolVal '
-            . 'UNION ALL '
-            . 'SELECT "John" as name, DATE("2000-01-01") as date, 1.2 as floatNum, 2 as intNum, false as boolVal) '
-            . 'SELECT * FROM data '
-            . 'WHERE name = @name AND date >= @date AND floatNum = @numbers.floatNum AND intNum = @numbers.intNum AND boolVal = @boolVal';
-
-        $job = self::$client->runQueryAsJob($query, [
-            'parameters' => [
-                'name' => 'John',
-                'date' => self::$client->date(new \DateTime($date)),
-                'numbers' => [
-                    'floatNum' => 1.2,
-                    'intNum' => 2,
-                ],
-                'boolVal' => false
-            ]
-        ]);
-        $results = $job->queryResults();
-        $backoff = new ExponentialBackoff(8);
-        $backoff->execute(function () use ($results) {
-            $results->reload();
-
-            if (!$results->isComplete()) {
-                throw new \Exception();
-            }
-        });
-
-        if (!$results->isComplete()) {
-            $this->fail('Query did not complete within the allotted time.');
-        }
-
-        $actualRows = iterator_to_array($results->rows());
-        $expectedRows = [
-            [
-                'name' => 'John',
-                'floatNum' => 1.2,
-                'intNum' => 2,
-                'boolVal' => false,
-                'date' => new Date(new \DateTime($date))
-            ]
-        ];
-
-        $this->assertEquals($expectedRows, $actualRows);
-    }
-
-    public function testRunQueryAsJobWithPositionalParameters()
-    {
-        $job = self::$client->runQueryAsJob('SELECT 1 IN UNNEST(?) AS arr', [
-            'parameters' => [
-                [1, 2, 3]
-            ]
-        ]);
-        $results = $job->queryResults();
-        $backoff = new ExponentialBackoff(8);
-        $backoff->execute(function () use ($results) {
-            $results->reload();
-
-            if (!$results->isComplete()) {
-                throw new \Exception();
-            }
-        });
-
-        if (!$results->isComplete()) {
-            $this->fail('Query did not complete within the allotted time.');
-        }
-
-        $actualRows = iterator_to_array($results->rows());
-        $expectedRows = [
-            ['arr' => true]
-        ];
-
-        $this->assertEquals($expectedRows, $actualRows);
+        $this->assertTrue($insertResponse->isSuccessful());
+        $this->assertEquals(count($rows), $actualRows);
     }
 }

@@ -93,7 +93,7 @@ return [
 
         'DB_USER' => getenv('MYSQL_USER') ?: 'root',                // User
 
-        'DB_PASS' => getenv('MYSQL_PASSWORD') ?: 'Huskies!99',          // Password
+        'DB_PASS' => getenv('MYSQL_PASSWORD') ?: '',          // Password
 
         'INITIAL_SETUP' => false                       // Initial Setup todo - remove this check
     ],

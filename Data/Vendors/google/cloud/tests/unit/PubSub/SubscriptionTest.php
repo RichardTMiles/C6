@@ -15,20 +15,23 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\PubSub;
+namespace Google\Cloud\Tests\Unit\PubSub;
 
-use Generator;
-use Google\Cloud\Exception\NotFoundException;
-use Google\Cloud\Iam\Iam;
+use Google\Cloud\Core\Exception\NotFoundException;
+use Google\Cloud\Core\Iam\Iam;
+use Google\Cloud\Core\Iterator\ItemIterator;
+use Google\Cloud\Core\Timestamp;
 use Google\Cloud\PubSub\Connection\ConnectionInterface;
 use Google\Cloud\PubSub\Message;
+use Google\Cloud\PubSub\Snapshot;
 use Google\Cloud\PubSub\Subscription;
 use Prophecy\Argument;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group pubsub
  */
-class SubscriptionTest extends \PHPUnit_Framework_TestCase
+class SubscriptionTest extends TestCase
 {
     private $subscription;
     private $connection;
@@ -82,6 +85,28 @@ class SubscriptionTest extends \PHPUnit_Framework_TestCase
         );
 
         $sub = $subscription->create();
+    }
+
+    public function testUpdate()
+    {
+        $args = [
+            'foo' => 'bar'
+        ];
+
+        $argsWithName = $args + [
+            'name' => $this->subscription->name()
+        ];
+
+        $this->connection->updateSubscription($argsWithName)
+            ->shouldBeCalled()
+            ->willReturn($argsWithName);
+
+        $this->subscription->setConnection($this->connection->reveal());
+
+        $res = $this->subscription->update($args);
+
+        $this->assertEquals($res, $argsWithName);
+        $this->assertEquals($this->subscription->info(), $argsWithName);
     }
 
     public function testDelete()
@@ -199,11 +224,9 @@ class SubscriptionTest extends \PHPUnit_Framework_TestCase
             'foo' => 'bar'
         ]);
 
-        $this->assertInstanceOf(Generator::class, $result);
-
-        $arr = iterator_to_array($result);
-        $this->assertInstanceOf(Message::class, $arr[0]);
-        $this->assertInstanceOf(Message::class, $arr[1]);
+        $this->assertContainsOnlyInstancesOf(Message::class, $result);
+        $this->assertInstanceOf(Message::class, $result[0]);
+        $this->assertInstanceOf(Message::class, $result[1]);
     }
 
     public function testPullWithCustomArgs()
@@ -235,56 +258,9 @@ class SubscriptionTest extends \PHPUnit_Framework_TestCase
             'maxMessages' => 2
         ]);
 
-        $this->assertInstanceOf(Generator::class, $result);
-
-        $arr = iterator_to_array($result);
-        $this->assertInstanceOf(Message::class, $arr[0]);
-        $this->assertInstanceOf(Message::class, $arr[1]);
-    }
-
-    public function testPullPaged()
-    {
-        $messages = [
-            'receivedMessages' => [
-                [
-                    'message' => []
-                ], [
-                    'message' => []
-                ]
-            ],
-            'nextPageToken' => 'foo'
-        ];
-
-        $this->connection->pull(Argument::that(function ($args) {
-                if ($args['foo'] !== 'bar') return false;
-                if ($args['returnImmediately'] !== true) return false;
-                if ($args['maxMessages'] !== 2) return false;
-                if (!in_array($args['pageToken'], [null, 'foo'])) return false;
-
-                return true;
-            }))->willReturn($messages)
-            ->shouldBeCalledTimes(3);
-
-        $this->subscription->setConnection($this->connection->reveal());
-
-        $result = $this->subscription->pull([
-            'foo' => 'bar',
-            'returnImmediately' => true,
-            'maxMessages' => 2
-        ]);
-
-        $this->assertInstanceOf(Generator::class, $result);
-
-        // enumerate the iterator and kill after it loops twice.
-        $arr = [];
-        $i = 0;
-        foreach ($result as $message) {
-            $i++;
-            $arr[] = $message;
-            if ($i == 6) break;
-        }
-
-        $this->assertEquals(6, count($arr));
+        $this->assertContainsOnlyInstancesOf(Message::class, $result);
+        $this->assertInstanceOf(Message::class, $result[0]);
+        $this->assertInstanceOf(Message::class, $result[1]);
     }
 
     public function testAcknowledge()
@@ -405,6 +381,40 @@ class SubscriptionTest extends \PHPUnit_Framework_TestCase
         $this->subscription->setConnection($this->connection->reveal());
 
         $this->subscription->modifyPushConfig($config, ['foo' => 'bar']);
+    }
+
+    public function testSeekToTime()
+    {
+        $dt = new \DateTime;
+        $timestamp = new Timestamp($dt);
+
+        $this->connection->seek([
+            'subscription' => $this->subscription->name(),
+            'time' => $timestamp->formatAsString()
+        ])->shouldBeCalled()->willReturn('foo');
+
+        $this->subscription->setConnection($this->connection->reveal());
+
+        $res = $this->subscription->seekToTime($timestamp);
+        $this->assertEquals('foo', $res);
+    }
+
+    public function testSeekToSnapshot()
+    {
+        $stub = $this->prophesize(Snapshot::class);
+        $stub->name()->willReturn('foo');
+
+        $snapshot = $stub->reveal();
+
+        $this->connection->seek([
+            'subscription' => $this->subscription->name(),
+            'snapshot' => $snapshot->name()
+        ])->shouldBeCalled()->willReturn('foo');
+
+        $this->subscription->setConnection($this->connection->reveal());
+
+        $res = $this->subscription->seekToSnapshot($snapshot);
+        $this->assertEquals('foo', $res);
     }
 
     public function testIam()

@@ -15,27 +15,34 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\Storage\Connection;
+namespace Google\Cloud\Tests\Unit\Storage\Connection;
 
+use Google\Cloud\Core\RequestBuilder;
+use Google\Cloud\Core\RequestWrapper;
+use Google\Cloud\Core\Upload\MultipartUploader;
+use Google\Cloud\Core\Upload\ResumableUploader;
+use Google\Cloud\Core\Upload\StreamableUploader;
 use Google\Cloud\Storage\Connection\Rest;
+use Google\Cloud\Storage\StorageClient;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Prophecy\Argument;
 use Psr\Http\Message\RequestInterface;
 use Rize\UriTemplate;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group storage
  */
-class RestTest extends \PHPUnit_Framework_TestCase
+class RestTest extends TestCase
 {
     private $requestWrapper;
     private $successBody;
 
     public function setUp()
     {
-        $this->requestWrapper = $this->prophesize('Google\Cloud\RequestWrapper');
+        $this->requestWrapper = $this->prophesize(RequestWrapper::class);
         $this->successBody = '{"canI":"kickIt"}';
     }
 
@@ -49,7 +56,7 @@ class RestTest extends \PHPUnit_Framework_TestCase
         $request = new Request('GET', '/somewhere');
         $response = new Response(200, [], $this->successBody);
 
-        $requestBuilder = $this->prophesize('Google\Cloud\RequestBuilder');
+        $requestBuilder = $this->prophesize(RequestBuilder::class);
         $requestBuilder->build(
             Argument::type('string'),
             Argument::type('string'),
@@ -57,7 +64,7 @@ class RestTest extends \PHPUnit_Framework_TestCase
         )->willReturn($request);
 
         $this->requestWrapper->send(
-            Argument::type('Psr\Http\Message\RequestInterface'),
+            Argument::type(RequestInterface::class),
             Argument::type('array')
         )->willReturn($response);
 
@@ -91,8 +98,27 @@ class RestTest extends \PHPUnit_Framework_TestCase
             ['listObjects'],
             ['patchObject'],
             ['rewriteObject'],
-            ['composeObject']
+            ['composeObject'],
+            ['getBucketIamPolicy'],
+            ['setBucketIamPolicy'],
+            ['testBucketIamPermissions'],
+            ['getNotification'],
+            ['deleteNotification'],
+            ['insertNotification'],
+            ['listNotifications'],
         ];
+    }
+
+    public function testProjectId()
+    {
+        $rest = new Rest(['projectId' => 'foo']);
+        $this->assertEquals('foo', $rest->projectId());
+    }
+
+    public function testProjectIdNull()
+    {
+        $rest = new Rest();
+        $this->assertNull($rest->projectId());
     }
 
     public function testDownloadObject()
@@ -101,7 +127,7 @@ class RestTest extends \PHPUnit_Framework_TestCase
         $response = new Response(200, [], $this->successBody);
 
         $this->requestWrapper->send(
-            Argument::type('Psr\Http\Message\RequestInterface'),
+            Argument::type(RequestInterface::class),
             Argument::type('array')
         )->will(
             function ($args) use (&$actualRequest, $response) {
@@ -117,15 +143,16 @@ class RestTest extends \PHPUnit_Framework_TestCase
             'bucket' => 'bigbucket',
             'object' => 'myfile.txt',
             'generation' => 100,
-            'httpOptions' => ['debug' => true],
-            'retries' => 0
+            'restOptions' => ['debug' => true],
+            'retries' => 0,
+            'userProject' => 'myProject'
         ]);
 
         $actualUri = (string) $actualRequest->getUri();
 
         $this->assertEquals($this->successBody, $actualBody);
         $this->assertEquals(
-            'https://storage.googleapis.com/bigbucket/myfile.txt?generation=100&alt=media',
+            'https://www.googleapis.com/storage/v1/b/bigbucket/o/myfile.txt?generation=100&alt=media&userProject=myProject',
             $actualUri
         );
     }
@@ -143,7 +170,7 @@ class RestTest extends \PHPUnit_Framework_TestCase
         $response = new Response(200, ['Location' => 'http://www.mordor.com'], $this->successBody);
 
         $this->requestWrapper->send(
-            Argument::type('Psr\Http\Message\RequestInterface'),
+            Argument::type(RequestInterface::class),
             Argument::type('array')
         )->will(
             function ($args) use (&$actualRequest, $response) {
@@ -184,7 +211,7 @@ class RestTest extends \PHPUnit_Framework_TestCase
                     'predefinedAcl' => 'private',
                     'metadata' => ['contentType' => 'text/plain']
                 ],
-                'Google\Cloud\Upload\ResumableUploader',
+                ResumableUploader::class,
                 'text/plain',
                 [
                     'md5Hash' => base64_encode(Psr7\hash($tempFile, 'md5', true)),
@@ -196,7 +223,7 @@ class RestTest extends \PHPUnit_Framework_TestCase
                     'data' => $logoFile,
                     'validate' => false
                 ],
-                'Google\Cloud\Upload\MultipartUploader',
+                MultipartUploader::class,
                 'image/svg+xml',
                 [
                     'name' => 'logo.svg'
@@ -215,7 +242,29 @@ class RestTest extends \PHPUnit_Framework_TestCase
                         ]
                     ]
                 ],
-                'Google\Cloud\Upload\ResumableUploader',
+                ResumableUploader::class,
+                'text/plain',
+                [
+                    'name' => 'file.ext',
+                    'metadata' => [
+                        'here' => 'wego'
+                    ]
+                ]
+            ],
+            [
+                [
+                    'data' => 'abcdefg',
+                    'name' => 'file.ext',
+                    'streamable' => true,
+                    'validate' => false,
+                    'metadata' => [
+                        'contentType' => 'text/plain',
+                        'metadata' => [
+                            'here' => 'wego'
+                        ]
+                    ]
+                ],
+                StreamableUploader::class,
                 'text/plain',
                 [
                     'name' => 'file.ext',

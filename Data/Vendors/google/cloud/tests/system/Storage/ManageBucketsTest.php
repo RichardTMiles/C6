@@ -19,6 +19,7 @@ namespace Google\Cloud\Tests\System\Storage;
 
 /**
  * @group storage
+ * @group storage-bucket
  */
 class ManageBucketsTest extends StorageTestCase
 {
@@ -31,7 +32,7 @@ class ManageBucketsTest extends StorageTestCase
         ];
 
         foreach ($bucketsToCreate as $bucketToCreate) {
-            self::$deletionQueue[] = self::$client->createBucket($bucketToCreate);
+            self::createBucket(self::$client, $bucketToCreate);
         }
 
         $buckets = self::$client->buckets(['prefix' => self::TESTING_PREFIX]);
@@ -59,8 +60,7 @@ class ManageBucketsTest extends StorageTestCase
         ];
         $this->assertFalse(self::$client->bucket($name)->exists());
 
-        $bucket = self::$client->createBucket($name, $options);
-        self::$deletionQueue[] = $bucket;
+        $bucket = self::createBucket(self::$client, $name, $options);
 
         $this->assertTrue(self::$client->bucket($name)->exists());
         $this->assertEquals($name, $bucket->name());
@@ -85,5 +85,76 @@ class ManageBucketsTest extends StorageTestCase
     public function testReloadBucket()
     {
         $this->assertEquals('storage#bucket', self::$bucket->reload()['kind']);
+    }
+
+    /**
+     * @group storageiam
+     */
+    public function testIam()
+    {
+        $iam = self::$bucket->iam();
+        $policy = $iam->policy();
+
+        // pop the version off the resourceId to make the assertion below more robust.
+        $resourceId = explode('#', $policy['resourceId'])[0];
+
+        $bucketName = self::$bucket->name();
+        $this->assertEquals($resourceId, sprintf('projects/_/buckets/%s', $bucketName));
+
+        $role = 'roles/storage.admin';
+
+        $policy['bindings'][] = [
+            'role' => $role,
+            'members' => ['projectOwner:gcloud-php-integration-tests']
+        ];
+
+        $iam->setPolicy($policy);
+
+        $policy = $iam->reload();
+
+        $newBinding = array_filter($policy['bindings'], function ($binding) use ($role) {
+            return ($binding['role'] === $role);
+        });
+
+        $this->assertEquals(1, count($newBinding));
+
+        $permissions = ['storage.buckets.get'];
+        $test = $iam->testPermissions($permissions);
+        $this->assertEquals($permissions, $test);
+    }
+
+    public function testLabels()
+    {
+        $bucket = self::$bucket;
+
+        $bucket->update([
+            'labels' => [
+                'foo' => 'bar'
+            ]
+        ]);
+
+        $bucket->reload();
+
+        $this->assertEquals($bucket->info()['labels']['foo'], 'bar');
+
+        $bucket->update([
+            'labels' => [
+                'foo' => 'bat'
+            ]
+        ]);
+
+        $bucket->reload();
+
+        $this->assertEquals($bucket->info()['labels']['foo'], 'bat');
+
+        $bucket->update([
+            'labels' => [
+                'foo' => null
+            ]
+        ]);
+
+        $bucket->reload();
+
+        $this->assertFalse(isset($bucket->info()['labels']['foo']));
     }
 }

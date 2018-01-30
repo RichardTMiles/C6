@@ -15,29 +15,31 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\Logging\Connection;
+namespace Google\Cloud\Tests\Unit\Logging\Connection;
 
 use Google\Cloud\Logging\Connection\Grpc;
-use Google\Cloud\GrpcRequestWrapper;
-use Google\Cloud\PhpArray;
+use Google\Cloud\Tests\GrpcTestTrait;
+use Google\Cloud\Core\GrpcRequestWrapper;
+use Google\ApiCore\Serializer;
+use Google\Cloud\Logging\V2\LogEntry;
+use Google\Cloud\Logging\V2\LogMetric;
+use Google\Cloud\Logging\V2\LogSink;
 use Prophecy\Argument;
-use google\logging\v2\LogEntry;
-use google\logging\v2\LogMetric;
-use google\logging\v2\LogSink;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group logging
  */
-class GrpcTest extends \PHPUnit_Framework_TestCase
+class GrpcTest extends TestCase
 {
+    use GrpcTestTrait;
+
     private $requestWrapper;
     private $successMessage;
 
     public function setUp()
     {
-        if (!extension_loaded('grpc')) {
-            $this->markTestSkipped('Must have the grpc extension installed to run this test.');
-        }
+        $this->checkAndSkipGrpcTests();
 
         $this->requestWrapper = $this->prophesize(GrpcRequestWrapper::class);
         $this->successMessage = 'success';
@@ -62,31 +64,26 @@ class GrpcTest extends \PHPUnit_Framework_TestCase
 
     public function methodProvider()
     {
+        if ($this->shouldSkipGrpcTests()) {
+            return [];
+        }
+
         $value = 'value';
         $entryData = [
             'logName' => $value,
             'resource' => [
                 'type' => $value,
                 'labels' => [
-                    [
-                        'key' => $value,
-                        'value' => $value
-                    ]
+                    $value => $value,
                 ]
             ],
             'jsonPayload' => [
                 'fields' => [
-                    'key' => $value,
-                    'value' => [
-                        'string_value' => $value
-                    ]
-                ]
+                    $value => ['stringValue' => $value]
+                ],
             ],
             'labels' => [
-                [
-                    'key' => $value,
-                    'value' => $value
-                ]
+                $value => $value,
             ]
         ];
         $sinkData = [
@@ -100,9 +97,10 @@ class GrpcTest extends \PHPUnit_Framework_TestCase
             'description' => $value,
             'filter' => $value
         ];
-        $pbEntry = (new LogEntry())->deserialize($entryData, new PhpArray());
-        $pbSink = (new LogSink())->deserialize(['outputVersionFormat' => 1] + $sinkData, new PhpArray());
-        $pbMetric = (new LogMetric())->deserialize($metricData, new PhpArray());
+        $serializer = new Serializer();
+        $pbEntry = $serializer->decodeMessage(new LogEntry(), $entryData);
+        $pbSink = $serializer->decodeMessage(new LogSink(), ['outputVersionFormat' => 1] + $sinkData);
+        $pbMetric = $serializer->decodeMessage(new LogMetric(), $metricData);
         $resourceNames = ['projects/id'];
         $pageSizeSetting = ['pageSize' => 2];
 

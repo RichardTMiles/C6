@@ -15,18 +15,19 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\Vision;
+namespace Google\Cloud\Tests\Unit\Vision;
 
 use Google\Cloud\Vision\Annotation;
 use Google\Cloud\Vision\Connection\ConnectionInterface;
 use Google\Cloud\Vision\Image;
 use Google\Cloud\Vision\VisionClient;
 use Prophecy\Argument;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group vision
  */
-class VisionClientTest extends \PHPUnit_Framework_TestCase
+class VisionClientTest extends TestCase
 {
     private $client;
 
@@ -86,7 +87,7 @@ class VisionClientTest extends \PHPUnit_Framework_TestCase
 
         $res = $this->client->annotateBatch([$image]);
 
-        $this->assertTrue(is_array($res));
+        $this->assertInternalType('array', $res);
 
         $this->assertInstanceOf(Annotation::class, $res[0]);
         $this->assertInstanceOf(Annotation::class, $res[1]);

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2016 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
 
 namespace Google\Cloud\PubSub;
 
-use Google\Cloud\Exception\NotFoundException;
-use Google\Cloud\Iam\Iam;
+use Google\Cloud\Core\Exception\NotFoundException;
+use Google\Cloud\Core\Duration;
+use Google\Cloud\Core\Iam\Iam;
+use Google\Cloud\Core\Timestamp;
 use Google\Cloud\PubSub\Connection\ConnectionInterface;
 use Google\Cloud\PubSub\Connection\IamSubscription;
 use Google\Cloud\PubSub\IncomingMessageTrait;
-use Google\Cloud\ValidateTrait;
+use Google\Cloud\Core\ValidateTrait;
 use InvalidArgumentException;
 
 /**
@@ -32,11 +34,9 @@ use InvalidArgumentException;
  * Example:
  * ```
  * // Create subscription through a topic
- * use Google\Cloud\ServiceBuilder;
+ * use Google\Cloud\PubSub\PubSubClient;
  *
- * $cloud = new ServiceBuilder();
- *
- * $pubsub = $cloud->pubsub();
+ * $pubsub = new PubSubClient();
  *
  * $topic = $pubsub->topic('my-new-topic');
  *
@@ -45,7 +45,6 @@ use InvalidArgumentException;
  *
  * ```
  * // Create subscription through PubSubClient
- *
  * use Google\Cloud\PubSub\PubSubClient;
  *
  * $pubsub = new PubSubClient();
@@ -118,7 +117,7 @@ class Subscription
         $name,
         $topicName,
         $encode,
-        array $info = null
+        array $info = []
     ) {
         $this->connection = $connection;
         $this->projectId = $projectId;
@@ -140,9 +139,6 @@ class Subscription
                 ? $this->formatName('topic', $topicName, $projectId)
                 : null;
         }
-
-        $iamConnection = new IamSubscription($this->connection);
-        $this->iam = new Iam($iamConnection, $this->name);
     }
 
     /**
@@ -185,12 +181,25 @@ class Subscription
      * @param array $options [optional] {
      *     Configuration Options
      *
-     *     @type int $ackDeadlineSeconds This value is the maximum time after a
-     *           subscriber receives a message before the subscriber should
-     *           acknowledge the message. **Defaults to** `10`.
-     *     @type array $pushConfig See {@see Google\Cloud\PubSub\Subscription::modifyPushConfig()} or
-     *           [PushConfig](https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.subscriptions#PushConfig)
-     *           for usage.
+     *     For information regarding the push configuration settings, see
+     *     [PushConfig](https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.subscriptions#PushConfig).
+     *
+     *     @type string $pushConfig.pushEndpoint A URL locating the endpoint to which
+     *           messages should be pushed. For example, a Webhook endpoint
+     *           might use "https://example.com/push".
+     *     @type array $pushConfig.attributes Endpoint configuration attributes.
+     *     @type int $ackDeadlineSeconds The maximum time after a subscriber
+     *           receives a message before the subscriber should acknowledge the
+     *           message.
+     *     @type bool $retainAckedMessages Indicates whether to retain
+     *           acknowledged messages.
+     *     @type Duration $messageRetentionDuration How long to retain
+     *           unacknowledged messages in the subscription's backlog, from the
+     *           moment a message is published. If `$retainAckedMessages` is
+     *           true, then this also configures the retention of acknowledged
+     *           messages, and thus configures how far back in time a `Seek`
+     *           can be done. Cannot be more than 7 days or less than 10 minutes.
+     *           **Defaults to** 7 days.
      * }
      * @return array An array of subscription info
      * @throws \InvalidArgumentException
@@ -211,6 +220,52 @@ class Subscription
         ]);
 
         return $this->info;
+    }
+
+    /**
+     * Update the subscription.
+     *
+     * Note that subscription name and topic are immutable properties and may
+     * not be modified.
+     *
+     * Example:
+     * ```
+     * $subscription->update([
+     *     'retainAckedMessages' => true
+     * ]);
+     * ```
+     *
+     * @param array $subscription {
+     *     The Subscription data.
+     *
+     *     For information regarding the push configuration settings, see
+     *     [PushConfig](https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.subscriptions#PushConfig).
+     *
+     *     @type string $pushConfig.pushEndpoint A URL locating the endpoint to which
+     *           messages should be pushed. For example, a Webhook endpoint
+     *           might use "https://example.com/push".
+     *     @type array $pushConfig.attributes Endpoint configuration attributes.
+     *     @type int $ackDeadlineSeconds The maximum time after a subscriber
+     *           receives a message before the subscriber should acknowledge the
+     *           message.
+     *     @type bool $retainAckedMessages Indicates whether to retain
+     *           acknowledged messages.
+     *     @type Duration $messageRetentionDuration How long to retain
+     *           unacknowledged messages in the subscription's backlog, from the
+     *           moment a message is published. If `$retainAckedMessages` is
+     *           true, then this also configures the retention of acknowledged
+     *           messages, and thus configures how far back in time a `Seek`
+     *           can be done. Cannot be more than 7 days or less than 10 minutes.
+     *           **Defaults to** 7 days.
+     * }
+     * @param array $options [optional] Configuration options.
+     * @return array The subscription info.
+     */
+    public function update(array $subscription, array $options = [])
+    {
+        return $this->info = $this->connection->updateSubscription([
+            'name' => $this->name
+        ] + $options + $subscription);
     }
 
     /**
@@ -331,42 +386,36 @@ class Subscription
      * @param array $options [optional] {
      *      Configuration Options
      *
-     *      @type bool $returnImmediately If set, the system will respond
+     *      @type bool $returnImmediately If true, the system will respond
      *            immediately, even if no messages are available. Otherwise,
-     *            wait until new messages are available.
-     *      @type int  $maxMessages Limit the amount of messages pulled.
+     *            wait until new messages are available. **Defaults to**
+     *            `false`.
+     *      @type int $maxMessages Limit the amount of messages pulled.
+     *            **Defaults to** `1000`.
      * }
-     * @codingStandardsIgnoreStart
-     * @return \Generator<Message>
-     * @codingStandardsIgnoreEnd
+     * @return Message[]
      */
     public function pull(array $options = [])
     {
-        $options['pageToken'] = null;
+        $messages = [];
         $options['returnImmediately'] = isset($options['returnImmediately'])
             ? $options['returnImmediately']
             : false;
-
         $options['maxMessages'] = isset($options['maxMessages'])
             ? $options['maxMessages']
             : self::MAX_MESSAGES;
 
-        do {
-            $response = $this->connection->pull($options + [
-                'subscription' => $this->name
-            ]);
+        $response = $this->connection->pull($options + [
+            'subscription' => $this->name
+        ]);
 
-            if (isset($response['receivedMessages'])) {
-                foreach ($response['receivedMessages'] as $message) {
-                    yield $this->messageFactory($message, $this->connection, $this->projectId, $this->encode);
-                }
+        if (isset($response['receivedMessages'])) {
+            foreach ($response['receivedMessages'] as $message) {
+                $messages[] = $this->messageFactory($message, $this->connection, $this->projectId, $this->encode);
             }
+        }
 
-            // If there's a page token, we'll request the next page.
-            $options['pageToken'] = isset($response['nextPageToken'])
-                ? $response['nextPageToken']
-                : null;
-        } while ($options['pageToken']);
+        return $messages;
     }
 
     /**
@@ -378,9 +427,8 @@ class Subscription
      * Example:
      * ```
      * $messages = $subscription->pull();
-     * $messagesArray = iterator_to_array($messages);
      *
-     * $subscription->acknowledge($messagesArray[0]);
+     * $subscription->acknowledge($messages[0]);
      * ```
      *
      * @codingStandardsIgnoreStart
@@ -405,9 +453,8 @@ class Subscription
      * Example:
      * ```
      * $messages = $subscription->pull();
-     * $messagesArray = iterator_to_array($messages);
      *
-     * $subscription->acknowledgeBatch($messagesArray);
+     * $subscription->acknowledgeBatch($messages);
      * ```
      *
      * @codingStandardsIgnoreStart
@@ -477,16 +524,15 @@ class Subscription
      * Example:
      * ```
      * $messages = $subscription->pull();
-     * $messagesArray = iterator_to_array($messages);
      *
-     * // Set the ack deadline to a minute and a half from now for every message
-     * $subscription->modifyAckDeadlineBatch($messagesArray, 3);
+     * // Set the ack deadline to three seconds from now for every message
+     * $subscription->modifyAckDeadlineBatch($messages, 3);
      *
      * // Delay execution, or make a sandwich or something.
      * sleep(2);
      *
      * // Now we'll acknowledge
-     * $subscription->acknowledge($messagesArray);
+     * $subscription->acknowledgeBatch($messages);
      * ```
      *
      * @codingStandardsIgnoreStart
@@ -550,6 +596,57 @@ class Subscription
     }
 
     /**
+     * Seek to a given timestamp.
+     *
+     * When you seek to a time, it has the effect of marking every message
+     * received before this time as acknowledged, and all messages received
+     * after the time as unacknowledged.
+     *
+     * Please note that this method may not yet be available in your project.
+     *
+     * Example:
+     * ```
+     * $time = $pubsub->timestamp(new \DateTime('2017-04-01'));
+     * $subscription->seekToTime($time);
+     * ```
+     *
+     * @param Timestamp $timestamp The time to seek to.
+     * @return void
+     */
+    public function seekToTime(Timestamp $timestamp)
+    {
+        return $this->connection->seek([
+            'subscription' => $this->name,
+            'time' => $timestamp->formatAsString()
+        ]);
+    }
+
+    /**
+     * Seek to a given snapshot.
+     *
+     * When seeking to a snapshot, any message that had an "unacknowledged"
+     * state when the snapshot was created can be re-delivered.
+     *
+     * Please note that this method may not yet be available in your project.
+     *
+     * Example:
+     * ```
+     * $snapshot = $pubsub->snapshot('my-snapshot');
+     * $subscription->seekToSnapshot($snapshot);
+     * ```
+     *
+     * @param Snapshot $snapshot The snapshot to seek to.
+     * @return void
+     */
+    public function seekToSnapshot(Snapshot $snapshot)
+    {
+        return $this->connection->seek([
+            'subscription' => $this->name,
+            'snapshot' => $snapshot->name()
+        ]);
+    }
+
+    /**
      * Manage the IAM policy for the current Subscription.
      *
      * Example:
@@ -568,6 +665,11 @@ class Subscription
      */
     public function iam()
     {
+        if (!$this->iam) {
+            $iamConnection = new IamSubscription($this->connection);
+            $this->iam = new Iam($iamConnection, $this->name);
+        }
+
         return $this->iam;
     }
 

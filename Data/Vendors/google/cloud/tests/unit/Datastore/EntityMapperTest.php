@@ -15,19 +15,20 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\Datastore;
+namespace Google\Cloud\Tests\Unit\Datastore;
 
 use Google\Cloud\Datastore\Blob;
 use Google\Cloud\Datastore\Entity;
 use Google\Cloud\Datastore\EntityMapper;
 use Google\Cloud\Datastore\GeoPoint;
 use Google\Cloud\Datastore\Key;
-use Google\Cloud\Int64;
+use Google\Cloud\Core\Int64;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group datastore
  */
-class EntityMapperTest extends \PHPUnit_Framework_TestCase
+class EntityMapperTest extends TestCase
 {
     const DATE_FORMAT = 'Y-m-d\TH:i:s.uP';
 
@@ -320,6 +321,36 @@ class EntityMapperTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('test', $res['prop']);
     }
 
+    public function testConvertValueEntityWithKeyExcludes()
+    {
+        $type = 'entityValue';
+        $val = [
+            'key' => [
+                'partitionId' => [
+                    'namespaceId' => 'bar'
+                ],
+                'path' => [['kind' => 'kind', 'id' => '2']]
+            ],
+            'properties' => [
+                'prop' => [
+                    'stringValue' => 'test',
+                    'excludeFromIndexes' => true
+                ]
+            ]
+        ];
+
+        $res = $this->mapper->convertValue($type, $val);
+        $this->assertInstanceOf(Entity::class, $res);
+        $this->assertInstanceOf(Key::class, $res->key());
+
+        $key = $res->key()->keyObject();
+        $this->assertEquals('bar', $key['partitionId']['namespaceId']);
+        $this->assertEquals([['kind' => 'kind', 'id' => '2']], $key['path']);
+
+        $this->assertEquals('test', $res['prop']);
+        $this->assertEquals(['prop'], $res->excludedProperties());
+    }
+
     public function testConvertValueEntityWithIncompleteKey()
     {
         $type = 'entityValue';
@@ -360,8 +391,26 @@ class EntityMapperTest extends \PHPUnit_Framework_TestCase
         ];
 
         $res = $this->mapper->convertValue($type, $val);
-        $this->assertTrue(is_array($res));
+        $this->assertInternalType('array', $res);
         $this->assertEquals('test', $res['prop']);
+    }
+
+    public function testConvertValueEntityWithoutKeyExcludes()
+    {
+        $type = 'entityValue';
+        $val = [
+            'properties' => [
+                'prop' => [
+                    'stringValue' => 'test',
+                    'excludeFromIndexes' => true
+                ]
+            ]
+        ];
+
+        $res = $this->mapper->convertValue($type, $val);
+        $this->assertInternalType('array', $res);
+        $this->assertEquals('test', $res['prop']);
+        $this->assertEquals(['prop'], $res[Entity::EXCLUDE_FROM_INDEXES]);
     }
 
     public function testConvertValueDouble()
@@ -370,7 +419,7 @@ class EntityMapperTest extends \PHPUnit_Framework_TestCase
         $val = 1.1;
 
         $res = $this->mapper->convertValue($type, $val);
-        $this->assertTrue(is_float($res));
+        $this->assertInternalType('float', $res);
         $this->assertEquals(1.1, $res);
     }
 
@@ -380,7 +429,7 @@ class EntityMapperTest extends \PHPUnit_Framework_TestCase
         $val = 1;
 
         $res = $this->mapper->convertValue($type, $val);
-        $this->assertTrue(is_float($res));
+        $this->assertInternalType('float', $res);
         $this->assertEquals((float)1, $res);
     }
 
@@ -436,7 +485,7 @@ class EntityMapperTest extends \PHPUnit_Framework_TestCase
         ];
 
         $res = $this->mapper->convertValue($type, $val);
-        $this->assertTrue(is_array($res));
+        $this->assertInternalType('array', $res);
         $this->assertEquals(['foo', 'bar'], $res);
     }
 
@@ -446,7 +495,7 @@ class EntityMapperTest extends \PHPUnit_Framework_TestCase
         $val = [];
 
         $res = $this->mapper->convertValue($type, $val);
-        $this->assertTrue(is_array($res));
+        $this->assertInternalType('array', $res);
         $this->assertEquals([], $res);
     }
 
@@ -487,6 +536,20 @@ class EntityMapperTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('entityValue', key($entity));
         $this->assertEquals('val1', $entity['entityValue']['properties']['key1']['stringValue']);
+        $this->assertEquals('val2', $entity['entityValue']['properties']['key2']['stringValue']);
+    }
+
+    public function testValueObjectArrayEntityValueExcludes()
+    {
+        $entity = $this->mapper->valueObject([
+            'key1' => 'val1',
+            'key2' => 'val2',
+            Entity::EXCLUDE_FROM_INDEXES => ['key1']
+        ]);
+
+        $this->assertEquals('entityValue', key($entity));
+        $this->assertEquals('val1', $entity['entityValue']['properties']['key1']['stringValue']);
+        $this->assertTrue($entity['entityValue']['properties']['key1']['excludeFromIndexes']);
         $this->assertEquals('val2', $entity['entityValue']['properties']['key2']['stringValue']);
     }
 
@@ -540,7 +603,7 @@ class EntityMapperTest extends \PHPUnit_Framework_TestCase
 
         $res = $this->mapper->valueObject('hello', false);
 
-        $this->assertFalse(isset($res['excludeFromIndexes']));
+        $this->assertArrayNotHasKey('excludeFromIndexes', $res);
     }
 
     public function testObjectPropertyBlob()

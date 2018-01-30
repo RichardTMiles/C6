@@ -17,11 +17,11 @@
 
 namespace Google\Cloud\Datastore;
 
-use Google\Cloud\ArrayTrait;
+use Google\Cloud\Core\ArrayTrait;
 use Google\Cloud\Datastore\Entity;
 use Google\Cloud\Datastore\GeoPoint;
 use Google\Cloud\Datastore\Key;
-use Google\Cloud\Int64;
+use Google\Cloud\Core\Int64;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -57,7 +57,7 @@ class EntityMapper
      * @param string $projectId The datastore project ID
      * @param bool $encode Whether to encode blobs as base64.
      * @param bool $returnInt64AsObject If true, 64 bit integers will be
-     *        returned as a {@see Google\Cloud\Int64} object for 32 bit
+     *        returned as a {@see Google\Cloud\Core\Int64} object for 32 bit
      *        platform compatibility.
      */
     public function __construct($projectId, $encode, $returnInt64AsObject)
@@ -207,7 +207,9 @@ class EntityMapper
                 break;
 
             case 'entityValue':
-                $props = $this->responseToEntityProperties($value['properties'])['properties'];
+                $decoded = $this->responseToEntityProperties($value['properties']);
+                $props = $decoded['properties'];
+                $excludes = $decoded['excludes'];
 
                 if (isset($value['key'])) {
                     $namespaceId = (isset($value['key']['partitionId']['namespaceId']))
@@ -220,13 +222,18 @@ class EntityMapper
                     ]);
 
                     $result = new Entity($key, $props, [
-                        'populatedByService' => true
+                        'populatedByService' => true,
+                        'excludeFromIndexes' => $excludes
                     ]);
                 } else {
                     $result = [];
 
                     foreach ($value['properties'] as $key => $property) {
                         $result[$key] = $this->getPropertyValue($property);
+                    }
+
+                    if ($excludes) {
+                        $result[Entity::EXCLUDE_FROM_INDEXES] = $excludes;
                     }
                 }
 
@@ -443,9 +450,14 @@ class EntityMapper
      */
     private function convertArrayToEntityValue(array $value)
     {
+        $excludes = $this->pluck(Entity::EXCLUDE_FROM_INDEXES, $value, false) ?: [];
+
         $properties = [];
         foreach ($value as $key => $val) {
-            $properties[$key] = $this->valueObject($val);
+            $properties[$key] = $this->valueObject(
+                $val,
+                in_array($key, $excludes)
+            );
         }
 
         return [
@@ -469,11 +481,7 @@ class EntityMapper
         }
 
         // Encode the string again
-        if (base64_encode($decoded) != $value) {
-            return false;
-        }
-
-        return true;
+        return base64_encode($decoded) == $value;
     }
 
     /**

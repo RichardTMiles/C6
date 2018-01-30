@@ -17,38 +17,31 @@
 
 namespace Google\Cloud\Translate;
 
-use Google\Cloud\ClientTrait;
+use Google\Cloud\Core\ClientTrait;
 use Google\Cloud\Translate\Connection\ConnectionInterface;
 use Google\Cloud\Translate\Connection\Rest;
 
 /**
- * Google Translate client. Provides the ability to dynamically
- * translate text between thousands of language pairs and lets websites and
- * programs integrate with the Google Cloud Translation API programmatically.
- * The Google Cloud Translation API is available as a paid service. See the
- * [Pricing](https://cloud.google.com/translation/v2/pricing) and
- * [FAQ](https://cloud.google.com/translation/v2/faq) pages for details. Find
- * more information at the
+ * Google Cloud Translation provides the ability to dynamically translate
+ * text between thousands of language pairs and lets websites and programs
+ * integrate with translation service programmatically. Find more
+ * information at the the
  * [Google Cloud Translation docs](https://cloud.google.com/translation/docs/).
  *
+ * The Google Cloud Translation API is available as a paid
+ * service. See the [Pricing](https://cloud.google.com/translation/v2/pricing)
+ * and [FAQ](https://cloud.google.com/translation/v2/faq) pages for details.
+ *
  * Please note that while the Google Cloud Translation API supports
- * authentication via service account and application default credentials like
- * other Cloud Platform APIs, it also supports authentication via a public API
- * access key. If you wish to authenticate using an API key, follow the
+ * authentication via service account and application default credentials
+ * like other Cloud Platform APIs, it also supports authentication via a
+ * public API access key. If you wish to authenticate using an API key,
+ * follow the
  * [before you begin](https://cloud.google.com/translation/v2/translating-text-with-rest#before-you-begin)
  * instructions to learn how to generate a key.
  *
  * Example:
  * ```
- * use Google\Cloud\ServiceBuilder;
- *
- * $cloud = new ServiceBuilder();
- *
- * $translate = $cloud->translate();
- * ```
- *
- * ```
- * // TranslateClient can be instantiated directly.
  * use Google\Cloud\Translate\TranslateClient;
  *
  * $translate = new TranslateClient();
@@ -57,6 +50,8 @@ use Google\Cloud\Translate\Connection\Rest;
 class TranslateClient
 {
     use ClientTrait;
+
+    const VERSION = '1.1.1';
 
     const ENGLISH_LANGUAGE_CODE = 'en';
 
@@ -73,7 +68,16 @@ class TranslateClient
     private $targetLanguage;
 
     /**
+     * @var string
+     */
+    private $key;
+
+    /**
      * Create a Translate client.
+     *
+     * Note that when creating a TranslateClient instance, setting
+     * `$config.projectId` is not supported. To switch between projects, you
+     * must provide credentials with access to the project.
      *
      * @param array $config [optional] {
      *     Configuration Options.
@@ -82,15 +86,13 @@ class TranslateClient
      *     @type string $target The target language to assign to the client.
      *           Must be a valid ISO 639-1 language code. **Defaults to** `"en"`
      *           (English).
-     *     @type int $retries Number of retries for a failed request.
-     *           **Defaults to** `3`.
-     *     @type string $projectId The project ID from the Google Developer's
-     *           Console.
      *     @type CacheItemPoolInterface $authCache A cache used storing access
      *           tokens. **Defaults to** a simple in memory implementation.
      *     @type array $authCacheOptions Cache configuration options.
      *     @type callable $authHttpHandler A handler used to deliver Psr7
      *           requests specifically for authentication.
+     *     @type FetchAuthTokenInterface $credentialsFetcher A credentials
+     *           fetcher instance.
      *     @type callable $httpHandler A handler used to deliver Psr7 requests.
      *           Only valid for requests sent over REST.
      *     @type array $keyFile The contents of the service account credentials
@@ -99,6 +101,8 @@ class TranslateClient
      *     @type string $keyFilePath The full path to your service account
      *           credentials .json file retrieved from the Google Developers
      *           Console.
+     *     @type float $requestTimeout Seconds to wait before timing out the
+     *           request. **Defaults to** `0` with REST and `60` with gRPC.
      *     @type int $retries Number of retries for a failed request.
      *           **Defaults to** `3`.
      *     @type array $scopes Scopes to be used for the request.
@@ -157,10 +161,16 @@ class TranslateClient
      *           either plain-text or HTML. Acceptable values are `html` or
      *           `text`. **Defaults to** `"html"`.
      *     @type string $model The model to use for the translation request. May
-     *           be `nmt` or `base`. **Defaults to** an empty string.
+     *           be `nmt` (for the NMT model) or `base` (for the PBMT model).
+     *           **Defaults to** using the NMT model. If the NMT model is not
+     *           supported for the requested language translation pair, the PBMT
+     *           model will be defaulted instead. For a list of supported
+     *           languages for the model types, please see the
+     *           [Language Support](https://cloud.google.com/translate/docs/languages)
+     *           documentation.
      * }
      * @return array|null A translation result including a `source` key containing
-     *         the detected or provided langauge of the provided input, an
+     *         the detected or provided language of the provided input, an
      *         `input` key containing the original string, and a `text` key
      *         containing the translated result.
      */
@@ -203,7 +213,13 @@ class TranslateClient
      *           either plain-text or HTML. Acceptable values are `html` or
      *           `text`. **Defaults to** `"html"`.
      *     @type string $model The model to use for the translation request. May
-     *           be `nmt` or `base`. **Defaults to** null.
+     *           be `nmt` (for the NMT model) or `base` (for the PBMT model).
+     *           **Defaults to** using the NMT model. If the NMT model is not
+     *           supported for the requested language translation pair, the PBMT
+     *           model will be defaulted instead. For a list of supported
+     *           languages for the model types, please see the
+     *           [Language Support](https://cloud.google.com/translate/docs/languages)
+     *           documentation.
      * }
      * @return array A set of translation results. Each result includes a
      *         `source` key containing the detected or provided language of the
@@ -265,13 +281,7 @@ class TranslateClient
      * @see https://cloud.google.com/translation/v2/detecting-language-with-rest Detecting Langauge
      *
      * @param string $string The string to detect the language of.
-     * @param array $options [optional] {
-     *     Configuration Options.
-     *
-     *     @type string $format Indicates whether the string is either
-     *           plain-text or HTML. Acceptable values are `html` or `text`.
-     *           **Defaults to** `"html"`.
-     * }
+     * @param array $options [optional] Configuration Options.
      * @return array A result including a `languageCode` key
      *         containing the detected ISO 639-1 language code, an `input` key
      *         containing the original string, and in most cases a `confidence`
@@ -301,13 +311,7 @@ class TranslateClient
      * @see https://cloud.google.com/translation/v2/detecting-language-with-rest Detecting Langauge
      *
      * @param string $string The string to detect the language of.
-     * @param array $options [optional] {
-     *     Configuration Options.
-     *
-     *     @type string $format Indicates whether the string is either
-     *           plain-text or HTML. Acceptable values are `html` or `text`.
-     *           **Defaults to** `"html"`.
-     * }
+     * @param array $options [optional] Configuration Options.
      * @return array A set of results. Each result includes a `languageCode` key
      *         containing the detected ISO 639-1 language code, an `input` key
      *         containing the original string, and in most cases a `confidence`

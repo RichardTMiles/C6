@@ -17,13 +17,11 @@
 
 namespace Google\Cloud\Datastore;
 
-use Google\Cloud\ArrayTrait;
+use Google\Cloud\Core\ArrayTrait;
 use InvalidArgumentException;
 use JsonSerializable;
 
 /**
- * Represents a Datastore Key.
- *
  * Keys are unique identifiers for entities.
  *
  * Keys may be considered either "named" or "incomplete". A named Key is one in
@@ -46,10 +44,9 @@ use JsonSerializable;
  *
  * Example:
  * ```
- * use Google\Cloud\ServiceBuilder;
+ * use Google\Cloud\Datastore\DatastoreClient;
  *
- * $cloud = new ServiceBuilder();
- * $datastore = $cloud->datastore();
+ * $datastore = new DatastoreClient();
  *
  * $key = $datastore->key('Person', 'Bob');
  * ```

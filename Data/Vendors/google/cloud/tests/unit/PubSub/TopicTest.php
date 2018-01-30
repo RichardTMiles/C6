@@ -15,20 +15,22 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\PubSub;
+namespace Google\Cloud\Tests\Unit\PubSub;
 
-use Generator;
-use Google\Cloud\Exception\NotFoundException;
-use Google\Cloud\Iam\Iam;
+use Google\Cloud\Core\Exception\NotFoundException;
+use Google\Cloud\Core\Iam\Iam;
+use Google\Cloud\Core\Iterator\ItemIterator;
+use Google\Cloud\PubSub\BatchPublisher;
 use Google\Cloud\PubSub\Connection\ConnectionInterface;
 use Google\Cloud\PubSub\Subscription;
 use Google\Cloud\PubSub\Topic;
 use Prophecy\Argument;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group pubsub
  */
-class TopicTest extends \PHPUnit_Framework_TestCase
+class TopicTest extends TestCase
 {
     private $topic;
     private $connection;
@@ -147,9 +149,8 @@ class TopicTest extends \PHPUnit_Framework_TestCase
             if ($options['foo'] !== 'bar') return false;
 
             $message['data'] = base64_encode($message['data']);
-            if ($options['messages'] !== [$message]) return false;
 
-            return true;
+            return $options['messages'] === [$message];
         }))->willReturn($ids);
 
         $this->topic->setConnection($this->connection->reveal());
@@ -185,9 +186,8 @@ class TopicTest extends \PHPUnit_Framework_TestCase
 
             $messages[0]['data'] = base64_encode($messages[0]['data']);
             $messages[1]['data'] = base64_encode($messages[1]['data']);
-            if ($options['messages'] !== $messages) return false;
 
-            return true;
+            return $options['messages'] === $messages;
         }))->willReturn($ids);
 
         $this->topic->setConnection($this->connection->reveal());
@@ -238,6 +238,14 @@ class TopicTest extends \PHPUnit_Framework_TestCase
         $this->topic->publishBatch([$message]);
     }
 
+    public function testBatchPublisher()
+    {
+        $this->assertInstanceOf(
+            BatchPublisher::class,
+            $this->topic->batchPublisher()
+        );
+    }
+
     public function testSubscribe()
     {
         $subscriptionData = [
@@ -282,7 +290,7 @@ class TopicTest extends \PHPUnit_Framework_TestCase
             'foo' => 'bar'
         ]);
 
-        $this->assertInstanceOf(Generator::class, $subscriptions);
+        $this->assertInstanceOf(ItemIterator::class, $subscriptions);
 
         $arr = iterator_to_array($subscriptions);
         $this->assertInstanceOf(Subscription::class, $arr[0]);
@@ -301,7 +309,9 @@ class TopicTest extends \PHPUnit_Framework_TestCase
 
         $this->connection->listSubscriptionsByTopic(Argument::that(function ($options) {
             if ($options['foo'] !== 'bar') return false;
-            if ($options['pageToken'] !== 'foo' && !is_null($options['pageToken'])) return false;
+            if (isset($options['pageToken']) && $options['pageToken'] !== 'foo') {
+                return false;
+            }
 
             return true;
         }))->willReturn([
@@ -324,7 +334,7 @@ class TopicTest extends \PHPUnit_Framework_TestCase
             if ($i == 6) break;
         }
 
-        $this->assertEquals(6, count($arr));
+        $this->assertCount(6, $arr);
     }
 
     public function testIam()

@@ -17,8 +17,10 @@
 
 namespace Google\Cloud\BigQuery;
 
-use Google\Cloud\Exception\NotFoundException;
 use Google\Cloud\BigQuery\Connection\ConnectionInterface;
+use Google\Cloud\BigQuery\Exception\JobException;
+use Google\Cloud\Core\ArrayTrait;
+use Google\Cloud\Core\Exception\NotFoundException;
 
 /**
  * [Jobs](https://cloud.google.com/bigquery/docs/reference/v2/jobs) are objects
@@ -27,8 +29,13 @@ use Google\Cloud\BigQuery\Connection\ConnectionInterface;
  */
 class Job
 {
+    use ArrayTrait;
+    use JobWaitTrait;
+
+    const MAX_RETRIES = PHP_INT_MAX;
+
     /**
-     * @var ConnectionInterface $connection Represents a connection to BigQuery.
+     * @var ConnectionInterface Represents a connection to BigQuery.
      */
     private $connection;
 
@@ -52,15 +59,15 @@ class Job
      *        BigQuery.
      * @param string $id The job's ID.
      * @param string $projectId The project's ID.
-     * @param array $info [optional] The job's metadata.
      * @param ValueMapper $mapper Maps values between PHP and BigQuery.
+     * @param array $info [optional] The job's metadata.
      */
     public function __construct(
         ConnectionInterface $connection,
         $id,
         $projectId,
-        array $info = [],
-        ValueMapper $mapper = null
+        ValueMapper $mapper,
+        array $info = []
     ) {
         $this->connection = $connection;
         $this->info = $info;
@@ -96,6 +103,9 @@ class Job
      * Requests that a job be cancelled. You will need to poll the job to ensure
      * the cancel request successfully goes through.
      *
+     * Please note that by default the library will not attempt to retry this
+     * call on your behalf.
+     *
      * Example:
      * ```
      * $job->cancel();
@@ -117,11 +127,23 @@ class Job
      */
     public function cancel(array $options = [])
     {
-        $this->connection->cancelJob($options + $this->identity);
+        $this->connection->cancelJob(
+            $options
+            + ['retries' => 0]
+            + $this->identity
+        );
     }
 
     /**
      * Retrieves the results of a query job.
+     *
+     * Please note this method will trigger an initial network request, but
+     * further polling may be necessary in order to access the full query
+     * results. Polling for completion can be initiated by iterating on the
+     * returned
+     * {@see Google\Cloud\BigQuery\QueryResults}, or by calling either
+     * {@see Google\Cloud\BigQuery\QueryResults::rows()} or
+     * {@see Google\Cloud\BigQuery\QueryResults::waitUntilComplete()}.
      *
      * Example:
      * ```
@@ -134,24 +156,77 @@ class Job
      * @param array $options [optional] {
      *     Configuration options.
      *
-     *     @type int $maxResults Maximum number of results to read.
+     *     @type int $maxResults Maximum number of results to read per page.
      *     @type int $startIndex Zero-based index of the starting row.
-     *     @type int $timeoutMs How long to wait for the query to complete, in
-     *           milliseconds. **Defaults to** `10000` milliseconds (10 seconds).
+     *     @type int $initialTimeoutMs How long, in milliseconds, to wait for
+     *           query results to become available before timing out.
+     *           **Defaults to** `0` milliseconds (0 seconds). Please note
+     *           that this option is used only for the initial call to get query
+     *           results. To control the timeout for any subsequent calls while
+     *           polling for query results to complete, please see the
+     *           `$timeoutMs` option.
+     *     @type int $timeoutMs How long, in milliseconds, each API call will
+     *           wait for query results to become available before timing out.
+     *           Depending on whether the $maxRetries has been exceeded,
+     *           the results will be polled again after the timeout has been
+     *           reached. **Defaults to** `10000` milliseconds (10 seconds).
+     *           Please note that this option is used when iterating on the
+     *           returned class, and will not apply immediately upon calling of
+     *           this method.
+     *     @type int $maxRetries The number of times to poll the Job status,
+     *           until the job is complete. By default, will poll indefinitely.
+     *           Please note that this option is used when iterating on the
+     *           returned class, and will not block immediately upon calling of
+     *           this method.
      * }
      * @return QueryResults
      */
     public function queryResults(array $options = [])
     {
-        $response = $this->connection->getQueryResults($options + $this->identity);
+        $timeoutMs = $this->pluck('initialTimeoutMs', $options, false) ?: 0;
+        $queryResultsOptions = $options;
+        $options['timeoutMs'] = $timeoutMs;
 
         return new QueryResults(
             $this->connection,
             $this->identity['jobId'],
             $this->identity['projectId'],
-            $response,
-            $options,
-            $this->mapper ?: new ValueMapper(false)
+            $this->connection->getQueryResults($options + $this->identity),
+            $this->mapper,
+            $this,
+            $queryResultsOptions
+        );
+    }
+
+    /**
+     * Blocks until the job is complete.
+     *
+     * Example:
+     * ```
+     * $job->waitUntilComplete();
+     * ```
+     *
+     * @param array $options [optional] {
+     *     Configuration options.
+     *
+     *     @type int $maxRetries The number of times to poll the Job status,
+     *           until the job is complete. By default, will poll indefinitely.
+     * }
+     * @throws JobException If the maximum number of retries while waiting for
+     *         job completion has been exceeded.
+     */
+    public function waitUntilComplete(array $options = [])
+    {
+        $maxRetries = $this->pluck('maxRetries', $options, false);
+        $this->wait(
+            function () use ($options) {
+                return $this->isComplete($options);
+            },
+            function () use ($options) {
+                return $this->reload($options);
+            },
+            $this,
+            $maxRetries
         );
     }
 
@@ -171,6 +246,7 @@ class Job
      *
      * echo 'Query complete!';
      * ```
+     *
      * @param array $options [optional] Configuration options.
      * @return bool
      */

@@ -15,17 +15,18 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\Datastore;
+namespace Google\Cloud\Tests\Unit\Datastore;
 
 use Google\Cloud\Datastore\Entity;
 use Google\Cloud\Datastore\EntityMapper;
 use Google\Cloud\Datastore\Key;
 use GuzzleHttp\Psr7\Stream;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group datastore
  */
-class EntityTest extends \PHPUnit_Framework_TestCase
+class EntityTest extends TestCase
 {
     private $key;
     private $mapper;
@@ -53,22 +54,22 @@ class EntityTest extends \PHPUnit_Framework_TestCase
 
         $this->assertNull($entity['doesntExist']);
 
-        $this->assertFalse(isset($entity['doesntExist']));
-        $this->assertTrue(isset($entity['test']));
+        $this->assertArrayNotHasKey('doesntExist', $entity);
+        $this->assertArrayHasKey('test', $entity);
 
         unset($entity['test']);
-        $this->assertFalse(isset($entity['test']));
+        $this->assertArrayNotHasKey('test', $entity);
 
         $entity->magicProperty = 'magic value';
         $this->assertEquals('magic value', $entity->magicProperty);
 
         $this->assertNull($entity->nonExistentMagicProperty);
-        $this->assertFalse(isset($entity->nonExistentMagicProperty));
+        $this->assertObjectNotHasAttribute('nonExistentMagicProperty', $entity);
 
         $this->assertTrue(isset($entity->magicProperty));
 
         unset($entity->magicProperty);
-        $this->assertFalse(isset($entity->magicProperty));
+        $this->assertObjectNotHasAttribute('magicProperty', $entity);
     }
 
     public function testGet()

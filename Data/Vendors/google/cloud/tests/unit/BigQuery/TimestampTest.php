@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\BigQuery;
+namespace Google\Cloud\Tests\Unit\BigQuery;
 
 use Google\Cloud\BigQuery\Timestamp;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group bigquery
  */
-class TimestampTest extends \PHPUnit_Framework_TestCase
+class TimestampTest extends TestCase
 {
     public function testGet()
     {

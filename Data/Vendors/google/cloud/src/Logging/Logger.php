@@ -17,19 +17,21 @@
 
 namespace Google\Cloud\Logging;
 
-use Google\Cloud\ArrayTrait;
+use Google\Cloud\Core\ArrayTrait;
+use Google\Cloud\Core\Iterator\ItemIterator;
+use Google\Cloud\Core\Iterator\PageIterator;
+use Google\Cloud\Core\Timestamp;
+use Google\Cloud\Core\ValidateTrait;
 use Google\Cloud\Logging\Connection\ConnectionInterface;
-use Google\Cloud\ValidateTrait;
 
 /**
  * A logger used to write entries to Google Stackdriver Logging.
  *
  * Example:
  * ```
- * use Google\Cloud\ServiceBuilder;
+ * use Google\Cloud\Logging\LoggingClient;
  *
- * $cloud = new ServiceBuilder();
- * $logging = $cloud->logging();
+ * $logging = new LoggingClient();
  *
  * $logger = $logging->logger('my-log');
  * ```
@@ -75,8 +77,15 @@ class Logger
         'httpRequest',
         'labels',
         'operation',
-        'severity'
+        'severity',
+        'timestamp',
+        'insertId'
     ];
+
+    /**
+     * @var string The logger's unformatted name.
+     */
+    private $name;
 
     /**
      * @var string The logger's formatted name to be used in API requests.
@@ -100,17 +109,15 @@ class Logger
     private $labels;
 
     /**
-     * @codingStandardsIgnoreStart
      * @param ConnectionInterface $connection Represents a connection to
      *        Stackdriver Logging.
      * @param string $name The name of the log to write entries to.
      * @param string $projectId The project's ID.
      * @param array $resource [optional] The
-     *        [monitored resource](https://cloud.google.com/logging/docs/api/reference/rest/Shared.Types/MonitoredResource)
+     *        [monitored resource](https://cloud.google.com/logging/docs/reference/v2/rest/v2/MonitoredResource)
      *        to associate log entries with. **Defaults to** type global.
      * @param array $labels [optional] A set of user-defined (key, value) data
      *        that provides additional information about the log entries.
-     * @codingStandardsIgnoreEnd
      */
     public function __construct(
         ConnectionInterface $connection,
@@ -120,6 +127,7 @@ class Logger
         array $labels = null
     ) {
         $this->connection = $connection;
+        $this->name = $name;
         $this->formattedName = "projects/$projectId/logs/$name";
         $this->projectId = $projectId;
         $this->resource = $resource ?: ['type' => 'global'];
@@ -185,33 +193,37 @@ class Logger
      *           **Defaults to** `"timestamp asc"`.
      *     @type int $pageSize The maximum number of results to return per
      *           request.
+     *     @type int $resultLimit Limit the number of results returned in total.
+     *           **Defaults to** `0` (return all results).
+     *     @type string $pageToken A previously-returned page token used to
+     *           resume the loading of results from a specific point.
      * }
-     * @return \Generator<Google\Cloud\Logging\Entry>
+     * @return ItemIterator<Entry>
      */
     public function entries(array $options = [])
     {
+        $resultLimit = $this->pluck('resultLimit', $options, false);
         $logNameFilter = "logName = $this->formattedName";
         $options += [
-            'pageToken' => null,
             'resourceNames' => ["projects/$this->projectId"],
             'filter' => isset($options['filter'])
                 ? $options['filter'] .= " AND $logNameFilter"
                 : $logNameFilter
         ];
 
-        do {
-            $response = $this->connection->listEntries($options);
-
-            if (!isset($response['entries'])) {
-                return;
-            }
-
-            foreach ($response['entries'] as $entry) {
-                yield new Entry($entry);
-            }
-
-            $options['pageToken'] = isset($response['nextPageToken']) ? $response['nextPageToken'] : null;
-        } while ($options['pageToken']);
+        return new ItemIterator(
+            new PageIterator(
+                function (array $entry) {
+                    return new Entry($entry);
+                },
+                [$this->connection, 'listEntries'],
+                $options,
+                [
+                    'itemsKey' => 'entries',
+                    'resultLimit' => $resultLimit
+                ]
+            )
+        );
     }
 
     /**
@@ -242,8 +254,8 @@ class Logger
      *     ]
      * ]);
      * ```
-     * @codingStandardsIgnoreStart
-     * @see https://cloud.google.com/logging/docs/api/reference/rest/Shared.Types/LogEntry LogEntry resource documentation.
+     *
+     * @see https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry LogEntry resource documentation.
      *
      * @param array|string $data The data to log. When providing a string the
      *        data will be stored as a `textPayload` type. When providing an
@@ -252,30 +264,41 @@ class Logger
      *     Configuration options.
      *
      *     @type array $resource The
-     *           [monitored resource](https://cloud.google.com/logging/docs/api/reference/rest/Shared.Types/MonitoredResource)
+     *           [monitored resource](https://cloud.google.com/logging/docs/api/reference/rest/v2/MonitoredResource)
      *           to associate this log entry with. **Defaults to** type global.
      *     @type array $httpRequest Information about the HTTP request
      *           associated with this log entry, if applicable. Please see
-     *           [the API docs](https://cloud.google.com/logging/docs/api/reference/rest/Shared.Types/LogEntry#httprequest)
+     *           [the API docs](https://cloud.google.com/logging/docs/api/reference/rest/v2/LogEntry#httprequest)
      *           for more information.
      *     @type array $labels A set of user-defined (key, value) data that
      *           provides additional information about the log entry.
      *     @type array $operation Additional information about a potentially
      *           long-running operation with which a log entry is associated.
-     *           Please see [the API docs](https://cloud.google.com/logging/docs/api/reference/rest/Shared.Types/LogEntry#logentryoperation)
+     *           Please see
+     *           [the API docs](https://cloud.google.com/logging/docs/api/reference/rest/v2/LogEntry#logentryoperation)
      *           for more information.
      *     @type string|int $severity The severity of the log entry. **Defaults to**
      *           `"DEFAULT"`.
+     *     @type string $insertId A unique identifier for the log entry.
+     *     @type \DateTimeInterface|Timestamp|string|null $timestamp The
+     *           timestamp associated with this entry. If providing a string it
+     *           must be in RFC3339 UTC "Zulu" format. Example:
+     *           "2014-10-02T15:01:23.045123456Z". If explicitly set to `null`
+     *           the timestamp will be generated by the server at the moment the
+     *           entry is received (with nanosecond precision). **Defaults to**
+     *           the current time, generated by the client with microsecond
+     *           precision.
      * }
      * @return Entry
      * @throws \InvalidArgumentException
-     * @codingStandardsIgnoreEnd
      */
     public function entry($data, array $options = [])
     {
         if (!is_array($data) && !is_string($data)) {
             throw new \InvalidArgumentException('$data must be either a string or an array.');
         }
+
+        $options['timestamp'] = $this->handleTimestamp($options);
 
         if (is_array($data)) {
             $options['jsonPayload'] = $data;
@@ -330,16 +353,10 @@ class Logger
     public function write($entry, array $options = [])
     {
         $entryOptions = $this->pluckArray($this->entryOptions, $options);
-
-        if ($entry instanceof Entry) {
-            if ($entryOptions) {
-                $entry = new Entry($entryOptions + $entry->info());
-            }
-        } else {
-            $entry = $this->entry($entry, $entryOptions);
-        }
-
-        $this->writeBatch([$entry], $options);
+        $this->writeBatch(
+            [$this->handleEntry($entry, $entryOptions)],
+            $options
+        );
     }
 
     /**
@@ -373,13 +390,92 @@ class Logger
     }
 
     /**
+     * Returns the logger's name.
+     *
+     * @return string
+     */
+    public function name()
+    {
+        return $this->name;
+    }
+
+    /**
      * Returns the log level map.
      *
-     * @param array
+     * @return array
      * @access private
      */
     public static function getLogLevelMap()
     {
         return self::$logLevelMap;
+    }
+
+    /**
+     * Returns current unix timestamp with microseconds. This method exists for
+     * testing purposes.
+     *
+     * @return float
+     */
+    protected function microtime()
+    {
+        return microtime(true);
+    }
+
+    /**
+     * @param array|string|Entry $entry
+     * @param array $entryOptions
+     * @return Entry
+     */
+    private function handleEntry($entry, array $entryOptions)
+    {
+        if ($entry instanceof Entry) {
+            if (!$entryOptions) {
+                return $entry;
+            }
+
+            if (array_key_exists('timestamp', $entryOptions)) {
+                $entryOptions['timestamp'] = $this->handleTimestamp($entryOptions);
+            }
+
+            return new Entry($entryOptions + $entry->info());
+        }
+
+        return $this->entry($entry, $entryOptions);
+    }
+
+    /**
+     * @param array $options
+     * @return string|null
+     */
+    private function handleTimestamp(array $options)
+    {
+        if (!array_key_exists('timestamp', $options)) {
+            return $this->createTimestamp();
+        }
+
+        if ($options['timestamp'] instanceof \DateTimeInterface) {
+            return $this->createTimestamp($options['timestamp']);
+        } elseif ($options['timestamp'] instanceof Timestamp) {
+            return (string) $options['timestamp'];
+        }
+
+        return $options['timestamp'];
+    }
+
+    /**
+     * @param \DateTimeInterface $dt [optional]
+     * @return string
+     */
+    private function createTimestamp(\DateTimeInterface $dt = null)
+    {
+        if (!$dt) {
+            $dt = \DateTime::createFromFormat(
+                'U.u',
+                sprintf('%.6F', $this->microtime()),
+                new \DateTimeZone('UTC')
+            );
+        }
+
+        return (string) new Timestamp($dt);
     }
 }

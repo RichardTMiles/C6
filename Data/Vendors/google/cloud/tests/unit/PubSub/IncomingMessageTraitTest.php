@@ -15,17 +15,18 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\PubSub;
+namespace Google\Cloud\Tests\Unit\PubSub;
 
 use Google\Cloud\PubSub\Connection\ConnectionInterface;
 use Google\Cloud\PubSub\IncomingMessageTrait;
 use Google\Cloud\PubSub\Message;
 use Google\Cloud\PubSub\Subscription;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group pubsub
  */
-class IncomingMessageTraitTest extends \PHPUnit_Framework_TestCase
+class IncomingMessageTraitTest extends TestCase
 {
     private $stub;
 
@@ -47,7 +48,7 @@ class IncomingMessageTraitTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException Google\Cloud\Exception\GoogleException
+     * @expectedException Google\Cloud\Core\Exception\GoogleException
      */
     public function testInvalidMessage()
     {

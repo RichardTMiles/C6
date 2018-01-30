@@ -17,17 +17,27 @@
 
 namespace Google\Cloud\Tests\System\Storage;
 
-use Google\Cloud\ExponentialBackoff;
+use Google\Cloud\Core\AnonymousCredentials;
+use Google\Cloud\Core\Exception\NotFoundException;
+use Google\Cloud\PubSub\PubSubClient;
 use Google\Cloud\Storage\StorageClient;
+use Google\Cloud\Tests\System\SystemTestCase;
 
-class StorageTestCase extends \PHPUnit_Framework_TestCase
+/**
+ * Refer to README.md in this directory for some important information
+ * regarding resource management in the storage system test suite.
+ */
+class StorageTestCase extends SystemTestCase
 {
     const TESTING_PREFIX = 'gcloud_testing_';
+    const NORMALIZATION_TEST_BUCKET = 'storage-library-test-bucket';
 
     protected static $bucket;
     protected static $client;
-    protected static $deletionQueue = [];
+    protected static $unauthenticatedClient;
+    protected static $pubsubClient;
     protected static $object;
+    protected static $mainBucketName;
     private static $hasSetUp = false;
 
     public static function setUpBeforeClass()
@@ -36,30 +46,21 @@ class StorageTestCase extends \PHPUnit_Framework_TestCase
             return;
         }
 
-        self::$client = new StorageClient([
-            'keyFilePath' => getenv('GOOGLE_CLOUD_PHP_TESTS_KEY_PATH')
+        $config = [
+            'keyFilePath' => getenv('GOOGLE_CLOUD_PHP_TESTS_KEY_PATH'),
+            'transport' => 'rest'
+        ];
+
+        self::$client = new StorageClient($config);
+        self::$unauthenticatedClient = new StorageClient([
+            'credentialsFetcher' => new AnonymousCredentials()
         ]);
-        $bucket = getenv('BUCKET') ?: uniqid(self::TESTING_PREFIX);
-        self::$bucket = self::$client->createBucket($bucket);
+        self::$pubsubClient = new PubSubClient($config);
+
+        self::$mainBucketName = getenv('BUCKET') ?: uniqid(self::TESTING_PREFIX);
+        self::$bucket = self::createBucket(self::$client, self::$mainBucketName);
         self::$object = self::$bucket->upload('somedata', ['name' => uniqid(self::TESTING_PREFIX)]);
+
         self::$hasSetUp = true;
-    }
-
-    public static function tearDownFixtures()
-    {
-        if (!self::$hasSetUp) {
-            return;
-        }
-
-        self::$deletionQueue[] = self::$object;
-        self::$deletionQueue[] = self::$bucket;
-
-        $backoff = new ExponentialBackoff(8);
-
-        foreach (self::$deletionQueue as $item) {
-            $backoff->execute(function () use ($item) {
-                $item->delete();
-            });
-        }
     }
 }

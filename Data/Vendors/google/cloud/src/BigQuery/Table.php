@@ -18,20 +18,33 @@
 namespace Google\Cloud\BigQuery;
 
 use Google\Cloud\BigQuery\Connection\ConnectionInterface;
-use Google\Cloud\Exception\NotFoundException;
+use Google\Cloud\Core\ArrayTrait;
+use Google\Cloud\Core\ConcurrencyControlTrait;
+use Google\Cloud\Core\Exception\ConflictException;
+use Google\Cloud\Core\Exception\GoogleException;
+use Google\Cloud\Core\Exception\NotFoundException;
+use Google\Cloud\Core\Iterator\ItemIterator;
+use Google\Cloud\Core\Iterator\PageIterator;
+use Google\Cloud\Core\RetryDeciderTrait;
 use Google\Cloud\Storage\StorageObject;
+use Psr\Http\Message\StreamInterface;
 
 /**
- * [BigQuery Tables](https://cloud.google.com/bigquery/docs/tables) are a
- * standard two-dimensional table with individual records organized in rows, and
- * a data type assigned to each column (also called a field).
+ * [Tables](https://cloud.google.com/bigquery/docs/tables) are a standard
+ * two-dimensional table with individual records organized in rows, and a data
+ * type assigned to each column (also called a field).
  */
 class Table
 {
-    use JobConfigurationTrait;
+    const MAX_RETRIES = 100;
+    const INSERT_CREATE_MAX_DELAY_MICROSECONDS = 60000000;
+
+    use ArrayTrait;
+    use ConcurrencyControlTrait;
+    use RetryDeciderTrait;
 
     /**
-     * @var ConnectionInterface $connection Represents a connection to BigQuery.
+     * @var ConnectionInterface Represents a connection to BigQuery.
      */
     protected $connection;
 
@@ -46,22 +59,40 @@ class Table
     private $info;
 
     /**
+     * @var ValueMapper Maps values between PHP and BigQuery.
+     */
+    private $mapper;
+
+    /**
      * @param ConnectionInterface $connection Represents a connection to
      *        BigQuery.
      * @param string $id The table's id.
      * @param string $datasetId The dataset's id.
      * @param string $projectId The project's id.
+     * @param ValueMapper $mapper Maps values between PHP and BigQuery.
      * @param array $info [optional] The table's metadata.
      */
-    public function __construct(ConnectionInterface $connection, $id, $datasetId, $projectId, array $info = [])
-    {
+    public function __construct(
+        ConnectionInterface $connection,
+        $id,
+        $datasetId,
+        $projectId,
+        ValueMapper $mapper,
+        array $info = []
+    ) {
         $this->connection = $connection;
         $this->info = $info;
+        $this->mapper = $mapper;
         $this->identity = [
             'tableId' => $id,
             'datasetId' => $datasetId,
             'projectId' => $projectId
         ];
+        $this->setHttpRetryCodes([]);
+        $this->setHttpRetryMessages([
+            'rateLimitExceeded',
+            'backendError'
+        ]);
     }
 
     /**
@@ -70,7 +101,7 @@ class Table
      * Example:
      * ```
      * if ($table->exists()) {
-     *     echo "Table exists!";
+     *     echo 'Table exists!';
      * }
      * ```
      *
@@ -90,6 +121,9 @@ class Table
     /**
      * Delete the table.
      *
+     * Please note that by default the library will not attempt to retry this
+     * call on your behalf.
+     *
      * Example:
      * ```
      * $table->delete();
@@ -101,11 +135,23 @@ class Table
      */
     public function delete(array $options = [])
     {
-        $this->connection->deleteTable($options + $this->identity);
+        $this->connection->deleteTable(
+            $options
+            + ['retries' => 0]
+            + $this->identity
+        );
     }
 
     /**
      * Update the table.
+     *
+     * Providing an `etag` key as part of `$metadata` will enable simultaneous
+     * update protection. This is useful in preventing override of modifications
+     * made by another user. The resource's current etag can be obtained via a
+     * GET request on the resource.
+     *
+     * Please note that by default the library will not automatically retry this
+     * call on your behalf unless an `etag` is set.
      *
      * Example:
      * ```
@@ -115,6 +161,7 @@ class Table
      * ```
      *
      * @see https://cloud.google.com/bigquery/docs/reference/v2/tables/patch Tables patch API documentation.
+     * @see https://cloud.google.com/bigquery/docs/api-performance#patch Patch (Partial Update)
      *
      * @param array $metadata The available options for metadata are outlined
      *        at the [Table Resource API docs](https://cloud.google.com/bigquery/docs/reference/v2/tables#resource)
@@ -122,10 +169,17 @@ class Table
      */
     public function update(array $metadata, array $options = [])
     {
-        $options += $metadata;
-        $this->info = $this->connection->patchTable($options + $this->identity);
+        $options = $this->applyEtagHeader(
+            $options
+            + $metadata
+            + $this->identity
+        );
 
-        return $this->info;
+        if (!isset($options['etag']) && !isset($options['retries'])) {
+            $options['retries'] = 0;
+        }
+
+        return $this->info = $this->connection->patchTable($options);
     }
 
     /**
@@ -137,7 +191,7 @@ class Table
      * $rows = $table->rows();
      *
      * foreach ($rows as $row) {
-     *     echo $row['name'];
+     *     echo $row['name'] . PHP_EOL;
      * }
      * ```
      *
@@ -146,149 +200,103 @@ class Table
      * @param array $options [optional] {
      *     Configuration options.
      *
-     *     @type int $maxResults Maximum number of results to return.
+     *     @type int $maxResults Maximum number of results to return per page.
+     *     @type int $resultLimit Limit the number of results returned in total.
+     *           **Defaults to** `0` (return all results).
+     *     @type string $pageToken A previously-returned page token used to
+     *           resume the loading of results from a specific point.
      *     @type int $startIndex Zero-based index of the starting row.
      * }
-     * @return \Generator<array>
+     * @return ItemIterator<array>
+     * @throws GoogleException
      */
     public function rows(array $options = [])
     {
-        $options['pageToken'] = null;
+        $resultLimit = $this->pluck('resultLimit', $options, false);
         $schema = $this->info()['schema']['fields'];
 
-        do {
-            $response = $this->connection->listTableData($options + $this->identity);
+        return new ItemIterator(
+            new PageIterator(
+                function (array $row) use ($schema) {
+                    $mergedRow = [];
 
-            if (!isset($response['rows'])) {
-                return;
-            }
+                    if ($row === null) {
+                        return $mergedRow;
+                    }
 
-            foreach ($response['rows'] as $rows) {
-                $row = [];
+                    if (!array_key_exists('f', $row)) {
+                        throw new GoogleException('Bad response - missing key "f" for a row.');
+                    }
 
-                foreach ($rows['f'] as $key => $field) {
-                    $row[$schema[$key]['name']] = $field['v'];
-                }
+                    foreach ($row['f'] as $key => $value) {
+                        $fieldSchema = $schema[$key];
+                        $mergedRow[$fieldSchema['name']] = $this->mapper->fromBigQuery($value, $fieldSchema);
+                    }
 
-                yield $row;
-            }
-
-            $options['pageToken'] = isset($response['nextPageToken']) ? $response['nextPageToken'] : null;
-        } while ($options['pageToken']);
-    }
-
-    /**
-     * Runs a copy job which copies this table to a specified destination table.
-     *
-     * Example:
-     * ```
-     * $sourceTable = $bigQuery->dataset('myDataset')->table('mySourceTable');
-     * $destinationTable = $bigQuery->dataset('myDataset')->table('myDestinationTable');
-     *
-     * $job = $sourceTable->copy($destinationTable);
-     * ```
-     *
-     * @see https://cloud.google.com/bigquery/docs/reference/v2/jobs Jobs insert API Documentation.
-     *
-     * @param Table $destination The destination table.
-     * @param array $options [optional] {
-     *     Configuration options.
-     *
-     *     @type array $jobConfig Configuration settings for a copy job are
-     *           outlined in the [API Docs for `configuration.copy`](https://goo.gl/m8dro9).
-     *           If not provided default settings will be used.
-     * }
-     * @return Job
-     */
-    public function copy(Table $destination, array $options = [])
-    {
-        $config = $this->buildJobConfig(
-            'copy',
-            $this->identity['projectId'],
-            [
-                'destinationTable' => $destination->identity(),
-                'sourceTable' => $this->identity
-            ],
-            $options
+                    return $mergedRow;
+                },
+                [$this->connection, 'listTableData'],
+                $options + $this->identity,
+                [
+                    'nextResultTokenKey' => 'pageToken',
+                    'itemsKey' => 'rows',
+                    'resultLimit' => $resultLimit
+                ]
+            )
         );
-
-        $response = $this->connection->insertJob($config);
-
-        return new Job($this->connection, $response['jobReference']['jobId'], $this->identity['projectId'], $response);
     }
 
     /**
-     * Runs an extract job which exports the contents of a table to Cloud
-     * Storage.
+     * Starts a job in an synchronous fashion, waiting for the job to complete
+     * before returning.
      *
      * Example:
      * ```
-     * $destinationObject = $storage->bucket('myBucket')->object('tableOutput');
-     * $job = $table->export($destinationObject);
+     * $job = $table->runJob($jobConfig);
+     * echo $job->isComplete(); // true
      * ```
      *
      * @see https://cloud.google.com/bigquery/docs/reference/v2/jobs Jobs insert API Documentation.
      *
-     * @param StorageObject $destination The destination object.
+     * @param JobConfigurationInterface $config The job configuration.
      * @param array $options [optional] {
      *     Configuration options.
      *
-     *     @type array $jobConfig Configuration settings for an extract job are
-     *           outlined in the [API Docs for `configuration.extract`](https://goo.gl/SQ9XAE).
-     *           If not provided default settings will be used.
+     *     @type int $maxRetries The number of times to retry, checking if the
+     *           job has completed. **Defaults to** `100`.
      * }
      * @return Job
      */
-    public function export(StorageObject $destination, array $options = [])
+    public function runJob(JobConfigurationInterface $config, array $options = [])
     {
-        $objIdentity = $destination->identity();
-        $config = $this->buildJobConfig(
-            'extract',
-            $this->identity['projectId'],
-            [
-                'sourceTable' => $this->identity,
-                'destinationUris' => ['gs://' . $objIdentity['bucket'] . '/' . $objIdentity['object']]
-            ],
-            $options
-        );
+        $maxRetries = $this->pluck('maxRetries', $options, false);
+        $job = $this->startJob($config, $options);
+        $job->waitUntilComplete(['maxRetries' => $maxRetries]);
 
-        $response = $this->connection->insertJob($config);
-
-        return new Job($this->connection, $response['jobReference']['jobId'], $this->identity['projectId'], $response);
+        return $job;
     }
 
     /**
-     * Runs a load job which loads the provided data into the table.
+     * Starts a job in an asynchronous fashion. In this case, it will be
+     * required to manually trigger a call to wait for job completion.
      *
      * Example:
      * ```
-     * $job = $table->load(fopen('/path/to/my/data.csv', 'r'));
+     * $job = $table->startJob($jobConfig);
      * ```
      *
      * @see https://cloud.google.com/bigquery/docs/reference/v2/jobs Jobs insert API Documentation.
      *
-     * @param string|resource|StreamInterface $data The data to load.
-     * @param array $options [optional] {
-     *     Configuration options.
-     *
-     *     @type array $jobConfig Configuration settings for a load job are
-     *           outlined in the [API Docs for `configuration.load`](https://goo.gl/j6jyHv).
-     *           If not provided default settings will be used.
-     * }
+     * @param JobConfigurationInterface $config The job configuration.
+     * @param array $options [optional] Configuration options.
      * @return Job
      */
-    public function load($data, array $options = [])
+    public function startJob(JobConfigurationInterface $config, array $options = [])
     {
         $response = null;
-        $config = $this->buildJobConfig(
-            'load',
-            $this->identity['projectId'],
-            ['destinationTable' => $this->identity],
-            $options
-        );
+        $config = $config->toArray() + $options;
 
-        if ($data) {
-            $config['data'] = $data;
+        if (isset($config['data'])) {
             $response = $this->connection->insertJobUpload($config)->upload();
         } else {
             $response = $this->connection->insertJob($config);
@@ -296,44 +304,165 @@ class Table
 
         return new Job(
             $this->connection,
-            $response['jobReference']['jobId'],
+            $config['jobReference']['jobId'],
             $this->identity['projectId'],
+            $this->mapper,
             $response
         );
     }
 
     /**
-     * Runs a load job which loads data from a file in a Storage bucket into the
-     * table.
+     * Returns a copy job configuration to be passed to either
+     * {@see Google\Cloud\BigQuery\Table::runJob()} or
+     * {@see Google\Cloud\BigQuery\Table::startJob()}. A
+     * configuration can be built using fluent setters or by providing a full
+     * set of options at once.
      *
      * Example:
      * ```
-     * $object = $storage->bucket('myBucket')->object('important-data.csv');
-     * $job = $table->load($object);
+     * $sourceTable = $bigQuery->dataset('myDataset')
+     *     ->table('mySourceTable');
+     * $destinationTable = $bigQuery->dataset('myDataset')
+     *     ->table('myDestinationTable');
+     *
+     * $copyJobConfig = $sourceTable->copy($destinationTable);
      * ```
      *
      * @see https://cloud.google.com/bigquery/docs/reference/v2/jobs Jobs insert API Documentation.
      *
-     * @param StorageObject $destination The object to load data from.
-     * @param array $options [optional] {
-     *     Configuration options.
-     *
-     *     @type array $jobConfig Configuration settings for a load job are
-     *           outlined in the [API Docs for `configuration.load`](https://goo.gl/j6jyHv).
-     *           If not provided default settings will be used.
-     * }
-     * @return Job
+     * @param Table $destination The destination table.
+     * @param array $options [optional] Please see the
+     *        [upstream API documentation for Job configuration]
+     *        (https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration)
+     *        for the available options.
+     * @return CopyJobConfiguration
      */
-    public function loadFromStorage(StorageObject $object, array $options = [])
+    public function copy(Table $destination, array $options = [])
     {
-        $objIdentity = $object->identity();
-        $options['jobConfig']['sourceUris'] = ['gs://' . $objIdentity['bucket'] . '/' . $objIdentity['object']];
+        return (new CopyJobConfiguration(
+            $this->identity['projectId'],
+            $options
+        ))
+            ->destinationTable($destination)
+            ->sourceTable($this);
+    }
+
+    /**
+     * Returns an extract job configuration to be passed to either
+     * {@see Google\Cloud\BigQuery\Table::runJob()} or
+     * {@see Google\Cloud\BigQuery\Table::startJob()}. A
+     * configuration can be built using fluent setters or by providing a full
+     * set of options at once.
+     *
+     * Example:
+     * ```
+     * $destinationObject = $storage->bucket('myBucket')->object('tableOutput');
+     * $extractJobConfig = $table->extract($destinationObject);
+     * ```
+     *
+     * @see https://cloud.google.com/bigquery/docs/reference/v2/jobs Jobs insert API Documentation.
+     *
+     * @param string|StorageObject $destination The destination object. May be
+     *        a {@see Google\Cloud\Storage\StorageObject} or a URI pointing to
+     *        a Google Cloud Storage object in the format of
+     *        `gs://{bucket-name}/{object-name}`.
+     * @param array $options [optional] Please see the
+     *        [upstream API documentation for Job configuration]
+     *        (https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration)
+     *        for the available options.
+     * @return ExtractJobConfiguration
+     */
+    public function extract($destination, array $options = [])
+    {
+        if ($destination instanceof StorageObject) {
+            $destination = $destination->gcsUri();
+        }
+
+        return (new ExtractJobConfiguration(
+            $this->identity['projectId'],
+            $options
+        ))
+            ->destinationUris([$destination])
+            ->sourceTable($this);
+    }
+
+    /**
+     * Returns a load job configuration to be passed to either
+     * {@see Google\Cloud\BigQuery\Table::runJob()} or
+     * {@see Google\Cloud\BigQuery\Table::startJob()}. A
+     * configuration can be built using fluent setters or by providing a full
+     * set of options at once.
+     *
+     * Example:
+     * ```
+     * $loadJobConfig = $table->load(fopen('/path/to/my/data.csv', 'r'));
+     * ```
+     *
+     * @see https://cloud.google.com/bigquery/docs/reference/v2/jobs Jobs insert API Documentation.
+     *
+     * @param string|resource|StreamInterface $data The data to load.
+     * @param array $options [optional] Please see the
+     *        [upstream API documentation for Job configuration]
+     *        (https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration)
+     *        for the available options.
+     * @return LoadJobConfiguration
+     */
+    public function load($data, array $options = [])
+    {
+        $config = (new LoadJobConfiguration(
+            $this->identity['projectId'],
+            $options
+        ))
+            ->destinationTable($this);
+
+        if ($data) {
+            $config->data($data);
+        }
+
+        return $config;
+    }
+
+    /**
+     * Returns a load job configuration to be passed to either
+     * {@see Google\Cloud\BigQuery\Table::runJob()} or
+     * {@see Google\Cloud\BigQuery\Table::startJob()}. A
+     * configuration can be built using fluent setters or by providing a full
+     * set of options at once.
+     *
+     * Example:
+     * ```
+     * $object = $storage->bucket('myBucket')->object('important-data.csv');
+     * $loadJobConfig = $table->loadFromStorage($object);
+     * ```
+     *
+     * @see https://cloud.google.com/bigquery/docs/reference/v2/jobs Jobs insert API Documentation.
+     *
+     * @param string|StorageObject $object The object to load data from. May be
+     *        a {@see Google\Cloud\Storage\StorageObject} or a URI pointing to a
+     *        Google Cloud Storage object in the format of
+     *        `gs://{bucket-name}/{object-name}`.
+     * @param array $options [optional] Please see the
+     *        [upstream API documentation for Job configuration]
+     *        (https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration)
+     *        for the available options.
+     * @return LoadJobConfiguration
+     */
+    public function loadFromStorage($object, array $options = [])
+    {
+        if ($object instanceof StorageObject) {
+            $object = $object->gcsUri();
+        }
+
+        $options['configuration']['load']['sourceUris'] = [$object];
 
         return $this->load(null, $options);
     }
 
     /**
      * Insert a record into the table without running a load job.
+     *
+     * Please note that by default the library will not automatically retry this
+     * call on your behalf unless an `insertId` is set.
      *
      * Example:
      * ```
@@ -389,6 +518,9 @@ class Table
     /**
      * Insert records into the table without running a load job.
      *
+     * Please note that by default the library will not automatically retry this
+     * call on your behalf unless an `insertId` is set.
+     *
      * Example:
      * ```
      * $rows = [
@@ -433,6 +565,19 @@ class Table
      * @param array $options [optional] {
      *     Configuration options.
      *
+     *     @type bool $autoCreate Whether or not to attempt to automatically
+     *           create the table in the case it does not exist. Please note, it
+     *           will be required to provide a schema through
+     *           $tableMetadata['schema'] in the case the table does not already
+     *           exist. **Defaults to** `false`.
+     *     @type array $tableMetadata Metadata to apply to table to be created. The
+     *           full set of metadata are outlined at the
+     *           [Table Resource API docs](https://cloud.google.com/bigquery/docs/reference/v2/tables#resource).
+     *           Only applies when `autoCreate` is `true`.
+     *     @type int $maxRetries The maximum number of times to attempt creating the
+     *           table in the case of failure. Please note, each retry attempt
+     *           may take up to two minutes. Only applies when `autoCreate` is
+     *           `true`. **Defaults to** `100`.
      *     @type bool $skipInvalidRows Insert all valid rows of a request, even
      *           if invalid rows exist. The default value is `false`, which
      *           causes the entire request to fail if any invalid rows exist.
@@ -450,14 +595,28 @@ class Table
      *           for considerations when working with templates tables.
      * }
      * @return InsertResponse
-     * @throws \InvalidArgumentException
+     * @throws \InvalidArgumentException If a provided row does not contain a
+     *         `data` key, if a schema is not defined when `autoCreate` is
+     *         `true`, or if less than 1 row is provided.
      * @codingStandardsIgnoreEnd
      */
     public function insertRows(array $rows, array $options = [])
     {
+        if (count($rows) === 0) {
+            throw new \InvalidArgumentException('Must provide at least a single row.');
+        }
+
         foreach ($rows as $row) {
             if (!isset($row['data'])) {
                 throw new \InvalidArgumentException('A row must have a data key.');
+            }
+
+            if (!isset($options['retries']) && !isset($row['insertId'])) {
+                $options['retries'] = 0;
+            }
+
+            foreach ($row['data'] as $key => $item) {
+                $row['data'][$key] = $this->mapper->toBigQuery($item);
             }
 
             $row['json'] = $row['data'];
@@ -466,7 +625,7 @@ class Table
         }
 
         return new InsertResponse(
-            $this->connection->insertAllTableData($this->identity + $options),
+            $this->handleInsert($options),
             $options['rows']
         );
     }
@@ -478,7 +637,7 @@ class Table
      * Example:
      * ```
      * $info = $table->info();
-     * echo $info['friendlyName'];
+     * echo $info['selfLink'];
      * ```
      *
      * @see https://cloud.google.com/bigquery/docs/reference/v2/tables#resource Tables resource documentation.
@@ -502,7 +661,7 @@ class Table
      * ```
      * $table->reload();
      * $info = $table->info();
-     * echo $info['friendlyName'];
+     * echo $info['selfLink'];
      * ```
      *
      * @see https://cloud.google.com/bigquery/docs/reference/v2/tables/get Tables get API documentation.
@@ -545,5 +704,69 @@ class Table
     public function identity()
     {
         return $this->identity;
+    }
+
+    /**
+     * Delay execution in microseconds.
+     *
+     * @param int $microSeconds
+     */
+    protected function usleep($microSeconds)
+    {
+        usleep($microSeconds);
+    }
+
+    /**
+     * Handles inserting table data and manages custom retry logic in the case
+     * a table needs to be created.
+     *
+     * @param array $options Configuration options.
+     * @return array
+     */
+    private function handleInsert(array $options)
+    {
+        $attempt = 0;
+        $metadata = $this->pluck('tableMetadata', $options, false) ?: [];
+        $autoCreate = $this->pluck('autoCreate', $options, false) ?: false;
+        $maxRetries = $this->pluck('maxRetries', $options, false) ?: self::MAX_RETRIES;
+
+        while (true) {
+            try {
+                return $this->connection->insertAllTableData(
+                    $this->identity + $options
+                );
+            } catch (NotFoundException $ex) {
+                if ($autoCreate === true && $attempt <= $maxRetries) {
+                    if (!isset($metadata['schema'])) {
+                        throw new \InvalidArgumentException(
+                            'A schema is required when creating a table.'
+                        );
+                    }
+
+                    $this->usleep(mt_rand(1, self::INSERT_CREATE_MAX_DELAY_MICROSECONDS));
+
+                    try {
+                        $this->connection->insertTable($metadata + [
+                            'projectId' => $this->identity['projectId'],
+                            'datasetId' => $this->identity['datasetId'],
+                            'tableReference' => $this->identity,
+                            'retries' => 0
+                        ]);
+                    } catch (ConflictException $ex) {
+                    } catch (\Exception $ex) {
+                        $retryFunction = $this->getRetryFunction();
+
+                        if (!$retryFunction($ex)) {
+                            throw $ex;
+                        }
+                    }
+
+                    $this->usleep(self::INSERT_CREATE_MAX_DELAY_MICROSECONDS);
+                    $attempt++;
+                } else {
+                    throw $ex;
+                }
+            }
+        }
     }
 }

@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\Datastore\Query;
+namespace Google\Cloud\Tests\Unit\Datastore\Query;
 
 use Google\Cloud\Datastore\EntityMapper;
 use Google\Cloud\Datastore\Query\GqlQuery;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group datastore
  */
-class GqlQueryTest extends \PHPUnit_Framework_TestCase
+class GqlQueryTest extends TestCase
 {
     private $mapper;
 

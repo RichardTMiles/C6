@@ -17,8 +17,12 @@
 
 namespace Google\Cloud\BigQuery;
 
-use Google\Cloud\Exception\NotFoundException;
 use Google\Cloud\BigQuery\Connection\ConnectionInterface;
+use Google\Cloud\Core\ArrayTrait;
+use Google\Cloud\Core\ConcurrencyControlTrait;
+use Google\Cloud\Core\Exception\NotFoundException;
+use Google\Cloud\Core\Iterator\ItemIterator;
+use Google\Cloud\Core\Iterator\PageIterator;
 
 /**
  * [Datasets](https://cloud.google.com/bigquery/what-is-bigquery#datasets) allow
@@ -26,8 +30,11 @@ use Google\Cloud\BigQuery\Connection\ConnectionInterface;
  */
 class Dataset
 {
+    use ArrayTrait;
+    use ConcurrencyControlTrait;
+
     /**
-     * @var ConnectionInterface $connection Represents a connection to BigQuery.
+     * @var ConnectionInterface Represents a connection to BigQuery.
      */
     private $connection;
 
@@ -42,16 +49,27 @@ class Dataset
     private $info;
 
     /**
+     * @var ValueMapper Maps values between PHP and BigQuery.
+     */
+    private $mapper;
+
+    /**
      * @param ConnectionInterface $connection Represents a connection to
      *        BigQuery.
      * @param string $id The dataset's ID.
      * @param string $projectId The project's ID.
      * @param array $info [optional] The dataset's metadata.
      */
-    public function __construct(ConnectionInterface $connection, $id, $projectId, array $info = [])
-    {
+    public function __construct(
+        ConnectionInterface $connection,
+        $id,
+        $projectId,
+        ValueMapper $mapper,
+        array $info = []
+    ) {
         $this->connection = $connection;
         $this->info = $info;
+        $this->mapper = $mapper;
         $this->identity = [
             'datasetId' => $id,
             'projectId' => $projectId
@@ -82,6 +100,9 @@ class Dataset
     /**
      * Delete the dataset.
      *
+     * Please note that by default the library will not attempt to retry this
+     * call on your behalf.
+     *
      * Example:
      * ```
      * $dataset->delete();
@@ -99,11 +120,23 @@ class Dataset
      */
     public function delete(array $options = [])
     {
-        $this->connection->deleteDataset($options + $this->identity);
+        $this->connection->deleteDataset(
+            $options
+            + ['retries' => 0]
+            + $this->identity
+        );
     }
 
     /**
      * Update the dataset.
+     *
+     * Providing an `etag` key as part of `$metadata` will enable simultaneous
+     * update protection. This is useful in preventing override of modifications
+     * made by another user. The resource's current etag can be obtained via a
+     * GET request on the resource.
+     *
+     * Please note that by default this call will not automatically retry on
+     * your behalf unless an `etag` is set.
      *
      * Example:
      * ```
@@ -113,6 +146,7 @@ class Dataset
      * ```
      *
      * @see https://cloud.google.com/bigquery/docs/reference/v2/datasets/patch Datasets patch API documentation.
+     * @see https://cloud.google.com/bigquery/docs/api-performance#patch Patch (Partial Update)
      *
      * @param array $metadata The available options for metadata are outlined
      *        at the [Dataset Resource API docs](https://cloud.google.com/bigquery/docs/reference/v2/datasets#resource)
@@ -120,10 +154,17 @@ class Dataset
      */
     public function update(array $metadata, array $options = [])
     {
-        $options += $metadata;
-        $this->info = $this->connection->patchDataset($options + $this->identity);
+        $options = $this->applyEtagHeader(
+            $options
+            + $metadata
+            + $this->identity
+        );
 
-        return $this->info;
+        if (!isset($options['etag']) && !isset($options['retries'])) {
+            $options['retries'] = 0;
+        }
+
+        return $this->info = $this->connection->patchDataset($options);
     }
 
     /**
@@ -137,11 +178,17 @@ class Dataset
      * ```
      *
      * @param string $id The id of the table to request.
-     * @return Dataset
+     * @return Table
      */
     public function table($id)
     {
-        return new Table($this->connection, $id, $this->identity['datasetId'], $this->identity['projectId']);
+        return new Table(
+            $this->connection,
+            $id,
+            $this->identity['datasetId'],
+            $this->identity['projectId'],
+            $this->mapper
+        );
     }
 
     /**
@@ -161,37 +208,45 @@ class Dataset
      * @param array $options [optional] {
      *     Configuration options.
      *
-     *     @type int $maxResults Maximum number of results to return.
+     *     @type int $maxResults Maximum number of results to return per page.
+     *     @type int $resultLimit Limit the number of results returned in total.
+     *           **Defaults to** `0` (return all results).
+     *     @type string $pageToken A previously-returned page token used to
+     *           resume the loading of results from a specific point.
      * }
-     * @return \Generator<Google\Cloud\BigQuery\Table>
+     * @return ItemIterator<Table>
      */
     public function tables(array $options = [])
     {
-        $options['pageToken'] = null;
+        $resultLimit = $this->pluck('resultLimit', $options, false);
 
-        do {
-            $response = $this->connection->listTables($options + $this->identity);
-
-            if (!isset($response['tables'])) {
-                return;
-            }
-
-            foreach ($response['tables'] as $table) {
-                yield new Table(
-                    $this->connection,
-                    $table['tableReference']['tableId'],
-                    $this->identity['datasetId'],
-                    $this->identity['projectId'],
-                    $table
-                );
-            }
-
-            $options['pageToken'] = isset($response['nextPageToken']) ? $response['nextPageToken'] : null;
-        } while ($options['pageToken']);
+        return new ItemIterator(
+            new PageIterator(
+                function (array $table) {
+                    return new Table(
+                        $this->connection,
+                        $table['tableReference']['tableId'],
+                        $this->identity['datasetId'],
+                        $this->identity['projectId'],
+                        $this->mapper,
+                        $table
+                    );
+                },
+                [$this->connection, 'listTables'],
+                $options + $this->identity,
+                [
+                    'itemsKey' => 'tables',
+                    'resultLimit' => $resultLimit
+                ]
+            )
+        );
     }
 
     /**
      * Creates a table.
+     *
+     * Please note that by default the library will not attempt to retry this
+     * call on your behalf.
      *
      * Example:
      * ```
@@ -216,17 +271,22 @@ class Dataset
             unset($options['metadata']);
         }
 
-        $response = $this->connection->insertTable([
-            'projectId' => $this->identity['projectId'],
-            'datasetId' => $this->identity['datasetId'],
-            'tableReference' => $this->identity + ['tableId' => $id]
-        ] + $options);
+        $response = $this->connection->insertTable(
+            [
+                'projectId' => $this->identity['projectId'],
+                'datasetId' => $this->identity['datasetId'],
+                'tableReference' => $this->identity + ['tableId' => $id]
+            ]
+            + $options
+            + ['retries' => 0]
+        );
 
         return new Table(
             $this->connection,
             $id,
             $this->identity['datasetId'],
             $this->identity['projectId'],
+            $this->mapper,
             $response
         );
     }
@@ -238,7 +298,7 @@ class Dataset
      * Example:
      * ```
      * $info = $dataset->info();
-     * echo $info['friendlyName'];
+     * echo $info['selfLink'];
      * ```
      *
      * @see https://cloud.google.com/bigquery/docs/reference/v2/datasets#resource Datasets resource documentation.
@@ -262,7 +322,7 @@ class Dataset
      * ```
      * $dataset->reload();
      * $info = $dataset->info();
-     * echo $info['friendlyName'];
+     * echo $info['selfLink'];
      * ```
      *
      * @see https://cloud.google.com/bigquery/docs/reference/v2/datasets/get Datasets get API documentation.
@@ -293,7 +353,7 @@ class Dataset
     /**
      * Retrieves the dataset's identity.
      *
-     * An identity provides a description of resource that is nested in nature.
+     * An identity provides a description of a resource that is nested in nature.
      *
      * Example:
      * ```

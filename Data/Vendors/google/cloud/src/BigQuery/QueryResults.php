@@ -18,7 +18,10 @@
 namespace Google\Cloud\BigQuery;
 
 use Google\Cloud\BigQuery\Connection\ConnectionInterface;
-use Google\Cloud\Exception\GoogleException;
+use Google\Cloud\Core\ArrayTrait;
+use Google\Cloud\Core\Exception\GoogleException;
+use Google\Cloud\Core\Iterator\ItemIterator;
+use Google\Cloud\Core\Iterator\PageIterator;
 
 /**
  * QueryResults represent the result of a BigQuery SQL query. Read more at the
@@ -28,10 +31,13 @@ use Google\Cloud\Exception\GoogleException;
  * calling {@see Google\Cloud\BigQuery\BigQueryClient::runQuery()} or
  * {@see Google\Cloud\BigQuery\Job::queryResults()}.
  */
-class QueryResults
+class QueryResults implements \IteratorAggregate
 {
+    use ArrayTrait;
+    use JobWaitTrait;
+
     /**
-     * @var ConnectionInterface $connection Represents a connection to BigQuery.
+     * @var ConnectionInterface Represents a connection to BigQuery.
      */
     protected $connection;
 
@@ -46,14 +52,19 @@ class QueryResults
     private $info;
 
     /**
-     * @var ValueMapper $mapper Maps values between PHP and BigQuery.
+     * @var Job The job from which the query results originated.
+     */
+    private $job;
+
+    /**
+     * @var ValueMapper Maps values between PHP and BigQuery.
      */
     private $mapper;
 
     /**
-     * @var array The options to use when reloading query data.
+     * @param array Default options to be used for calls to get query results.
      */
-    private $reloadOptions;
+    private $queryResultsOptions;
 
     /**
      * @param ConnectionInterface $connection Represents a connection to
@@ -61,31 +72,34 @@ class QueryResults
      * @param string $jobId The job's ID.
      * @param string $projectId The project's ID.
      * @param array $info The query result's metadata.
-     * @param array $reloadOptions The options to use when reloading query data.
      * @param ValueMapper $mapper Maps values between PHP and BigQuery.
+     * @param Job $job The job from which the query results originated.
+     * @param array $queryResultsOptions Default options to be used for calls to
+     *        get query results.
      */
     public function __construct(
         ConnectionInterface $connection,
         $jobId,
         $projectId,
         array $info,
-        array $reloadOptions,
-        ValueMapper $mapper
+        ValueMapper $mapper,
+        Job $job,
+        array $queryResultsOptions = []
     ) {
         $this->connection = $connection;
         $this->info = $info;
-        $this->reloadOptions = $reloadOptions;
         $this->identity = [
             'jobId' => $jobId,
             'projectId' => $projectId
         ];
         $this->mapper = $mapper;
+        $this->job = $job;
+        $this->queryResultsOptions = $queryResultsOptions;
     }
 
     /**
      * Retrieves the rows associated with the query and merges them together
-     * with the table's schema. It is recommended to check the completeness of
-     * the query before attempting to access rows.
+     * with the table's schema.
      *
      * Refer to the table below for a guide on how BigQuery types are mapped as
      * they come back from the API.
@@ -95,7 +109,7 @@ class QueryResults
      * | `\DateTimeInterface`                       | `DATETIME`                           |
      * | {@see Google\Cloud\BigQuery\Bytes}         | `BYTES`                              |
      * | {@see Google\Cloud\BigQuery\Date}          | `DATE`                               |
-     * | {@see Google\Cloud\Int64}                  | `INTEGER`                            |
+     * | {@see Google\Cloud\Core\Int64}             | `INTEGER`                            |
      * | {@see Google\Cloud\BigQuery\Time}          | `TIME`                               |
      * | {@see Google\Cloud\BigQuery\Timestamp}     | `TIMESTAMP`                          |
      * | Associative Array                          | `RECORD`                             |
@@ -107,85 +121,112 @@ class QueryResults
      *
      * Example:
      * ```
-     * $isComplete = $queryResults->isComplete();
+     * $rows = $queryResults->rows();
      *
-     * if ($isComplete) {
-     *     $rows = $queryResults->rows();
-     *
-     *     foreach ($rows as $row) {
-     *         echo $row['name'] . PHP_EOL;
-     *     }
+     * foreach ($rows as $row) {
+     *     echo $row['name'] . PHP_EOL;
      * }
      * ```
      *
-     * @param array $options [optional] Configuration options.
-     * @return array
-     * @throws GoogleException Thrown if the query has not yet completed.
+     * @param array $options [optional] {
+     *     Configuration options. Please note, these options will inherit the
+     *     values set by either
+     *     {@see Google\Cloud\BigQuery\BigQueryClient::runQuery()} or
+     *     {@see Google\Cloud\BigQuery\Job::queryResults()}.
+     *
+     *     @type int $maxResults Maximum number of results to read per page.
+     *     @type int $startIndex Zero-based index of the starting row.
+     *     @type int $timeoutMs How long, in milliseconds, each API call will
+     *           wait for query results to become available before timing out.
+     *           Depending on whether the $maxRetries has been exceeded, the
+     *           results will be polled again after the timeout has been reached.
+     *           **Defaults to** `10000` milliseconds (10 seconds).
+     *     @type int $maxRetries The number of times to poll the Job status,
+     *           until the job is complete. By default, will poll indefinitely.
+     * }
+     * @return ItemIterator
+     * @throws JobException If the maximum number of retries while waiting for
+     *         query completion has been exceeded.
+     * @throws GoogleException Thrown in the case of a malformed response.
      */
     public function rows(array $options = [])
     {
-        if (!$this->isComplete()) {
-            throw new GoogleException('The query has not completed yet.');
-        }
-
-        if (!isset($this->info['rows'])) {
-            return;
-        }
-
+        $options += $this->queryResultsOptions;
+        $this->waitUntilComplete($options);
         $schema = $this->info['schema']['fields'];
 
-        while (true) {
-            $options['pageToken'] = isset($this->info['pageToken']) ? $this->info['pageToken'] : null;
+        return new ItemIterator(
+            new PageIterator(
+                function (array $row) use ($schema) {
+                    $mergedRow = [];
 
-            foreach ($this->info['rows'] as $row) {
-                $mergedRow = [];
+                    if ($row === null) {
+                        return $mergedRow;
+                    }
 
-                if ($row === null) {
-                    continue;
-                }
+                    if (!array_key_exists('f', $row)) {
+                        throw new GoogleException('Bad response - missing key "f" for a row.');
+                    }
 
-                if (!array_key_exists('f', $row)) {
-                    throw new GoogleException('Bad response - missing key "f" for a row.');
-                }
+                    foreach ($row['f'] as $key => $value) {
+                        $fieldSchema = $schema[$key];
+                        $mergedRow[$fieldSchema['name']] = $this->mapper->fromBigQuery($value, $fieldSchema);
+                    }
 
-                foreach ($row['f'] as $key => $value) {
-                    $fieldSchema = $schema[$key];
-                    $mergedRow[$fieldSchema['name']] = $this->mapper->fromBigQuery($value, $fieldSchema);
-                }
-
-                yield $mergedRow;
-            }
-
-            if (!$options['pageToken']) {
-                return;
-            }
-
-            $this->info = $this->connection->getQueryResults($options + $this->identity);
-        }
+                    return $mergedRow;
+                },
+                [$this->connection, 'getQueryResults'],
+                $options + $this->identity,
+                [
+                    'itemsKey' => 'rows',
+                    'firstPage' => $this->info,
+                    'nextResultTokenKey' => 'pageToken'
+                ]
+            )
+        );
     }
 
     /**
-     * Checks the query's completeness. Useful in combination with
-     * {@see Google\Cloud\BigQuery\QueryResults::reload()} to poll for query status.
+     * Blocks until the query is complete.
      *
      * Example:
      * ```
-     * $isComplete = $queryResults->isComplete();
-     *
-     * while (!$isComplete) {
-     *     sleep(1); // small delay between requests
-     *     $queryResults->reload();
-     *     $isComplete = $queryResults->isComplete();
-     * }
-     *
-     * echo 'Query complete!';
+     * $queryResults->waitUntilComplete();
      * ```
      *
-     * @return bool
+     * @param array $options [optional] {
+     *     Configuration options. Please note, these options will inherit the
+     *     values set by either
+     *     {@see Google\Cloud\BigQuery\BigQueryClient::runQuery()} or
+     *     {@see Google\Cloud\BigQuery\Job::queryResults()}.
+     *
+     *     @type int $maxResults Maximum number of results to read per page.
+     *     @type int $startIndex Zero-based index of the starting row.
+     *     @type int $timeoutMs How long, in milliseconds, each API call will
+     *           wait for query results to become available before timing out.
+     *           Depending on whether the $maxRetries has been exceeded, the
+     *           results will be polled again after the timeout has been reached.
+     *           **Defaults to** `10000` milliseconds (10 seconds).
+     *     @type int $maxRetries The number of times to poll the Job status,
+     *           until the job is complete. By default, will poll indefinitely.
+     * }
+     * @throws JobException If the maximum number of retries while waiting for
+     *         query completion has been exceeded.
      */
-    public function isComplete()
+    public function waitUntilComplete(array $options = [])
     {
-        return $this->info['jobComplete'];
+        $options += $this->queryResultsOptions;
+        $maxRetries = $this->pluck('maxRetries', $options, false);
+        $this->wait(
+            function () {
+                return $this->isComplete();
+            },
+            function () use ($options) {
+                return $this->reload($options);
+            },
+            $this->job,
+            $maxRetries
+        );
     }
 
     /**
@@ -210,20 +251,9 @@ class QueryResults
     /**
      * Triggers a network request to reload the query's details.
      *
-     * Useful when needing to poll an incomplete query
-     * for status. Configuration options will be inherited from
-     * {@see Google\Cloud\BigQuery\Job::queryResults()} or
-     * {@see Google\Cloud\BigQuery\BigQueryClient::runQuery()}, but they can be
-     * overridden if needed.
-     *
      * Example:
      * ```
-     * $queryResults->isComplete(); // returns false
-     * sleep(1); // let's wait for a moment...
-     * $queryResults->reload(); // executes a network request
-     * if ($queryResults->isComplete()) {
-     *     echo "Query complete!";
-     * }
+     * $queryResults->reload();
      * ```
      *
      * @see https://cloud.google.com/bigquery/docs/reference/v2/jobs/getQueryResults
@@ -232,7 +262,7 @@ class QueryResults
      * @param array $options [optional] {
      *     Configuration options.
      *
-     *     @type int $maxResults Maximum number of results to read.
+     *     @type int $maxResults Maximum number of results to read per page.
      *     @type int $startIndex Zero-based index of the starting row.
      *     @type int $timeoutMs How long to wait for the query to complete, in
      *           milliseconds. **Defaults to** `10000` milliseconds (10 seconds).
@@ -241,8 +271,9 @@ class QueryResults
      */
     public function reload(array $options = [])
     {
-        $options += $this->identity;
-        return $this->info = $this->connection->getQueryResults($options + $this->reloadOptions);
+        return $this->info = $this->connection->getQueryResults(
+            $options + $this->identity
+        );
     }
 
     /**
@@ -260,5 +291,60 @@ class QueryResults
     public function identity()
     {
         return $this->identity;
+    }
+
+    /**
+     * Checks the job's completeness. Useful in combination with
+     * {@see Google\Cloud\BigQuery\QueryResults::reload()} to poll for query
+     * status.
+     *
+     * Example:
+     * ```
+     * $isComplete = $queryResults->isComplete();
+     *
+     * while (!$isComplete) {
+     *     sleep(1); // let's wait for a moment...
+     *     $queryResults->reload();
+     *     $isComplete = $queryResults->isComplete();
+     * }
+     *
+     * echo 'Query complete!';
+     * ```
+     *
+     * @return bool
+     */
+    public function isComplete()
+    {
+        return $this->info['jobComplete'];
+    }
+
+    /**
+     * Returns a reference to the {@see Google\Cloud\BigQuery\Job} instance used
+     * to fetch the query results. This is especially useful when attempting to
+     * access job statistics after calling
+     * {@see Google\Cloud\BigQuery\BigQueryClient::runQuery()}.
+     *
+     * Example:
+     * ```
+     * $job = $queryResults->job();
+     * ```
+     *
+     * @return array
+     */
+    public function job()
+    {
+        return $this->job;
+    }
+
+    /**
+     * @access private
+     * @return ItemIterator
+     * @throws JobException If the maximum number of retries while waiting for
+     *         query completion has been exceeded.
+     * @throws GoogleException Thrown in the case of a malformed response.
+     */
+    public function getIterator()
+    {
+        return $this->rows();
     }
 }

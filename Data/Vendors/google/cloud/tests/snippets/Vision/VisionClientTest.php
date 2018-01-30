@@ -35,21 +35,13 @@ class VisionClientTest extends SnippetTestCase
     public function setUp()
     {
         $this->connection = $this->prophesize(ConnectionInterface::class);
-        $this->client = new \VisionClientStub;
-        $this->client->setConnection($this->connection->reveal());
+        $this->client = \Google\Cloud\Dev\stub(VisionClient::class);
+        $this->client->___setProperty('connection', $this->connection->reveal());
     }
 
-    public function testClassWithServiceBuilder()
+    public function testClass()
     {
         $snippet = $this->snippetFromClass(VisionClient::class);
-        $res = $snippet->invoke('vision');
-
-        $this->assertInstanceOf(VisionClient::class, $res->returnVal());
-    }
-
-    public function testClassDirectInstantiation()
-    {
-        $snippet = $this->snippetFromClass(VisionClient::class, 1);
         $res = $snippet->invoke('vision');
 
         $this->assertInstanceOf(VisionClient::class, $res->returnVal());
@@ -60,7 +52,10 @@ class VisionClientTest extends SnippetTestCase
         $snippet = $this->snippetFromMethod(VisionClient::class, 'image');
         $snippet->addLocal('vision', $this->client);
 
-        $snippet->setLine(0, '$imageResource = fopen(\'php://temp\', \'r\');');
+        $snippet->replace(
+            "__DIR__ . '/assets/family-photo.jpg'",
+            "'php://temp'"
+        );
 
         $res = $snippet->invoke('image');
 
@@ -72,7 +67,10 @@ class VisionClientTest extends SnippetTestCase
         $snippet = $this->snippetFromMethod(VisionClient::class, 'image', 1);
         $snippet->addLocal('vision', $this->client);
 
-        $snippet->setLine(2, '$imageResource = fopen(\'php://temp\', \'r\');');
+        $snippet->replace(
+            "__DIR__ . '/assets/family-photo.jpg'",
+            "'php://temp'"
+        );
 
         $res = $snippet->invoke('image');
 
@@ -84,8 +82,15 @@ class VisionClientTest extends SnippetTestCase
         $snippet = $this->snippetFromMethod(VisionClient::class, 'images');
         $snippet->addLocal('vision', $this->client);
 
-        $snippet->setLine(3, '$familyPhotoResource = fopen(\'php://temp\', \'r\');');
-        $snippet->setLine(4, '$weddingPhotoResource = fopen(\'php://temp\', \'r\');');
+        $snippet->replace(
+            "__DIR__ . '/assets/family-photo.jpg'",
+            "'php://temp'"
+        );
+
+        $snippet->replace(
+            "__DIR__ . '/assets/wedding-photo.jpg'",
+            "'php://temp'"
+        );
 
         $res = $snippet->invoke('images');
         $this->assertInstanceOf(Image::class, $res->returnVal()[0]);
@@ -97,7 +102,10 @@ class VisionClientTest extends SnippetTestCase
         $snippet = $this->snippetFromMethod(VisionClient::class, 'annotate');
         $snippet->addLocal('vision', $this->client);
 
-        $snippet->setLine(0, '$familyPhotoResource = fopen(\'php://temp\', \'r\');');
+        $snippet->replace(
+            "__DIR__ . '/assets/family-photo.jpg'",
+            "'php://temp'"
+        );
 
         $this->connection->annotate(Argument::any())
             ->shouldBeCalled()
@@ -107,7 +115,7 @@ class VisionClientTest extends SnippetTestCase
                 ]
             ]);
 
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('result');
 
@@ -119,8 +127,15 @@ class VisionClientTest extends SnippetTestCase
         $snippet = $this->snippetFromMethod(VisionClient::class, 'annotateBatch');
         $snippet->addLocal('vision', $this->client);
 
-        $snippet->setLine(2, '$familyPhotoResource = fopen(\'php://temp\', \'r\');');
-        $snippet->setLine(3, '$eiffelTowerResource = fopen(\'php://temp\', \'r\');');
+        $snippet->replace(
+            "__DIR__ . '/assets/family-photo.jpg'",
+            "'php://temp'"
+        );
+
+        $snippet->replace(
+            "__DIR__ . '/assets/eiffel-tower.jpg'",
+            "'php://temp'"
+        );
 
         $this->connection->annotate(Argument::any())
             ->shouldBeCalled()
@@ -130,7 +145,7 @@ class VisionClientTest extends SnippetTestCase
                 ]
             ]);
 
-        $this->client->setConnection($this->connection->reveal());
+        $this->client->___setProperty('connection', $this->connection->reveal());
 
         $res = $snippet->invoke('result');
 

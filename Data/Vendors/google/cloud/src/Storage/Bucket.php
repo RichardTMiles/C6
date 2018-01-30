@@ -17,10 +17,18 @@
 
 namespace Google\Cloud\Storage;
 
-use Google\Cloud\Exception\NotFoundException;
-use Google\Cloud\Exception\ServiceException;
+use Google\Cloud\Core\ArrayTrait;
+use Google\Cloud\Core\Exception\GoogleException;
+use Google\Cloud\Core\Exception\NotFoundException;
+use Google\Cloud\Core\Exception\ServiceException;
+use Google\Cloud\Core\Iam\Iam;
+use Google\Cloud\Core\Iterator\ItemIterator;
+use Google\Cloud\Core\Iterator\PageIterator;
+use Google\Cloud\Core\Upload\ResumableUploader;
+use Google\Cloud\Core\Upload\StreamableUploader;
+use Google\Cloud\PubSub\Topic;
 use Google\Cloud\Storage\Connection\ConnectionInterface;
-use Google\Cloud\Upload\ResumableUploader;
+use Google\Cloud\Storage\Connection\IamBucket;
 use GuzzleHttp\Psr7;
 use Psr\Http\Message\StreamInterface;
 
@@ -30,17 +38,21 @@ use Psr\Http\Message\StreamInterface;
  *
  * Example:
  * ```
- * use Google\Cloud\ServiceBuilder;
+ * use Google\Cloud\Storage\StorageClient;
  *
- * $cloud = new ServiceBuilder();
- * $storage = $cloud->storage();
+ * $storage = new StorageClient();
  *
  * $bucket = $storage->bucket('my-bucket');
  * ```
  */
 class Bucket
 {
+    use ArrayTrait;
     use EncryptionTrait;
+
+    const NOTIFICATION_TEMPLATE = '//pubsub.googleapis.com/%s';
+    const TOPIC_TEMPLATE = 'projects/%s/topics/%s';
+    const TOPIC_REGEX = '/projects\/[^\/]*\/topics\/(.*)/';
 
     /**
      * @var Acl ACL for the bucket.
@@ -63,9 +75,19 @@ class Bucket
     private $identity;
 
     /**
-     * @var array The bucket's metadata.
+     * @var string The project ID.
+     */
+    private $projectId;
+
+    /**
+     * @var array|null The bucket's metadata.
      */
     private $info;
+
+    /**
+     * @var Iam
+     */
+    private $iam;
 
     /**
      * @param ConnectionInterface $connection Represents a connection to Cloud
@@ -73,11 +95,15 @@ class Bucket
      * @param string $name The bucket's name.
      * @param array $info [optional] The bucket's metadata.
      */
-    public function __construct(ConnectionInterface $connection, $name, array $info = null)
+    public function __construct(ConnectionInterface $connection, $name, array $info = [])
     {
         $this->connection = $connection;
-        $this->identity = ['bucket' => $name];
+        $this->identity = [
+            'bucket' => $name,
+            'userProject' => $this->pluck('requesterProjectId', $info, false)
+        ];
         $this->info = $info;
+        $this->projectId = $this->connection->projectId();
         $this->acl = new Acl($this->connection, 'bucketAccessControls', $this->identity);
         $this->defaultAcl = new Acl($this->connection, 'defaultObjectAccessControls', $this->identity);
     }
@@ -187,7 +213,8 @@ class Bucket
      * @param array $options [optional] {
      *     Configuration options.
      *
-     *     @type string $name The name of the destination.
+     *     @type string $name The name of the destination. Required when data is
+     *           of type string or null.
      *     @type bool $resumable Indicates whether or not the upload will be
      *           performed in a resumable fashion.
      *     @type bool $validate Indicates whether or not validation will be
@@ -198,12 +225,22 @@ class Bucket
      *           The size must be in multiples of 262144 bytes. With chunking
      *           you have increased reliability at the risk of higher overhead.
      *           It is recommended to not use chunking.
+     *     @type callable $uploadProgressCallback If provided together with
+     *           $resumable == true the given callable function/method will be
+     *           called after each successfully uploaded chunk. The callable
+     *           function/method will receive the number of uploaded bytes
+     *           after each uploaded chunk as a parameter to this callable.
+     *           It's useful if you want to create a progress bar when using
+     *           resumable upload type together with $chunkSize parameter.
+     *           If $chunkSize is not set the callable function/method will be
+     *           called only once after the successful file upload.
      *     @type string $predefinedAcl Predefined ACL to apply to the object.
      *           Acceptable values include, `"authenticatedRead"`,
      *           `"bucketOwnerFullControl"`, `"bucketOwnerRead"`, `"private"`,
      *           `"projectPrivate"`, and `"publicRead"`.
-     *     @type array $metadata The available options for metadata are outlined
+     *     @type array $metadata The full list of available options are outlined
      *           at the [JSON API docs](https://cloud.google.com/storage/docs/json_api/v1/objects/insert#request-body).
+     *     @type array $metadata['metadata'] User-provided metadata, in key/value pairs.
      *     @type string $encryptionKey A base64 encoded AES-256 customer-supplied
      *           encryption key.
      *     @type string $encryptionKeySHA256 Base64 encoded SHA256 hash of the
@@ -217,16 +254,15 @@ class Bucket
      */
     public function upload($data, array $options = [])
     {
-        if (is_string($data) && !isset($options['name'])) {
-            throw new \InvalidArgumentException('A name is required when data is of type string.');
+        if ($this->isObjectNameRequired($data) && !isset($options['name'])) {
+            throw new \InvalidArgumentException('A name is required when data is of type string or null.');
         }
 
         $encryptionKey = isset($options['encryptionKey']) ? $options['encryptionKey'] : null;
         $encryptionKeySHA256 = isset($options['encryptionKeySHA256']) ? $options['encryptionKeySHA256'] : null;
 
         $response = $this->connection->insertObject(
-            $this->formatEncryptionHeaders($options) + [
-                'bucket' => $this->identity['bucket'],
+            $this->formatEncryptionHeaders($options) + $this->identity + [
                 'data' => $data
             ]
         )->upload();
@@ -269,7 +305,8 @@ class Bucket
      * @param array $options [optional] {
      *     Configuration options.
      *
-     *     @type string $name The name of the destination.
+     *     @type string $name The name of the destination. Required when data is
+     *           of type string or null.
      *     @type bool $validate Indicates whether or not validation will be
      *           applied using md5 hashing functionality. If true and the
      *           calculated hash does not match that of the upstream server the
@@ -287,19 +324,26 @@ class Bucket
      *           from the `encryptionKey` on your behalf if not provided, but
      *           for best performance it is recommended to pass in a cached
      *           version of the already calculated SHA.
+     *     @type callable $uploadProgressCallback The given callable
+     *           function/method will be called after each successfully uploaded
+     *           chunk. The callable function/method will receive the number of
+     *           uploaded bytes after each uploaded chunk as a parameter to this
+     *           callable. It's useful if you want to create a progress bar when
+     *           using resumable upload type together with $chunkSize parameter.
+     *           If $chunkSize is not set the callable function/method will be
+     *           called only once after the successful file upload.
      * }
      * @return ResumableUploader
      * @throws \InvalidArgumentException
      */
     public function getResumableUploader($data, array $options = [])
     {
-        if (is_string($data) && !isset($options['name'])) {
-            throw new \InvalidArgumentException('A name is required when data is of type string.');
+        if ($this->isObjectNameRequired($data) && !isset($options['name'])) {
+            throw new \InvalidArgumentException('A name is required when data is of type string or null.');
         }
 
         return $this->connection->insertObject(
-            $this->formatEncryptionHeaders($options) + [
-                'bucket' => $this->identity['bucket'],
+            $this->formatEncryptionHeaders($options) + $this->identity + [
                 'data' => $data,
                 'resumable' => true
             ]
@@ -330,7 +374,8 @@ class Bucket
      * @param array $options [optional] {
      *     Configuration options.
      *
-     *     @type string $name The name of the destination.
+     *     @type string $name The name of the destination. Required when data is
+     *           of type string or null.
      *     @type bool $validate Indicates whether or not validation will be
      *           applied using md5 hashing functionality. If true and the
      *           calculated hash does not match that of the upstream server the
@@ -358,13 +403,12 @@ class Bucket
      */
     public function getStreamableUploader($data, array $options = [])
     {
-        if (is_string($data) && !isset($options['name'])) {
-            throw new \InvalidArgumentException('A name is required when data is of type string.');
+        if ($this->isObjectNameRequired($data) && !isset($options['name'])) {
+            throw new \InvalidArgumentException('A name is required when data is of type string or null.');
         }
 
         return $this->connection->insertObject(
-            $this->formatEncryptionHeaders($options) + [
-                'bucket' => $this->identity['bucket'],
+            $this->formatEncryptionHeaders($options) + $this->identity + [
                 'data' => $data,
                 'streamable' => true,
                 'validate' => false
@@ -409,7 +453,9 @@ class Bucket
             $name,
             $this->identity['bucket'],
             $generation,
-            null,
+            array_filter([
+                'requesterProjectId' => $this->identity['userProject']
+            ]),
             $encryptionKey,
             $encryptionKeySHA256
         );
@@ -442,43 +488,205 @@ class Bucket
      *           from the prefix, contain delimiter will have their name,
      *           truncated after the delimiter, returned in prefixes. Duplicate
      *           prefixes are omitted.
-     *     @type integer $maxResults Maximum number of results to return per
-     *           request. Defaults to `1000`.
+     *     @type int $maxResults Maximum number of results to return per
+     *           request. **Defaults to** `1000`.
+     *     @type int $resultLimit Limit the number of results returned in total.
+     *           **Defaults to** `0` (return all results).
+     *     @type string $pageToken A previously-returned page token used to
+     *           resume the loading of results from a specific point.
      *     @type string $prefix Filter results with this prefix.
      *     @type string $projection Determines which properties to return. May
      *           be either `"full"` or `"noAcl"`.
      *     @type bool $versions If true, lists all versions of an object as
-     *           distinct results. The default is false.
+     *           distinct results. **Defaults to** `false`.
      *     @type string $fields Selector which will cause the response to only
      *           return the specified fields.
      * }
-     * @return \Generator<Google\Cloud\Storage\StorageObject>
+     * @return ObjectIterator<StorageObject>
      */
     public function objects(array $options = [])
     {
-        $options['pageToken'] = null;
-        $includeVersions = isset($options['versions']) ? $options['versions'] : false;
+        $resultLimit = $this->pluck('resultLimit', $options, false);
 
-        do {
-            $response = $this->connection->listObjects($options + $this->identity);
+        return new ObjectIterator(
+            new ObjectPageIterator(
+                function (array $object) {
+                    return new StorageObject(
+                        $this->connection,
+                        $object['name'],
+                        $this->identity['bucket'],
+                        isset($object['generation']) ? $object['generation'] : null,
+                        $object + array_filter([
+                            'requesterProjectId' => $this->identity['userProject']
+                        ])
+                    );
+                },
+                [$this->connection, 'listObjects'],
+                $options + $this->identity,
+                ['resultLimit' => $resultLimit]
+            )
+        );
+    }
 
-            if (!array_key_exists('items', $response)) {
-                break;
-            }
+    /**
+     * Create a Cloud PubSub notification.
+     *
+     * Example:
+     * ```
+     * // Assume the topic uses the same project ID as that configured on the
+     * // existing client.
+     * $notification = $bucket->createNotification('my-topic');
+     * ```
+     *
+     * ```
+     * // Use a fully qualified topic name.
+     * $notification = $bucket->createNotification('projects/my-project/topics/my-topic');
+     * ```
+     *
+     * ```
+     * // Provide a Topic object from the Cloud PubSub component.
+     * $topic = $pubSub->topic('my-topic');
+     * $notification = $bucket->createNotification($topic);
+     * ```
+     *
+     * ```
+     * // Supplying event types to trigger the notifications.
+     * $notification = $bucket->createNotification('my-topic', [
+     *     'event_types' => [
+     *         'OBJECT_DELETE',
+     *         'OBJECT_METADATA_UPDATE'
+     *     ]
+     * ]);
+     * ```
+     *
+     * @codingStandardsIgnoreStart
+     * @see https://cloud.google.com/storage/docs/pubsub-notifications Cloud PubSub Notifications
+     * @see https://cloud.google.com/storage/docs/json_api/v1/notifications/insert Notifications insert API documentation.
+     * @codingStandardsIgnoreEnd
+     *
+     * @param string|Topic $topic The topic used to publish notifications.
+     * @param array $options [optional] {
+     *     Configuration options.
+     *
+     *     @type array $custom_attributes An optional list of additional
+     *           attributes to attach to each Cloud PubSub message published for
+     *           this notification subscription.
+     *     @type array $event_types If present, only send notifications about
+     *           listed event types. If empty, sent notifications for all event
+     *           types. Acceptablue values include `"OBJECT_FINALIZE"`,
+     *           `"OBJECT_METADATA_UPDATE"`, `"OBJECT_DELETE"`
+     *           , `"OBJECT_ARCHIVE"`.
+     *     @type string $object_name_prefix If present, only apply this
+     *           notification configuration to object names that begin with this
+     *           prefix.
+     *     @type string $payload_format The desired content of the Payload.
+     *           Acceptable values include `"JSON_API_V1"`, `"NONE"`.
+     *           **Defaults to** `"JSON_API_V1"`.
+     * }
+     * @return Notification
+     * @throws \InvalidArgumentException When providing a type other than string
+     *         or {@see Google\Cloud\PubSub\Topic} as $topic.
+     * @throws GoogleException When a project ID has not been detected.
+     * @experimental The experimental flag means that while we believe this
+     *      method or class is ready for use, it may change before release in
+     *      backwards-incompatible ways. Please use with caution, and test
+     *      thoroughly when upgrading.
+     */
+    public function createNotification($topic, array $options = [])
+    {
+        $res = $this->connection->insertNotification($options + $this->identity + [
+            'topic' => $this->getFormattedTopic($topic),
+            'payload_format' => 'JSON_API_V1'
+        ]);
 
-            foreach ($response['items'] as $object) {
-                $generation = $includeVersions ? $object['generation'] : null;
-                yield new StorageObject(
-                    $this->connection,
-                    $object['name'],
-                    $this->identity['bucket'],
-                    $generation,
-                    $object
-                );
-            }
+        return new Notification(
+            $this->connection,
+            $res['id'],
+            $this->identity['bucket'],
+            $res + [
+                'requesterProjectId' => $this->identity['userProject']
+            ]
+        );
+    }
 
-            $options['pageToken'] = isset($response['nextPageToken']) ? $response['nextPageToken'] : null;
-        } while ($options['pageToken']);
+    /**
+     * Lazily instantiates a notification. There are no network requests made at
+     * this point. To see the operations that can be performed on a notification
+     * please see {@see Google\Cloud\Storage\Notification}.
+     *
+     * Example:
+     * ```
+     * $notification = $bucket->notification('4582');
+     * ```
+     *
+     * @see https://cloud.google.com/storage/docs/json_api/v1/notifications#resource Notifications API documentation.
+     *
+     * @param string $id The ID of the notification to access.
+     * @return Notification
+     * @experimental The experimental flag means that while we believe this
+     *      method or class is ready for use, it may change before release in
+     *      backwards-incompatible ways. Please use with caution, and test
+     *      thoroughly when upgrading.
+     */
+    public function notification($id)
+    {
+        return new Notification(
+            $this->connection,
+            $id,
+            $this->identity['bucket'],
+            ['requesterProjectId' => $this->identity['userProject']]
+        );
+    }
+
+    /**
+     * Fetches all notifications associated with this bucket.
+     *
+     * Example:
+     * ```
+     * $notifications = $bucket->notifications();
+     *
+     * foreach ($notifications as $notification) {
+     *     echo $notification->id() . PHP_EOL;
+     * }
+     * ```
+     *
+     * @codingStandardsIgnoreStart
+     * @see https://cloud.google.com/storage/docs/json_api/v1/notifications/list Notifications list API documentation.
+     * @codingStandardsIgnoreEnd
+     *
+     * @param array $options [optional] {
+     *     Configuration options.
+     *
+     *     @type int $resultLimit Limit the number of results returned in total.
+     *           **Defaults to** `0` (return all results).
+     * }
+     * @return ItemIterator<Notification>
+     * @experimental The experimental flag means that while we believe this
+     *      method or class is ready for use, it may change before release in
+     *      backwards-incompatible ways. Please use with caution, and test
+     *      thoroughly when upgrading.
+     */
+    public function notifications(array $options = [])
+    {
+        $resultLimit = $this->pluck('resultLimit', $options, false);
+
+        return new ItemIterator(
+            new PageIterator(
+                function (array $notification) {
+                    return new Notification(
+                        $this->connection,
+                        $notification['id'],
+                        $this->identity['bucket'],
+                        $notification + [
+                            'requesterProjectId' => $this->identity['userProject']
+                        ]
+                    );
+                },
+                [$this->connection, 'listNotifications'],
+                $options + $this->identity,
+                ['resultLimit' => $resultLimit]
+            )
+        );
     }
 
     /**
@@ -521,6 +729,7 @@ class Bucket
      * ```
      *
      * @see https://cloud.google.com/storage/docs/json_api/v1/buckets/patch Buckets patch API documentation.
+     * @see https://cloud.google.com/storage/docs/key-terms#bucket-labels Bucket Labels
      *
      * @param array $options [optional] {
      *     Configuration options.
@@ -536,7 +745,10 @@ class Bucket
      *           `"bucketOwnerFullControl"`, `"bucketOwnerRead"`, `"private"`,
      *           `"projectPrivate"`, and `"publicRead"`.
      *     @type string $predefinedDefaultObjectAcl Apply a predefined set of
-     *           default object access controls to this bucket.
+     *           default object access controls to this bucket. Acceptable
+     *           values include, `"authenticatedRead"`,
+     *           `"bucketOwnerFullControl"`, `"bucketOwnerRead"`, `"private"`,
+     *           `"projectPrivate"`, and `"publicRead"`.
      *     @type string $projection Determines which properties to return. May
      *           be either `"full"` or `"noAcl"`.
      *     @type string $fields Selector which will cause the response to only
@@ -557,6 +769,13 @@ class Bucket
      *           `"STANDARD"` and `"DURABLE_REDUCED_AVAILABILITY"`.
      *     @type array $versioning The bucket's versioning configuration.
      *     @type array $website The bucket's website configuration.
+     *     @type array $billing The bucket's billing configuration.
+     *     @type bool $billing['requesterPays'] When `true`, requests to this bucket
+     *           and objects within it must provide a project ID to which the
+     *           request will be billed.
+     *     @type array $labels The Bucket labels. Labels are represented as an
+     *           array of keys and values. To remove an existing label, set its
+     *           value to `null`.
      * }
      * @return array
      */
@@ -620,6 +839,7 @@ class Bucket
             'destinationObject' => $name,
             'destinationPredefinedAcl' => isset($options['predefinedAcl']) ? $options['predefinedAcl'] : null,
             'destination' => isset($options['metadata']) ? $options['metadata'] : null,
+            'userProject' => $this->identity['userProject'],
             'sourceObjects' => array_map(function ($sourceObject) {
                 $name = null;
                 $generation = null;
@@ -656,7 +876,9 @@ class Bucket
             $response['name'],
             $this->identity['bucket'],
             $response['generation'],
-            $response
+            $response + array_filter([
+                'requesterProjectId' => $this->identity['userProject']
+            ])
         );
     }
 
@@ -688,11 +910,7 @@ class Bucket
      */
     public function info(array $options = [])
     {
-        if (!$this->info) {
-            $this->reload($options);
-        }
-
-        return $this->info;
+        return $this->info ?: $this->reload($options);
     }
 
     /**
@@ -746,8 +964,8 @@ class Bucket
      * Tries to create a temporary file as a resumable upload which will
      * not be completed (and cleaned up by GCS).
      *
-     * @param  string $file Optional file to try to write.
-     * @return boolean
+     * @param  string $file [optional] File to try to write.
+     * @return bool
      * @throws ServiceException
      */
     public function isWritable($file = null)
@@ -769,5 +987,88 @@ class Bucket
         }
 
         return true;
+    }
+
+    /**
+     * Manage the IAM policy for the current Bucket.
+     *
+     * Please note that this method may not yet be available in your project.
+     *
+     * Example:
+     * ```
+     * $iam = $bucket->iam();
+     * ```
+     *
+     * @codingStandardsIgnoreStart
+     * @see https://cloud.google.com/storage/docs/access-control/iam-with-json-and-xml Storage Access Control Documentation
+     * @see https://cloud.google.com/storage/docs/json_api/v1/buckets/getIamPolicy Get Bucket IAM Policy
+     * @see https://cloud.google.com/storage/docs/json_api/v1/buckets/setIamPolicy Set Bucket IAM Policy
+     * @see https://cloud.google.com/storage/docs/json_api/v1/buckets/testIamPermissions Test Bucket Permissions
+     * @codingStandardsIgnoreEnd
+     *
+     * @return Iam
+     */
+    public function iam()
+    {
+        if (!$this->iam) {
+            $this->iam = new Iam(
+                new IamBucket($this->connection),
+                $this->identity['bucket'],
+                [
+                    'parent' => null,
+                    'args' => $this->identity
+                ]
+            );
+        }
+
+        return $this->iam;
+    }
+
+    /**
+     * Determines if an object name is required.
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    private function isObjectNameRequired($data)
+    {
+        return is_string($data) || is_null($data);
+    }
+
+    /**
+     * Return a topic name in its fully qualified format.
+     *
+     * @param Topic|string $topic
+     * @return string
+     * @throws \InvalidArgumentException
+     * @throws GoogleException
+     */
+    private function getFormattedTopic($topic)
+    {
+        if ($topic instanceof Topic) {
+            return sprintf(self::NOTIFICATION_TEMPLATE, $topic->name());
+        }
+
+        if (!is_string($topic)) {
+            throw new \InvalidArgumentException(
+                '$topic may only be a string or instance of Google\Cloud\PubSub\Topic'
+            );
+        }
+
+        if (preg_match('/projects\/[^\/]*\/topics\/(.*)/', $topic) === 1) {
+            return sprintf(self::NOTIFICATION_TEMPLATE, $topic);
+        }
+
+        if (!$this->projectId) {
+            throw new GoogleException(
+                'No project ID was provided, ' .
+                'and we were unable to detect a default project ID.'
+            );
+        }
+
+        return sprintf(
+            self::NOTIFICATION_TEMPLATE,
+            sprintf(self::TOPIC_TEMPLATE, $this->projectId, $topic)
+        );
     }
 }

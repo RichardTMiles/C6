@@ -20,15 +20,17 @@ namespace Google\Cloud\Tests\Storage;
 use Google\Cloud\Storage\ReadStream;
 use Google\Cloud\Upload\StreamableUploader;
 use Prophecy\Argument;
+use Psr\Http\Message\StreamInterface;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group storage
  */
-class ReadStreamTest extends \PHPUnit_Framework_TestCase
+class ReadStreamTest extends TestCase
 {
     public function testReadsFromHeadersWhenGetSizeIsNull()
     {
-        $httpStream = $this->prophesize('Psr\Http\Message\StreamInterface');
+        $httpStream = $this->prophesize(StreamInterface::class);
         $httpStream->getSize()->willReturn(null);
         $httpStream->getMetadata('wrapper_data')->willReturn([
             "Foo: bar",
@@ -44,7 +46,7 @@ class ReadStreamTest extends \PHPUnit_Framework_TestCase
 
     public function testReadsFromHeadersWhenGetSizeIsZero()
     {
-        $httpStream = $this->prophesize('Psr\Http\Message\StreamInterface');
+        $httpStream = $this->prophesize(StreamInterface::class);
         $httpStream->getSize()->willReturn(0);
         $httpStream->getMetadata('wrapper_data')->willReturn([
             "Foo: bar",
@@ -60,7 +62,7 @@ class ReadStreamTest extends \PHPUnit_Framework_TestCase
 
     public function testNoContentLengthHeader()
     {
-        $httpStream = $this->prophesize('Psr\Http\Message\StreamInterface');
+        $httpStream = $this->prophesize(StreamInterface::class);
         $httpStream->getSize()->willReturn(null);
         $httpStream->getMetadata('wrapper_data')->willReturn(array());
 

@@ -15,19 +15,20 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\BigQuery;
+namespace Google\Cloud\Tests\Unit\BigQuery;
 
 use Google\Cloud\BigQuery\Connection\ConnectionInterface;
 use Google\Cloud\BigQuery\Job;
 use Google\Cloud\BigQuery\QueryResults;
 use Google\Cloud\BigQuery\ValueMapper;
-use Google\Cloud\Exception\NotFoundException;
+use Google\Cloud\Core\Exception\NotFoundException;
 use Prophecy\Argument;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group bigquery
  */
-class JobTest extends \PHPUnit_Framework_TestCase
+class JobTest extends TestCase
 {
     public $connection;
     public $projectId = 'myProjectId';
@@ -42,7 +43,7 @@ class JobTest extends \PHPUnit_Framework_TestCase
     public function getJob($connection, array $data = [])
     {
         $mapper = $this->prophesize(ValueMapper::class);
-        return new Job($connection->reveal(), $this->jobId, $this->projectId, $data, $mapper->reveal());
+        return new Job($connection->reveal(), $this->jobId, $this->projectId, $mapper->reveal(), $data);
     }
 
     public function testDoesExistTrue()
@@ -79,11 +80,29 @@ class JobTest extends \PHPUnit_Framework_TestCase
     public function testGetsQueryResults()
     {
         $this->connection->getQueryResults(Argument::any())
-            ->willReturn(['jobReference' => ['jobId' => $this->jobId]])
+            ->willReturn([
+                'jobReference' => [
+                    'jobId' => $this->jobId
+                ],
+                'jobComplete' => true
+            ])
             ->shouldBeCalledTimes(1);
         $job = $this->getJob($this->connection);
 
         $this->assertInstanceOf(QueryResults::class, $job->queryResults());
+    }
+
+    public function testWaitsUntilComplete()
+    {
+        $this->jobInfo['status']['state'] = 'RUNNING';
+        $this->connection->getJob(Argument::any())
+            ->willReturn([
+                'status' => [
+                    'state' => 'DONE'
+                ]
+            ])->shouldBeCalledTimes(1);
+        $job = $this->getJob($this->connection, $this->jobInfo);
+        $job->waitUntilComplete();
     }
 
     public function testIsCompleteTrue()

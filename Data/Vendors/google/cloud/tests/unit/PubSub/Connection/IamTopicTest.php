@@ -15,36 +15,40 @@
  * limitations under the License.
  */
 
-namespace Google\Cloud\Tests\PubSub\Connection;
+namespace Google\Cloud\Tests\Unit\PubSub\Connection;
 
 use Google\Cloud\PubSub\Connection\ConnectionInterface;
 use Google\Cloud\PubSub\Connection\IamTopic;
 use Prophecy\Argument;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group pubsub
  */
-class IamTopicTest extends \PHPUnit_Framework_TestCase
+class IamTopicTest extends TestCase
 {
-    public function testProxies()
+    /**
+     * @dataProvider methodProvider
+     */
+    public function testProxies($methodName, $proxyName, $args)
     {
         $connection = $this->prophesize(ConnectionInterface::class);
-        $connection->getTopicIamPolicy(Argument::withEntry('foo', 'bar'))
-            ->willReturn('test')
-            ->shouldBeCalledTimes(1);
-
-        $connection->setTopicIamPolicy(Argument::withEntry('foo', 'bar'))
-            ->willReturn('test')
-            ->shouldBeCalledTimes(1);
-
-        $connection->testTopicIamPermissions(Argument::withEntry('foo', 'bar'))
-            ->willReturn('test')
+        $connection->$proxyName($args)
+            ->willReturn($args)
             ->shouldBeCalledTimes(1);
 
         $iamTopic = new IamTopic($connection->reveal());
 
-        $this->assertEquals('test', $iamTopic->getPolicy(['foo' => 'bar']));
-        $this->assertEquals('test', $iamTopic->setPolicy(['foo' => 'bar']));
-        $this->assertEquals('test', $iamTopic->testPermissions(['foo' => 'bar']));
+        $this->assertEquals($args, $iamTopic->$methodName($args));
+    }
+
+    public function methodProvider()
+    {
+        $args = ['foo' => 'bar'];
+        return [
+            ['getPolicy', 'getTopicIamPolicy', $args],
+            ['setPolicy', 'setTopicIamPolicy', $args],
+            ['testPermissions', 'testTopicIamPermissions', $args],
+        ];
     }
 }

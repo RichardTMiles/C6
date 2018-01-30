@@ -17,48 +17,32 @@
 
 namespace Google\Cloud\Speech;
 
-use Google\Cloud\ClientTrait;
+use Google\Cloud\Core\ClientTrait;
 use Google\Cloud\Speech\Connection\ConnectionInterface;
 use Google\Cloud\Speech\Connection\Rest;
 use Google\Cloud\Storage\StorageObject;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Google Cloud Speech client. The Cloud Speech API enables easy integration of
- * Google speech recognition technologies into developer applications. Send
- * audio and receive a text transcription from the Cloud Speech API service.
- * Find more information at the
+ * Google Cloud Speech enables easy integration of Google speech recognition
+ * technologies into developer applications. Send audio and receive a text
+ * transcription from the Cloud Speech API service. Find more information at the
  * [Google Cloud Speech docs](https://cloud.google.com/speech/docs/).
- *
- * To enable better detection of encoding/sample rate values it is recommended
- * to install the getID3() library by James Heinrich. Please note that using
- * the library will require files to be temporarily stored on disk. To install
- * add `james-heinrich/getid3` to your composer require section or run the
- * following:
- *
- * ```sh
- * $ composer require james-heinrich/getid3
- * ```
  *
  * Example:
  * ```
- * use Google\Cloud\ServiceBuilder;
- *
- * $cloud = new ServiceBuilder();
- *
- * $speech = $cloud->speech();
- * ```
- *
- * ```
- * // SpeechClient can be instantiated directly.
  * use Google\Cloud\Speech\SpeechClient;
  *
- * $speech = new SpeechClient();
+ * $speech = new SpeechClient([
+ *     'languageCode' => 'en-US'
+ * ]);
  * ```
  */
 class SpeechClient
 {
     use ClientTrait;
+
+    const VERSION = '0.11.0';
 
     const SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
 
@@ -68,18 +52,27 @@ class SpeechClient
     protected $connection;
 
     /**
+     * @var string
+     */
+    private $languageCode;
+
+    /**
      * Create a Speech client.
+     *
+     * Note that when creating a SpeechClient instance, setting
+     * `$config.projectId` is not supported. To switch between projects, you
+     * must provide credentials with access to the project.
      *
      * @param array $config [optional] {
      *     Configuration Options.
      *
-     *     @type string $projectId The project ID from the Google Developer's
-     *           Console.
      *     @type CacheItemPoolInterface $authCache A cache for storing access
      *           tokens. **Defaults to** a simple in memory implementation.
      *     @type array $authCacheOptions Cache configuration options.
      *     @type callable $authHttpHandler A handler used to deliver Psr7
      *           requests specifically for authentication.
+     *     @type FetchAuthTokenInterface $credentialsFetcher A credentials
+     *           fetcher instance.
      *     @type callable $httpHandler A handler used to deliver Psr7 requests.
      *           Only valid for requests sent over REST.
      *     @type array $keyFile The contents of the service account credentials
@@ -88,16 +81,30 @@ class SpeechClient
      *     @type string $keyFilePath The full path to your service account
      *           credentials .json file retrieved from the Google Developers
      *           Console.
+     *     @type float $requestTimeout Seconds to wait before timing out the
+     *           request. **Defaults to** `0` with REST and `60` with gRPC.
      *     @type int $retries Number of retries for a failed request.
      *           **Defaults to** `3`.
      *     @type array $scopes Scopes to be used for the request.
+     *     @type string $languageCode The language of the content to be
+     *           recognized. Only BCP-47 (e.g., `"en-US"`, `"es-ES"`) language
+     *           codes are accepted. See
+     *           [Language Support](https://cloud.google.com/speech/docs/languages)
+     *           for a list of the currently supported language codes. This
+     *           value will be used by default for any requests sent through the
+     *           client. If not provided, you must include a language code with
+     *           each individual request.
      * }
-     * @throws \InvalidArgumentException
      */
     public function __construct(array $config = [])
     {
         if (!isset($config['scopes'])) {
             $config['scopes'] = [self::SCOPE];
+        }
+
+        if (isset($config['languageCode'])) {
+            $this->languageCode = $config['languageCode'];
+            unset($config['languageCode']);
         }
 
         $this->connection = new Rest($this->configureAuthentication($config));
@@ -107,12 +114,6 @@ class SpeechClient
      * Runs a recognize request and returns the results immediately. Ideal when
      * working with audio up to approximately one minute in length.
      *
-     * The Google Cloud Client Library will attempt to infer the sample rate
-     * and encoding used by the provided audio file for you. This feature is
-     * recommended only if you are unsure of what the values may be and is
-     * currently limited to .flac, .amr, and .awb file types. The sample rate
-     * cannot be inferred from audio provided from a Google Storage object.
-     *
      * Example:
      * ```
      * $results = $speech->recognize(
@@ -120,95 +121,109 @@ class SpeechClient
      * );
      *
      * foreach ($results as $result) {
-     *     echo $result['transcript'];
+     *     echo $result->topAlternative()['transcript'] . PHP_EOL;
      * }
      * ```
      *
      * ```
-     * // Run with speech context, sample rate, and encoding provided
+     * // Run with speech contexts, sample rate, and encoding provided
      * $results = $speech->recognize(
      *     fopen(__DIR__  . '/audio.flac', 'r'), [
      *     'encoding' => 'FLAC',
-     *     'sampleRate' => 16000,
-     *     'speechContext' => [
-     *         'phrases' => [
-     *             'The Google Cloud Platform',
-     *             'Speech API'
+     *     'sampleRateHertz' => 16000,
+     *     'speechContexts' => [
+     *         [
+     *             'phrases' => [
+     *                 'The Google Cloud Platform',
+     *                 'Speech API'
+     *             ]
      *         ]
      *     ]
      * ]);
      *
      * foreach ($results as $result) {
-     *     echo $result['transcript'];
+     *     echo $result->topAlternative()['transcript'] . PHP_EOL;
      * }
      * ```
      *
      * @codingStandardsIgnoreStart
-     * @see https://cloud.google.com/speech/reference/rest/v1beta1/speech/syncrecognize#SpeechRecognitionAlternative SpeechRecognitionAlternative
-     * @see https://cloud.google.com/speech/reference/rest/v1beta1/speech/syncrecognize SyncRecognize API documentation
-     * @see https://cloud.google.com/speech/reference/rest/v1beta1/RecognitionConfig#AudioEncoding AudioEncoding types
+     * @see https://cloud.google.com/speech/reference/rest/v1/speech/recognize#SpeechRecognitionResult SpeechRecognitionResult
+     * @see https://cloud.google.com/speech/reference/rest/v1/speech/recognize Recognize API documentation
+     * @see https://cloud.google.com/speech/reference/rest/v1/RecognitionConfig#AudioEncoding AudioEncoding types
      * @see https://cloud.google.com/speech/docs/best-practices Speech API best practices
      * @codingStandardsIgnoreEnd
      *
      * @param resource|string|StorageObject $audio The audio to recognize. May
-     *        be a resource, string of bytes, or Google Cloud Storage object.
+     *        be a resource, string of bytes, a URI pointing to a
+     *        Google Cloud Storage object in the format of
+     *        `gs://{bucket-name}/{object-name}` or a
+     *        {@see Google\Cloud\Storage\StorageObject}.
      * @param array $options [optional] {
      *     Configuration options.
      *
-     *     @type int $sampleRate Sample rate in Hertz of the provided audio.
-     *           Valid values are: 8000-48000. 16000 is optimal. For best
+     *     @type bool $detectGcsUri When providing $audio as a string, this flag
+     *           determines whether or not to attempt to detect if the string
+     *           represents a Google Cloud Storage URI in the format of
+     *           `gs://{bucket-name}/{object-name}`. **Defaults to** `true`.
+     *     @type string $languageCode The language of the content. BCP-47
+     *           (e.g., `"en-US"`, `"es-ES"`) language codes are accepted. See
+     *           [Language Support](https://cloud.google.com/speech/docs/languages)
+     *           for a list of the currently supported language codes. This
+     *           value will be required if a default has not been set on the
+     *           client. **Defaults to** the value set on the client.
+     *     @type int $sampleRateHertz Sample rate in Hertz of the provided
+     *           audio. Valid values are: 8000-48000. 16000 is optimal. For best
      *           results, set the sampling rate of the audio source to 16000 Hz.
      *           If that's not possible, use the native sample rate of the audio
-     *           source (instead of re-sampling). **Defaults to** `8000`
-     *           with .amr files and `16000` with .awb files. If the
-     *           getID3 library has been installed this value will **default
-     *           to** the value read from the file's headers (if they exists).
+     *           source (instead of re-sampling). For .flac and .wav files the
+     *           Speech API will make a best effort to read the sample rate from
+     *           the file's headers.
      *     @type string $encoding Encoding of the provided audio. May be one of
-     *           `"LINEAR16"`, `"FLAC"`, `"MULAW"`, `"AMR"`, `"AMR_WB"`. **Defaults to**
-     *           `"FLAC"` with .flac files, `"AMR"` with .amr files and `"AMR_WB"`
-     *           with .awb files.
+     *           `"LINEAR16"`, `"FLAC"`, `"MULAW"`, `"AMR"`, `"AMR_WB"`. For
+     *           .flac and .wav files the Speech API will make a best effort to
+     *           determine the encoding type from the file's headers.
      *     @type int $maxAlternatives Maximum number of alternatives to be
      *           returned. Valid values are 1-30. **Defaults to** `1`.
-     *     @type string $languageCode The language of the content. BCP-47
-     *           (e.g., `"en-US"`, `"es-ES"`) language codes are accepted. **Defaults to**
-     *           `"en-US"` (English).
      *     @type bool $profanityFilter If set to `true`, the server will attempt
      *           to filter out profanities, replacing all but the initial
      *           character in each filtered word with asterisks, e.g. \"f***\".
      *           **Defaults to** `false`.
-     *     @type array $speechContext Must contain a key `phrases` which is to
-     *           be an array of strings which provide "hints" to the speech
-     *           recognizer to favor specific words and phrases in the results.
-     *           Please see
-     *           [SpeechContext](https://cloud.google.com/speech/reference/rest/v1beta1/RecognitionConfig#SpeechContext)
+     *     @type array $speechContexts A list of arrays where each element must
+     *           contain a key `phrases`. Each key `phrases` should contain an
+     *           array of strings which provide "hints" to the speech recognizer
+     *           to favor specific words and phrases in the results. Please see
+     *           [SpeechContext](https://cloud.google.com/speech/reference/rest/v1/RecognitionConfig#SpeechContext)
      *           for more information.
+     *     @type bool $enableWordTimeOffsets If set to `true`, a list of
+     *           `wordTimeOffsets` are returned with the top alternative. If
+     *           `false` or omitted, no `wordTimeOffsets` are returned.
+     *           **Defaults to** `false`.
      * }
-     * @return array The transcribed results. Each element of the array contains
-     *         a `transcript` key which holds the transcribed text. Optionally
-     *         a `confidence` key holding the confidence estimate ranging from
-     *         0.0 to 1.0 may be present. `confidence` is typically provided
-     *         only for the top hypothesis.
+     * @return array Result[]
      * @throws \InvalidArgumentException
      */
     public function recognize($audio, array $options = [])
     {
-        $response = $this->connection->syncRecognize(
+        $results = [];
+        $response = $this->connection->recognize(
             $this->formatRequest($audio, $options)
         );
 
-        return isset($response['results']) ? $response['results'][0]['alternatives'] : [];
+        if (!isset($response['results'])) {
+            return $results;
+        }
+
+        foreach ($response['results'] as $result) {
+            $results[] = new Result($result);
+        }
+
+        return $results;
     }
 
     /**
      * Runs a recognize request as an operation. Ideal when working with audio
      * longer than approximately one minute. Requires polling of the returned
      * operation in order to fetch results.
-     *
-     * The Google Cloud Client Library will attempt to infer the sample rate
-     * and encoding used by the provided audio file for you. This feature is
-     * recommended only if you are unsure of what the values may be and is
-     * currently limited to .flac, .amr, and .awb file types. The sample rate
-     * cannot be inferred from audio provided from a Google Storage object.
      *
      * For longer audio, up to approximately 80 minutes, you must use Google
      * Cloud Storage objects as input. In addition to this restriction, only
@@ -228,19 +243,22 @@ class SpeechClient
      *     $isComplete = $operation->isComplete();
      * }
      *
-     * print_r($operation->results());
+     * $result = $operation->results()[0];
+     * print_r($result->topAlternative());
      * ```
      *
      * ```
-     * // Run with speech context, sample rate, and encoding provided
+     * // Run with speech contexts, sample rate, and encoding provided
      * $operation = $speech->beginRecognizeOperation(
      *     fopen(__DIR__  . '/audio.flac', 'r'), [
      *     'encoding' => 'FLAC',
-     *     'sampleRate' => 16000,
-     *     'speechContext' => [
-     *         'phrases' => [
-     *             'The Google Cloud Platform',
-     *             'Speech API'
+     *     'sampleRateHertz' => 16000,
+     *     'speechContexts' => [
+     *         [
+     *             'phrases' => [
+     *                 'The Google Cloud Platform',
+     *                 'Speech API'
+     *             ]
      *         ]
      *     ]
      * ]);
@@ -253,55 +271,69 @@ class SpeechClient
      *     $isComplete = $operation->isComplete();
      * }
      *
-     * print_r($operation->results());
+     * $result = $operation->results()[0];
+     * print_r($result->topAlternative());
      * ```
      *
      * @codingStandardsIgnoreStart
-     * @see https://cloud.google.com/speech/reference/rest/v1beta1/operations Operations
-     * @see https://cloud.google.com/speech/reference/rest/v1beta1/speech/asyncrecognize AsyncRecognize API documentation
-     * @see https://cloud.google.com/speech/reference/rest/v1beta1/RecognitionConfig#AudioEncoding AudioEncoding types
+     * @see https://cloud.google.com/speech/reference/rest/v1/operations Operations
+     * @see https://cloud.google.com/speech/reference/rest/v1/speech/longrunningrecognize LongRunningRecognize API documentation
+     * @see https://cloud.google.com/speech/reference/rest/v1/RecognitionConfig#AudioEncoding AudioEncoding types
      * @see https://cloud.google.com/speech/docs/best-practices Speech API best practices
      * @codingStandardsIgnoreEnd
      *
      * @param resource|string|StorageObject $audio The audio to recognize. May
-     *        be a resource, string of bytes, or Google Cloud Storage object.
+     *        be a resource, string of bytes, a URI pointing to a
+     *        Google Cloud Storage object in the format of
+     *        `gs://{bucket-name}/{object-name}` or a
+     *        {@see Google\Cloud\Storage\StorageObject}.
      * @param array $options [optional] {
      *     Configuration options.
      *
-     *     @type int $sampleRate Sample rate in Hertz of the provided audio.
-     *           Valid values are: 8000-48000. 16000 is optimal. For best
+     *     @type bool $detectGcsUri When providing $audio as a string, this flag
+     *           determines whether or not to attempt to detect if the string
+     *           represents a Google Cloud Storage URI in the format of
+     *           `gs://{bucket-name}/{object-name}`. **Defaults to** `true`.
+     *     @type string $languageCode The language of the content. BCP-47
+     *           (e.g., `"en-US"`, `"es-ES"`) language codes are accepted. See
+     *           [Language Support](https://cloud.google.com/speech/docs/languages)
+     *           for a list of the currently supported language codes. This
+     *           value will be required if a default has not been set on the
+     *           client. **Defaults to** the value set on the client.
+     *     @type int $sampleRateHertz Sample rate in Hertz of the provided
+     *           audio. Valid values are: 8000-48000. 16000 is optimal. For best
      *           results, set the sampling rate of the audio source to 16000 Hz.
      *           If that's not possible, use the native sample rate of the audio
-     *           source (instead of re-sampling). **Defaults to** `8000` with .amr
-     *           files and `16000` with .awb files. If the getID3 library has
-     *           been installed this value will default to the value read from
-     *           the file's headers (if it exists).
+     *           source (instead of re-sampling). For .flac and .wav files the
+     *           Speech API will make a best effort to read the sample rate from
+     *           the file's headers.
      *     @type string $encoding Encoding of the provided audio. May be one of
-     *           `"LINEAR16"`, `"FLAC"`, `"MULAW"`, `"AMR"`, `"AMR_WB"`.
-     *           **Defaults to** `"FLAC"` with .flac files, `"AMR"` with .amr
-     *           files and `"AMR_WB"` with .awb files.
+     *           `"LINEAR16"`, `"FLAC"`, `"MULAW"`, `"AMR"`, `"AMR_WB"`. For
+     *           .flac and .wav files the Speech API will make a best effort to
+     *           determine the encoding type from the file's headers.
      *     @type int $maxAlternatives Maximum number of alternatives to be
      *           returned. Valid values are 1-30. **Defaults to** `1`.
-     *     @type string $languageCode The language of the content. BCP-47
-     *           (e.g., `"en-US"`, `"es-ES"`) language codes are accepted.
-     *           **Defaults to** `"en"` (English).
      *     @type bool $profanityFilter If set to `true`, the server will attempt
      *           to filter out profanities, replacing all but the initial
      *           character in each filtered word with asterisks, e.g. \"f***\".
      *           **Defaults to** `false`.
-     *     @type array $speechContext Must contain a key `phrases` which is to
-     *           be an array of strings which provide "hints" to the speech
-     *           recognizer to favor specific words and phrases in the results.
-     *           Please see
-     *           [SpeechContext](https://cloud.google.com/speech/reference/rest/v1beta1/RecognitionConfig#SpeechContext)
+     *     @type array $speechContexts A list of arrays where each element must
+     *           contain a key `phrases`. Each key `phrases` should contain an
+     *           array of strings which provide "hints" to the speech recognizer
+     *           to favor specific words and phrases in the results. Please see
+     *           [SpeechContext](https://cloud.google.com/speech/reference/rest/v1/RecognitionConfig#SpeechContext)
      *           for more information.
+     *     @type bool $enableWordTimeOffsets If set to `true`, a list of
+     *           `wordTimeOffsets` are returned with the top alternative. If
+     *           `false` or omitted, no `wordTimeOffsets` are returned.
+     *           **Defaults to** `false`.
      * }
      * @return Operation
      * @throws \InvalidArgumentException
      */
     public function beginRecognizeOperation($audio, array $options = [])
     {
-        $response = $this->connection->asyncRecognize(
+        $response = $this->connection->longRunningRecognize(
             $this->formatRequest($audio, $options)
         );
 
@@ -341,56 +373,38 @@ class SpeechClient
      */
     private function formatRequest($audio, array $options)
     {
-        $analyzedFileInfo = null;
         $fileFormat = null;
+        $options += [
+            'detectGcsUri' => true,
+            'languageCode' => $this->languageCode
+        ];
         $recognizeOptions = [
             'encoding',
-            'sampleRate',
+            'sampleRateHertz',
             'languageCode',
             'maxAlternatives',
             'profanityFilter',
-            'speechContext'
+            'speechContexts',
+            'enableWordTimeOffsets'
         ];
 
         if ($audio instanceof StorageObject) {
-            $objIdentity = $audio->identity();
-            $options['audio']['uri'] = 'gs://' . $objIdentity['bucket'] . '/' . $objIdentity['object'];
+            $options['audio']['uri'] = $audio->gcsUri();
             $fileFormat = pathinfo($options['audio']['uri'], PATHINFO_EXTENSION);
         } elseif (is_resource($audio)) {
             $options['audio']['content'] = base64_encode(stream_get_contents($audio));
             $fileFormat = pathinfo(stream_get_meta_data($audio)['uri'], PATHINFO_EXTENSION);
+        } elseif ($options['detectGcsUri'] && substr($audio, 0, 5) === 'gs://') {
+            $options['audio']['uri'] = $audio;
+            $fileFormat = pathinfo($options['audio']['uri'], PATHINFO_EXTENSION);
         } else {
             $options['audio']['content'] = base64_encode($audio);
         }
 
-        if (isset($options['encoding'])) {
-            $options['encoding'] = strtoupper($options['encoding']);
-        } else {
-            $analyzedFileInfo = $this->analyzeAudio($audio);
+        unset($options['detectGcsUri']);
 
-            $options['encoding'] = isset($analyzedFileInfo['fileformat'])
-                ? $this->determineEncoding($analyzedFileInfo['fileformat'])
-                : $this->determineEncoding($fileFormat);
-        }
-
-        if (isset($options['sampleRate'])) {
-            $options['sampleRate'] = (int) $options['sampleRate'];
-        } else {
-            if (!$analyzedFileInfo) {
-                $analyzedFileInfo = $this->analyzeAudio($audio);
-            }
-
-            $options['sampleRate'] = isset($analyzedFileInfo['audio']['sample_rate'])
-                ? $analyzedFileInfo['audio']['sample_rate']
-                : $this->determineSampleRate($options['encoding']);
-        }
-
-        if (!$options['encoding']) {
-            throw new \InvalidArgumentException('Unable to determine encoding. Please provide the value manually.');
-        }
-
-        if (!$options['sampleRate']) {
-            throw new \InvalidArgumentException('Unable to determine sample rate. Please provide the value manually.');
+        if (!$options['languageCode']) {
+            throw new \InvalidArgumentException('A valid BCP-47 language code is required.');
         }
 
         foreach ($options as $option => $value) {
@@ -401,101 +415,5 @@ class SpeechClient
         }
 
         return $options;
-    }
-
-    /**
-     * Analyzes the provided audio using the getid3() library.
-     *
-     * @param resource|string|StorageObject $audio
-     * @return array|null
-     */
-    private function analyzeAudio($audio)
-    {
-        $fileInfo = null;
-        $isTempResource = false;
-
-        if (class_exists('getID3') && !($audio instanceof StorageObject)) {
-            if (is_string($audio) || $this->isRemoteResource($audio)) {
-                $audio = $this->getTempResource($audio);
-                $isTempResource = true;
-            }
-
-            $path = stream_get_meta_data($audio)['uri'];
-            $fileInfo = (new \getID3())->analyze($path);
-
-            if ($isTempResource) {
-                fclose($audio);
-            }
-        }
-
-        return $fileInfo;
-    }
-
-    /**
-     * Takes in a resource or string and makes sure it is available as a local
-     * file in order for the getID3 library to be able to analzye it.
-     *
-     * @param resource|string $audio
-     * @return resource
-     */
-    private function getTempResource($audio)
-    {
-        $temp = tmpfile();
-        is_string($audio) ? fwrite($temp, $audio) : stream_copy_to_stream($audio, $temp);
-        return $temp;
-    }
-
-    /**
-     * Determines if the resource provided is remote.
-     *
-     * @param resource $audio
-     * @return bool
-     */
-    private function isRemoteResource($audio)
-    {
-        $scheme = parse_url(
-            stream_get_meta_data($audio)['uri'],
-            PHP_URL_SCHEME
-        );
-
-        return ($scheme === 'http' || $scheme === 'ftp');
-    }
-
-    /**
-     * Attempts to determine the encoding based on the file format.
-     *
-     * @param string $fileFormat
-     * @return string|null
-     */
-    private function determineEncoding($fileFormat)
-    {
-        switch ($fileFormat) {
-            case 'flac':
-                return 'FLAC';
-            case 'amr':
-                return 'AMR';
-            case 'awb':
-                return 'AMR_WB';
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * Attempts to determine the sample rate based on the encoding.
-     *
-     * @param string $encoding
-     * @return int|null
-     */
-    private function determineSampleRate($encoding)
-    {
-        switch ($encoding) {
-            case 'AMR':
-                return 8000;
-            case 'AMR_WB':
-                return 16000;
-            default:
-                return null;
-        }
     }
 }
