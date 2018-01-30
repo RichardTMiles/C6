@@ -6,7 +6,7 @@ runtime_config:
   document_root: .
 
 beta_settings:
-  cloud_sql_instances: "carbonphp-191421:us-central1:carbonphpmaster"
+  cloud_sql_instances: "    "
 
 env_variables:
   # Replace USER, PASSWORD, DATABASE, and CONNECTION_NAME with the
