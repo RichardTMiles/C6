@@ -1,4 +1,5 @@
 <?php
+#phpinfo() and exit;
 
 const DS = DIRECTORY_SEPARATOR; // All folder constants end in a trailing slash /
 
