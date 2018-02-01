@@ -185,6 +185,11 @@
                                         </ol>
                                     </li>
                                 </ol>
+                                <h4>Install Github's Commandline Tool</h4>
+                                <ol><li><code>sudo apt-get install git-core</code></li>
+                                    <ul><li>That was easy!</li></ul>
+                                </ol>
+
                                 <h4>Change Website Directory Permission</h4>
                                 <ol>
                                     <li>Lets add ourselves to the Admin 'sudo' Group. Type the
