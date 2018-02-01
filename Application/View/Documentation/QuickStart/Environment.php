@@ -168,8 +168,7 @@
                                     <li><code>sudo wget -O /etc/apt/trusted.gpg.d/php.gpg
                                             https://packages.sury.org/php/apt.gpg</code></li>
                                     <li><code>sudo apt-get install php7.1 php7.1-common</code></li>
-                                    <li><code>sudo apt-get install php7.1-curl php7.1-xml php7.1-zip php7.1-gd
-                                            php7.1-mysql php7.1-mbstring</code></li>
+                                    <li><code>sudo apt-get install php7.1-curl php7.1-xml php7.1-zip php7.1-gd php7.1-mysql php7.1-mbstring</code></li>
                                 </ol>
                                 <h4>Install MySql</h4>
                                 <ol>
