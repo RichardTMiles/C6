@@ -89,7 +89,7 @@ const GOOGLE_APP_SECRET = '';
 return [
     'DATABASE' => [
 
-        'DB_DSN' => getenv('MYSQL_DSN') ?: 'mysql:host=127.0.0.1;dbname=C6',      // Host and Database get put here
+        'DB_DSN' => getenv('MYSQL_DSN') ?: 'mysql:dbname=C6;host=127.0.0.1;',      // Host and Database get put here
 
         'DB_USER' => getenv('MYSQL_USER') ?: 'root',                // User
 
