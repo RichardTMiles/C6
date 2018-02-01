@@ -1,50 +1,31 @@
 <!-- Content Header (Page header) -->
-<div class="content-header">
-    <h1>
-        Urls and Namespaces
-        <small>Routing</small>
-    </h1>
+
+<div class="box" style="margin-top: 20px">
+    <div class="box-header">
+        <h1>
+            The <b>Route</b> Class
+            <small>map your urls</small>
+        </h1>
+
+    </div>
     <ol class="breadcrumb">
-        <li><a href="<?=SITE?>"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li class="active"> Upgrade</li>
+        <li><i class="fa fa-code"></i> <code>SERVER_ROOT . 'Data/Vendors/richardtmiles/carbonphp/Structure/Route.php'</code></li>
+
     </ol>
-</div>
+    <!-- Main content -->
+    <div class="box-body">
+        <p class="lead">
+            This class will map urls with variable arguments. It was designed for portability and SEO optimization.
+            You must define a default route using the <code>abstract public function defaultRoute();</code> for an
+            example of this class in action <a href="<?=SITE?>Bootstrap" class="text-purple"><b>see the Bootstrap page</b></a>.
+        </p>
 
-<!-- Main content -->
-<div class="content body">
-    <p class="lead">
-        This documentation is for versions 2.3 and under.
-        If you are looking for documentation for version 2.4 and above,
-        please visit <a href="https://adminlte.io/docs">our online documentation</a>.
-    </p>
+        <!-- ============================================================= -->
 
-    <?= highlight('<?php
-
-use Carbon\Route;
-use Carbon\View;
-
-const CONTENT = SERVER_ROOT . \'Public\' . DS;
-
-$url = new class extends Route        // Start the route with the structure of the default route const
-{
-    public function defaultRoute(): void   // If the uri is empty this will be executed and the script will exit
-    {
-        View::contents(CONTENT . \'Carbon.php\') and die;   // Our caching condition: cache = (HTTP || HTTPS)
-    }
-};
+        <pre>
+            <?=highlight(SERVER_ROOT . 'Data/Vendors/richardtmiles/carbonphp/Structure/Route.php')?>
+        </pre>
 
 
-// On match run function
-$url->match(\'CarbonPHP/\', function (){
-    View::contents(CONTENT . \'CarbonPHP.php\');
-});
-
-$html = function (string $fileName) {
-    View::contents(CONTENT . $fileName .\'.php\'); };') ?>
-
-    <!-- ============================================================= -->
-
-
-
-
+    </div>
 </div><!-- /.content -->

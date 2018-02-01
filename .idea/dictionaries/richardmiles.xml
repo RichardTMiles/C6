@@ -6,8 +6,10 @@
       <w>apiclient</w>
       <w>carbonphp</w>
       <w>dependancies</w>
+      <w>pcntl</w>
       <w>php</w>
       <w>richardtmiles</w>
+      <w>websocket</w>
     </words>
   </dictionary>
 </component>

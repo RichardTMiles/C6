@@ -45,7 +45,7 @@ class User extends Request
     {
         global $facebook;
 
-        if ($request == 'SignUp' || array_key_exists('facebook', $_SESSION) && !empty($_SESSION['facebook'])) {
+        if ($request == 'SignUp' || (array_key_exists('facebook', $_SESSION) && !empty($_SESSION['facebook']))) {
 
             $facebook = $_SESSION['facebook'] ?? $facebook;  // Pull this from the session
 

@@ -9,6 +9,7 @@ $url = new class extends Route
     public function defaultRoute()  // Sockets will not execute this
     {
         if (!$_SESSION['id']):
+            View::$forceWrapper = true;
             return $this->wrap()('Documentation/Home.php');  // don't change how wrap works, I know it looks funny
         else:
             return MVC('user', 'profile');
@@ -24,7 +25,7 @@ $url = new class extends Route
 
     public function wrap()
     {
-        return function (string $file) {
+        return function (string $file) : bool {
             return View::content(APP_VIEW . $file);
         };
     }
@@ -63,12 +64,15 @@ $url = new class extends Route
 
 $url->structure($url->wrap());
 
+
+#################################### CarbonPHP Doc
 if ((string)$url->match('Home/', 'Documentation/Home.php') ||
-    (string)$url->match('CarbonPHP', 'Documentation/Home.php') ||
+    (string)$url->match('CarbonPHP', 'Documentation/Introduction.php') ||
     (string)$url->match('Installation', 'Documentation/Installation.php') ||
+    (string)$url->match('Implementations', 'Documentation/Implementations.php') ||
     (string)$url->match('Dependencies', 'Documentation/Dependencies.php') ||
     (string)$url->match('FileStructure', 'Documentation/QuickStart/FileStructure.php') ||
-    (string)$url->match('Htaccess', 'Documentation/QuickStart/htaccess.php') ||
+    (string)$url->match('Environment', 'Documentation/QuickStart/Environment.php') ||
     (string)$url->match('Options', 'Documentation/QuickStart/Options.php') ||
     (string)$url->match('Bootstrap', 'Documentation/QuickStart/Bootstrap.php') ||
     (string)$url->match('Wrapper', 'Documentation/QuickStart/Wrapper.php') ||
@@ -81,14 +85,47 @@ if ((string)$url->match('Home/', 'Documentation/Home.php') ||
     (string)$url->match('Session', 'Documentation/PHP/Session.php') ||
     (string)$url->match('Singleton', 'Documentation/PHP/Singleton.php') ||
     (string)$url->match('View', 'Documentation/PHP/View.php') ||
-    (string)$url->match('OSSupport', 'Documentation/OSSupport.php') ||
-    (string)$url->match('UpgradeGuide', 'Documentation/OSSupport.php') ||
+    (string)$url->match('OSSupport', 'Documentation/PlatformSupport.php') ||
+    (string)$url->match('UpgradeGuide', 'Documentation/PlatformSupport.php') ||
     (string)$url->match('Support', 'Documentation/Support.php') ||
     (string)$url->match('License', 'Documentation/License.php') ||
     (string)$url->match('AdminLTE', 'Documentation/AdminLTE.php') ||
     (string)$url->match('N00B', 'Documentation/N00B.php')) {
     return true;
 }
+
+
+
+###################################### AdminLTE DOC
+
+if ((string)$url->match('UIElements/{AdminLTE?}', function ($AdminLTE) use ($url) {
+    $AdminLTE = (new \Carbon\Request())->set($AdminLTE)->word();  // must be validated
+
+    if (!$AdminLTE) {
+        View::$forceWrapper = true;
+        $AdminLTE = 'widgets';
+    }
+
+    if (file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE'.DS.$AdminLTE.'.php') ||
+        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Charts'.DS.$AdminLTE.'.php') ||
+        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Examples'.DS.$AdminLTE.'.php') ||
+        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Forms'.DS.$AdminLTE.'.php') ||
+        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Layout'.DS.$AdminLTE.'.php') ||
+        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Mailbox'.DS.$AdminLTE.'.php') ||
+        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Tables'.DS.$AdminLTE.'.php') ||
+        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/UI'.DS.$AdminLTE.'.php')) {
+
+        View::$wrapper = SERVER_ROOT . APP_VIEW . 'AdminLTE/wrapper.php';
+
+        $url->wrap()($path);
+    }
+})) {
+    return true;
+}
+
+
+
+
 
 $url->structure($url->MVC());
 
@@ -102,9 +139,6 @@ if (!$_SESSION['id']) {  // Signed out
         (string)$url->match('Recover/{user_email?}/{user_generated_string?}/', 'User', 'recover')) {     // Recover $userId
         return true;
     }
-
-
-
 
 } else {
     // Event

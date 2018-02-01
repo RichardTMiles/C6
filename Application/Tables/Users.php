@@ -23,7 +23,7 @@ class Users extends Entities implements iTable
         $array = static::fetch('SELECT * FROM user WHERE user_id = ?', $id);
         $array['user_profile_pic'] = SITE . (!empty($user['user_profile_pic']) ? $user['user_profile_pic'] : 'Data/Uploads/Pictures/Defaults/default_avatar.png');
         $array['user_profile_uri'] = $array['user_profile_uri'] ?: $id;
-        $array['user_cover_photo'] = SITE . ($array['user_cover_photo'] ?? APP_VIEW . 'img/defaults/photo' . rand(1, 3) . '.png');
+        $array['user_cover_photo'] = SITE . ($array['user_cover_photo'] ?? APP_VIEW . 'Img/defaults/photo' . rand(1, 3) . '.png');
         $array['user_first_last'] = $array['user_full_name'] = $array['user_first_name'] . ' ' . $array['user_last_name'];
         $array['user_id'] = $id;
         return true;
@@ -109,7 +109,7 @@ class Users extends Entities implements iTable
 
         $user['user_profile_pic'] = (!empty($user['user_profile_pic']) ? $user['user_profile_pic'] : SITE . 'Data/Uploads/Pictures/Defaults/default_avatar.png');
         $user['user_profile_uri'] = $user['user_profile_uri'] ?: $id;
-        $user['user_cover_photo'] = ($user['user_cover_photo'] ?? SITE . 'Public/img/defaults/photo' . rand(1, 3) . '.png');
+        $user['user_cover_photo'] = ($user['user_cover_photo'] ?? SITE . 'Public/Img/defaults/photo' . rand(1, 3) . '.png');
         $user['user_first_last'] = $user['user_full_name'] = $user['user_first_name'] . ' ' . $user['user_last_name'];
         $user['user_id'] = $id;
 

@@ -41,7 +41,7 @@ RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 #prevent hotlinking
 RewriteEngine on
 RewriteCond %{HTTP_REFERER} !^$
-RewriteCond %{HTTP_REFERER} !^https://Stats.Coach/.*$ [NC]
+RewriteCond %{HTTP_REFERER} !^https://example.com/.*$ [NC]
 RewriteRule \.(gif|jpg)$ - [F]
 
 # protect against DOS attacks by limiting file upload size [bytes]
@@ -70,7 +70,7 @@ DefaultLanguage en-US
 AddDefaultCharset utf-8
 
 # Error Redirects
-ErrorDocument 404 https://stats.coach/404/
+ErrorDocument 404 https://example.com/404/
 
 # Version Control for Dependancies
 RewriteRule ^(.*)\.[\d]{10}\.(css|js|html)$ $1.$2 [L]
