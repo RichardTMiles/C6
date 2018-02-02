@@ -84,7 +84,7 @@ $logged_in = $_SESSION['id'] ?? false;
                             <a href="<?= SITE ?>FileStructure"><i class="fa fa-folder"></i>File Structure</a>
                         </li>
                         <li>
-                            <a href="<?= SITE ?>Options"><i class="fa fa-filter"></i>Index &amp; Options</a>
+                            <a href="<?= SITE ?>Options"><i class="fa fa-filter"></i>Options &amp; Index</a>
                         </li>
                         <li>
                             <a href="<?= SITE ?>Bootstrap"><i class="fa fa-road"></i>Bootstrap</a>

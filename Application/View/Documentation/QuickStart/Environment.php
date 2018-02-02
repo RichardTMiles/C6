@@ -52,7 +52,7 @@
                             <h4 class="box-title">
                                 <a class="text-black" data-toggle="collapse" data-parent="#accordion"
                                    href="#collapseTwo">
-                                    #Setting up a new VM
+                                    #Setting up and connecting to a new VM
                                 </a>
                             </h4>
                         </div>
@@ -148,6 +148,41 @@
                                 <ol>
                                     <li><code>sudo apt-get update</code></li>
                                     <li><code>sudo apt-get install apache2</code></li>
+                                    <li><code>sudo a2enmod headers</code></li>
+                                    <li><code>sudo a2enmod rewrite</code></li>
+                                    <li><code>sudo vim etc/apache2/mods-availble/rewrite.load</code></li>
+                                    <li>Scroll to this line in the document <code>&lt;Directory /var/www/&gt;</code>
+                                        <ul>
+                                            <li>Change allow Override to <code>All</code></li>
+                                        </ul>
+                                    </li>
+                                    <li>Restart Apache
+                                        <ul><li><code>sudo service apache2 restart</code></li></ul>
+                                    </li>
+                                </ol>
+                                <h4>Install MySql</h4>
+                                <ol>
+                                    <li><code>sudo apt-get install mysql-server php-pear</code></li>
+                                    <li><code>sudo mysql_secure_installation</code>
+                                        <ul><li>You'll be prompted for the following</li></ul>
+                                        <ol>
+                                            <li>Set a root password</li>
+                                            <li>Remove the anonymous user</li>
+                                            <li>Disallow root login remotely</li>
+                                            <li>Remove test database</li>
+                                            <li>Reload privilege tables</li>
+                                        </ol>
+                                    </li>
+                                    <li>We need to create a user other than root to connect with. The following commands will
+                                        create a user named phpmyadmin with the password some_pass. You should change this to your
+                                        desired options.
+                                    <ol><li><code>sudo mysql --user=root mysql</code></li>
+                                        <li><code>CREATE USER 'phpmyadmin'@'localhost' IDENTIFIED BY 'some_pass';</code></li>
+                                        <li><code>GRANT ALL PRIVILEGES ON *.* TO 'phpmyadmin'@'localhost' WITH GRANT OPTION;</code></li>
+                                        <li><code>FLUSH PRIVILEGES;</code></li>
+                                        <li><code>exit</code></li>
+                                    </ol>
+                                    </li>
                                 </ol>
                                 <h4>Install PHP 7.1</h4>
                                 <ol>
@@ -170,20 +205,7 @@
                                     <li><code>sudo apt-get install php7.1 php7.1-common</code></li>
                                     <li><code>sudo apt-get install php7.1-curl php7.1-xml php7.1-zip php7.1-gd php7.1-mysql php7.1-mbstring</code></li>
                                 </ol>
-                                <h4>Install MySql</h4>
-                                <ol>
-                                    <li><code>sudo apt-get install mysql-server php-pear</code></li>
-                                    <li><code>sudo mysql_secure_installation</code>
-                                        <ul><li>You'll be prompted for the following</li></ul>
-                                        <ol>
-                                            <li>Set a root password</li>
-                                            <li>Remove the anonymous user</li>
-                                            <li>Disallow root login remotely</li>
-                                            <li>Remove test database</li>
-                                            <li>Reload privilege tables</li>
-                                        </ol>
-                                    </li>
-                                </ol>
+
                                 <h4>Install Github's Commandline Tool</h4>
                                 <ol><li><code>sudo apt-get install git-core</code></li>
                                     <ul><li>That was easy!</li></ul>

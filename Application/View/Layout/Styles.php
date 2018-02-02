@@ -11,17 +11,21 @@
     <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" ?>">
     <!-- iCheck -->
     <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "plugins/iCheck/all.css" ?>">
+    <!-- Color Picker -->
+    <link rel="stylesheet" type="text/css" href="/Data/Vendors/almasaeed2010/adminlte/bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css">
     <!-- Ionicons -->
     <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "bower_components/Ionicons/css/ionicons.min.css" ?>">
+    <!-- bootstrap slider -->
+    <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "plugins/bootstrap-slider/slider.css"?>">
     <!-- Back color -->
     <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "dist/css/skins/skin-green.css" ?>">
     <!-- Multiple input dynamic form -->
     <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "bower_components/select2/dist/css/select2.min.css" ?>">
     <!-- Check Ratio Box -->
     <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "plugins/iCheck/flat/blue.css" ?>">
-    <!-- I dont know but keep it -->
+    <!-- Morris Chart -->
     <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "bower_components/morris.js/morris.css" ?>">
-    <!-- fun ajax refresh -->
+    <!-- ajax refresh circle spinner -->
     <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "plugins/pace/pace.css" ?>">
     <!-- Jquery -->
     <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "bower_components/jvectormap/jquery-jvectormap.css" ?>">
@@ -34,6 +38,7 @@
     <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css" ?>">
     <!-- Font Awesome -->
     <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "bower_components/font-awesome/css/font-awesome.min.css" ?>">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" type="text/css" href="<?= SITE . TEMPLATE . "bower_components/font-awesome/css/font-awesome.min.css" ?>">
+    <!-- Full Calander -->
+    <link rel="stylesheet" type="text/css" href="/Data/Vendors/almasaeed2010/adminlte/bower_components/fullcalendar/dist/fullcalendar.min.css">
+
 </noscript>

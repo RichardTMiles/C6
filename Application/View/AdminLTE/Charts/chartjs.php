@@ -113,7 +113,8 @@
 <!-- /.content -->
 
 <script>
-    Carbon(function () {
+    Carbon(()=>
+        $.fn.CarbonJS("/Data/Vendors/almasaeed2010/adminlte/bower_components/chart.js/Chart.js", () => {
         /* ChartJS
          * -------
          * Here we will create a few charts using ChartJS
@@ -316,5 +317,5 @@
 
         barChartOptions.datasetFill = false
         barChart.Bar(barChartData, barChartOptions)
-    })
+    }));
 </script>

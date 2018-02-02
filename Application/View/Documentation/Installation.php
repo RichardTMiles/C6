@@ -24,6 +24,13 @@
                         </div>
 
                         <div class="box-body">
+                            <p class="lead">You must run <code>composer update</code> after installing with
+                                either composer or git. This requires Composer be <a href="https://getcomposer.org/doc/00-intro.md#globally">installed globally</a>
+                                and <code>composer global require "fxp/composer-asset-plugin:~1.3"</code> to have been run at least once. Github may prompt you to
+                                create a GitHub OAuth token before continuing. If this is the case, follow the link in the dialog associated.
+                            </p>
+
+
                             <h2><a href="https://github.com/RichardTMiles/C6" class="text-purple" target="_blank">#Github</a>
                                 <a href="https://github.com/RichardTMiles/C6" class="btn bg-purple"
                                    target="_blank">
@@ -31,8 +38,7 @@
                                 </a></h2>
                             <p>Move to your new websites root directory in a shell. We recommend starting with an empty
                                 directory. The path <b>[/var/www/html]</b> as seen below should be replaced with your
-                                desired
-                                website root.</p>
+                                desired website root. </p>
                             <br>
 
                             <code>git clone https://github.com/RichardTMiles/C6.git /var/www/html </code>

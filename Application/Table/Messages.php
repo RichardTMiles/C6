@@ -6,7 +6,7 @@
  * Time: 12:46 PM
  */
 
-namespace Tables;
+namespace Table;
 
 use Carbon\Database;
 use Carbon\Error\PublicAlert;

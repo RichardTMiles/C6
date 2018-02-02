@@ -6,7 +6,7 @@
  * Time: 10:38 PM
  */
 
-namespace Tables;
+namespace Table;
 
 
 use Carbon\Database;
@@ -18,17 +18,18 @@ class Photos extends Entities implements iTable
 {
     static function Get(array &$array, string $id, array $arg) : bool
     {
-        if (!is_array($array))
-            throw new \Exception( 'Invalid Object Passed' );
         $array['photo'] = [];
 
         $sql = 'SELECT photo_id, parent_id, user_id, photo_path, photo_description FROM carbon_photos WHERE parent_id = ? OR photo_id = ? LIMIT 1';
         $stmt = self::fetch( $sql, $id, $id );
 
-        if (array_key_exists('photo_id', $stmt)) $stmt = [$stmt];
+        if (array_key_exists('photo_id', $stmt)) {
+            $stmt = [$stmt];
+        }
 
-        foreach ($stmt as $item => $value)
-             $array['photo'][$value['photo_id']] = $value;
+        foreach ($stmt as $item => $value) {
+            $array['photo'][$value['photo_id']] = $value;
+        }
 
         return true;
     }

@@ -15,8 +15,8 @@
                 <section class="content-max-width">
                     <section id="dependencies">
                         <h2 class="page-header first"><a href="#dependencies" class="text-purple">Dependencies</a></h2>
-                        <p><b>CarbonPHP</b> is a standalone library that depends only on the PHP 7.1 and the PHP Standard Recommendation
-                            Logger.</p>
+                        <p><b>CarbonPHP</b> is a standalone library that depends on the PHP 7.1, the PHP Standard Recommendation
+                            Logger, and MySQL's INNODB driver. <a href="<?=SITE?>Installation">To install CarbonPHP you must have Composer.</a></p>
 
                         <p><b>C6</b> depends on four major libraries.
                             The downloadable package contains all of these dependancies, so you don't have to manually

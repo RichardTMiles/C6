@@ -6,29 +6,10 @@ RewriteEngine on
 # enable symbolic links
 Options +FollowSymLinks
 
-# this needs to be somewhere
-# LoadModule http2_module modules/mod_http2.so
-# ProtocolsHonorOrder On
-# Protocols h2 http/1.1
-
-
-# increase performance by disabling AllowOverride
-# this htacces will be the default across the server
-#AllowOverride None
-
-# Disable directory browsing
-Options All -Indexes
-
-# Set the directory index
-DirectoryIndex index.php
-
-# Redirect Specific Files
-# RewriteRule ^favicon.ico Application/View/img/icons/favicon.png [L]
-
 # Remove www.
 RewriteBase /
 RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
-RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
 
 # Turn on https ( Cent OS )
 #RewriteCond %{HTTPS} off
@@ -41,13 +22,14 @@ RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 #prevent hotlinking
 RewriteEngine on
 RewriteCond %{HTTP_REFERER} !^$
-RewriteCond %{HTTP_REFERER} !^https://example.com/.*$ [NC]
+RewriteCond %{HTTP_REFERER} !^http://carbonphp.com/.*$ [NC]
 RewriteRule \.(gif|jpg)$ - [F]
+
 
 # protect against DOS attacks by limiting file upload size [bytes]
 LimitRequestBody 10240000
 
-# Enable compression
+
 <ifModule mod_gzip.c>
 mod_gzip_on Yes
 mod_gzip_dechunk Yes
@@ -58,6 +40,7 @@ mod_gzip_item_include mime ^application/x-javascript.*
 mod_gzip_item_exclude mime ^image/.*
 mod_gzip_item_exclude rspheader ^Content-Encoding:.*gzip.*
 </ifModule>
+
 
 <IfModule mod_speling.c>
 	CheckSpelling On
@@ -70,27 +53,21 @@ DefaultLanguage en-US
 AddDefaultCharset utf-8
 
 # Error Redirects
-ErrorDocument 404 https://example.com/404/
-
-# Version Control for Dependancies
-RewriteRule ^(.*)\.[\d]{10}\.(css|js|html)$ $1.$2 [L]
-
-# Redirect anyhting thats not of the following file types to the index
-<IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteCond %{REQUEST_URI}  !(\.png|\.jpg|\.gif|\.jpeg|\.bmp|\.icon|\.js|\.css|\.woff|.\woff2|\.map|\.hbs)$
-RewriteRule (.*) index.php [QSA]
-</IfModule>
-
-# Everything to the index
-RewriteCond %{REQUEST_FILENAME} !-f
-# RewriteCond %{REQUEST_FILENAME} !-d   -- We dont want to redirect into direcotries
-RewriteRule ^(.*)$ /index.php [NC,L,QSA]
+ErrorDocument 404 https://carbonphp.com/404/
 
 # God forbit an uncaught error - Display contact method
 #ServerSignature EMail
 #SetEnv SERVER_ADMIN RicardMiles@stats.coach
 # 1 YEAR - 29030400; 1 WEEK - 604800; 2 DAYS - 172800; 1 MIN  - 60
+
+# Redirect anyhting thats not of the following file types to the index
+RewriteCond %{REQUEST_URI}  !(\.png|\.jpg|\.gif|\.jpeg|\.bmp|\.icon|\.js|\.css|\.woff|.\woff2|\.map|\.hbs)$
+RewriteRule (.*) index.php [QSA]
+
+# Everything to the index
+RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteCond %{REQUEST_FILENAME} !-d   -- We dont want to redirect into direcotries
+RewriteRule ^(.*)$ /index.php [NC,L,QSA]
 
 <FilesMatch "\.(ico|pdf|flv)$">
 Header set Cache-Control "max-age=29030400, public"
@@ -110,6 +87,7 @@ Header set Cache-Control "max-age=604800, proxy-revalidate"
 Header set Cache-Control "max-age=0, private, proxy-revalidate"
 </FilesMatch>
 
+
 # deny access to evil robots site rippers offline browsers and other nasty scum
 RewriteBase /
 RewriteCond %{HTTP_USER_AGENT} ^Anarchie [OR]
@@ -120,5 +98,5 @@ RewriteCond %{HTTP_USER_AGENT} ^Xaldon\ WebSpider [OR]
 RewriteCond %{HTTP_USER_AGENT} ^Xenu [OR]
 RewriteCond %{HTTP_USER_AGENT} ^Zeus.*Webster [OR]
 RewriteCond %{HTTP_USER_AGENT} ^Zeus
-RewriteRule ^.*$ http://www.google.com [R,L]
+RewriteRule ^.*$ http://www.cnn.com [R,L]
 # send em to a hellish website of your choice

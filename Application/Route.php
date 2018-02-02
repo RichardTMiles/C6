@@ -99,6 +99,7 @@ if ((string)$url->match('Home/', 'Documentation/Home.php') ||
 ###################################### AdminLTE DOC
 
 if ((string)$url->match('UIElements/{AdminLTE?}', function ($AdminLTE) use ($url) {
+
     $AdminLTE = (new \Carbon\Request())->set($AdminLTE)->word();  // must be validated
 
     if (!$AdminLTE) {

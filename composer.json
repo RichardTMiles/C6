@@ -12,7 +12,7 @@
       "View\\": "Application/View/",
       "Controller\\": "Application/Controller/",
       "Model\\": "Application/Model/",
-      "Tables\\": "Application/Tables/"
+      "Table\\": "Application/Table/"
     }
   },
   "authors": [

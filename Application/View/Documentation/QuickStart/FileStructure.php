@@ -184,11 +184,6 @@
         </code></pre>
             <br>
         </div>
-        <div class="box-footer">r
-            The following function is made available when <?= highlight('Carbon::Application();') ?> is run.
-        </div>
 </section><!-- /#introduction -->
 
-
-</div><!-- /.content -->
 

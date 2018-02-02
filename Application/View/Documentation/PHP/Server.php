@@ -1,5 +1,5 @@
 <!-- Content Header (Page header) -->
-<div class="box" style="margin-top: 20px">
+<div class="box box-solid box-default" style="margin-top: 20px">
     <div class="box-header with-border">
         <h1 style="margin:0;">
             Socket Communication
@@ -8,13 +8,6 @@
 
     <!-- Main content -->
     <div class="box-body">
-        <ol class="breadcrumb">
-            <li><a href="<?= SITE ?>"><i class="fa fa-dashboard"></i> Home</a></li>
-            <li class="active"> Upgrade</li>
-        </ol>
-
-        <!-- ============================================================= -->
-
         <p class="lead"><b>HTML 5 Web Sockets</b> allow us to communicate real-time with users. When the user
             connects
             to the browser via HTTP or HTTPS a script is sent back instructing the browser to maintain a
@@ -34,8 +27,24 @@
                 when using Sockets.</b>
 
             <br>
-        </p>s
+        </p>
         <br>
-
-    </div><!-- /.content -->
+    </div>
+</div>
+<div class="box box-solid box-default">
+    <div class="box-header">
+        <h1 class="box-title">The Socket Server.php</h1>
+    </div>
+    <div class="box-body">
+        <ol class="breadcrumb">
+            <li><a href="<?= SITE ?>"><i class="fa fa-dashboard"></i> APP_ROOT</a></li>
+            <li> Data</li>
+            <li> Vendors</li>
+            <li> richardtmiles</li>
+            <li> carbonphp</li>
+            <li> Structure</li>
+            <li class="active"> Server.php</li>
+        </ol>
+        <pre><code><?=highlight_file(APP_ROOT.'Data/Vendors/richardtmiles/carbonphp/Structure/Server.php')?></code></pre>
+    </div>
 </div>

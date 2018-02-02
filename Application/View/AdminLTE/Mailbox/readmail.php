@@ -186,7 +186,7 @@
                             </div>
                         </li>
                         <li>
-                            <span class="mailbox-attachment-icon has-img"><img src="../../dist/img/photo1.png"
+                            <span class="mailbox-attachment-icon has-img"><img src="<?=SITE.APP_VIEW?>Img/defaults/morgan.png"
                                                                                alt="Attachment"></span>
 
                             <div class="mailbox-attachment-info">
@@ -198,7 +198,7 @@
                             </div>
                         </li>
                         <li>
-                            <span class="mailbox-attachment-icon has-img"><img src="../../dist/img/photo2.png"
+                            <span class="mailbox-attachment-icon has-img"><img src="<?=SITE.APP_VIEW?>Img/defaults/madi.png"
                                                                                alt="Attachment"></span>
 
                             <div class="mailbox-attachment-info">

@@ -4,6 +4,7 @@
 include_once SERVER_ROOT . APP_VIEW . 'Layout/Head.php';
 $logged_in = $_SESSION['id'] ?? false;
 ?>
+
 <!-- Full Width Column -->
 <body class="hold-transition skin-purple sidebar-mini sidebar-collapse" style="background-color: #ECF0F1">
 <div class="wrapper" style="background: rgba(0,0,0,0.7)">
@@ -11,7 +12,7 @@ $logged_in = $_SESSION['id'] ?? false;
     <!-- Main Header -->
     <header class="main-header">
         <!-- Logo -->
-        <a href="<?=SITE?>" class="logo">
+        <a href="<?= SITE ?>" class="logo">
             <!-- mini logo for sidebar mini 50x50 pixels -->
             <span class="logo-mini"><b>C</b>6</span>
             <!-- logo for regular state and mobile devices -->
@@ -43,7 +44,8 @@ $logged_in = $_SESSION['id'] ?? false;
                                     <li><!-- start message -->
                                         <a href="#">
                                             <div class="pull-left">
-                                                <img src="<?=SITE.APP_VIEW?>Img/defaults/richard.png" class="img-circle" alt="User Image">
+                                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/richard.png"
+                                                     class="img-circle" alt="User Image">
                                             </div>
                                             <h4>
                                                 Support Team
@@ -56,7 +58,8 @@ $logged_in = $_SESSION['id'] ?? false;
                                     <li>
                                         <a href="#">
                                             <div class="pull-left">
-                                                <img src="<?=SITE.APP_VIEW?>Img/defaults/richard.png" class="img-circle" alt="User Image">
+                                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/mom.png" class="img-circle"
+                                                     alt="User Image">
                                             </div>
                                             <h4>
                                                 AdminLTE Design Team
@@ -68,7 +71,8 @@ $logged_in = $_SESSION['id'] ?? false;
                                     <li>
                                         <a href="#">
                                             <div class="pull-left">
-                                                <img src="<?=SITE.APP_VIEW?>Img/defaults/richard.png" class="img-circle" alt="User Image">
+                                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/morgan.png"
+                                                     class="img-circle" alt="User Image">
                                             </div>
                                             <h4>
                                                 Developers
@@ -80,7 +84,8 @@ $logged_in = $_SESSION['id'] ?? false;
                                     <li>
                                         <a href="#">
                                             <div class="pull-left">
-                                                <img src="<?=SITE.APP_VIEW?>Img/defaults/richard.png" class="img-circle" alt="User Image">
+                                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/madi.png"
+                                                     class="img-circle" alt="User Image">
                                             </div>
                                             <h4>
                                                 Sales Department
@@ -92,7 +97,8 @@ $logged_in = $_SESSION['id'] ?? false;
                                     <li>
                                         <a href="#">
                                             <div class="pull-left">
-                                                <img src="<?=SITE.APP_VIEW?>Img/defaults/richard.png" class="img-circle" alt="User Image">
+                                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/summer.png"
+                                                     class="img-circle" alt="User Image">
                                             </div>
                                             <h4>
                                                 Reviewers
@@ -124,7 +130,8 @@ $logged_in = $_SESSION['id'] ?? false;
                                     </li>
                                     <li>
                                         <a href="#">
-                                            <i class="fa fa-warning text-yellow"></i> Very long description here that may not fit into the
+                                            <i class="fa fa-warning text-yellow"></i> Very long description here that
+                                            may not fit into the
                                             page and may cause design problems
                                         </a>
                                     </li>
@@ -167,7 +174,8 @@ $logged_in = $_SESSION['id'] ?? false;
                                                 <small class="pull-right">20%</small>
                                             </h3>
                                             <div class="progress xs">
-                                                <div class="progress-bar progress-bar-aqua" style="width: 20%" role="progressbar"
+                                                <div class="progress-bar progress-bar-aqua" style="width: 20%"
+                                                     role="progressbar"
                                                      aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
                                                     <span class="sr-only">20% Complete</span>
                                                 </div>
@@ -182,7 +190,8 @@ $logged_in = $_SESSION['id'] ?? false;
                                                 <small class="pull-right">40%</small>
                                             </h3>
                                             <div class="progress xs">
-                                                <div class="progress-bar progress-bar-green" style="width: 40%" role="progressbar"
+                                                <div class="progress-bar progress-bar-green" style="width: 40%"
+                                                     role="progressbar"
                                                      aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
                                                     <span class="sr-only">40% Complete</span>
                                                 </div>
@@ -197,7 +206,8 @@ $logged_in = $_SESSION['id'] ?? false;
                                                 <small class="pull-right">60%</small>
                                             </h3>
                                             <div class="progress xs">
-                                                <div class="progress-bar progress-bar-red" style="width: 60%" role="progressbar"
+                                                <div class="progress-bar progress-bar-red" style="width: 60%"
+                                                     role="progressbar"
                                                      aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
                                                     <span class="sr-only">60% Complete</span>
                                                 </div>
@@ -212,7 +222,8 @@ $logged_in = $_SESSION['id'] ?? false;
                                                 <small class="pull-right">80%</small>
                                             </h3>
                                             <div class="progress xs">
-                                                <div class="progress-bar progress-bar-yellow" style="width: 80%" role="progressbar"
+                                                <div class="progress-bar progress-bar-yellow" style="width: 80%"
+                                                     role="progressbar"
                                                      aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
                                                     <span class="sr-only">80% Complete</span>
                                                 </div>
@@ -230,13 +241,15 @@ $logged_in = $_SESSION['id'] ?? false;
                     <!-- User Account: style can be found in dropdown.less -->
                     <li class="dropdown user user-menu">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <img src="<?=SITE.APP_VIEW?>Img/defaults/richard.png" class="user-image" alt="User Image">
-                            <span class="hidden-xs">Alexander Pierce</span>
+                            <img src="<?= SITE . APP_VIEW ?>Img/defaults/richard.png" class="user-image"
+                                 alt="User Image">
+                            <span class="hidden-xs">Richard Miles</span>
                         </a>
                         <ul class="dropdown-menu">
                             <!-- User image -->
                             <li class="user-header">
-                                <img src="<?=SITE.APP_VIEW?>Img/defaults/richard.png" class="img-circle" alt="User Image">
+                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/richard.png" class="img-circle"
+                                     alt="User Image">
 
                                 <p>
                                     Richard Miles - Web Developer
@@ -269,6 +282,9 @@ $logged_in = $_SESSION['id'] ?? false;
                             </li>
                         </ul>
                     </li>
+                    <li>
+                        <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+                    </li>
                 </ul>
             </div>
         </nav>
@@ -280,7 +296,7 @@ $logged_in = $_SESSION['id'] ?? false;
             <!-- Sidebar user panel -->
             <div class="user-panel">
                 <div class="pull-left image">
-                    <img src="<?=SITE.APP_VIEW?>Img/defaults/richard.png" class="img-circle" alt="User Image">
+                    <img src="<?= SITE . APP_VIEW ?>Img/defaults/richard.png" class="img-circle" alt="User Image">
                 </div>
                 <div class="pull-left info">
                     <p>Richard Miles</p>
@@ -299,7 +315,7 @@ $logged_in = $_SESSION['id'] ?? false;
             </form>
             <!-- /.search form -->
             <!-- sidebar menu: : style can be found in sidebar.less -->
-            <ul class="sidebar-menu" data-widget="tree">
+            <ul class="sidebar-menu" data-widget="tree" id="left-sidebar-menu">
                 <li class="header">MAIN NAVIGATION</li>
                 <li class="treeview">
                     <a href="#">
@@ -309,27 +325,12 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?=SITE?>UIElements/index"><i class="fa fa-circle-o"></i> Dashboard v1</a></li>
-                        <li><a href="<?=SITE?>UIElements/index2"><i class="fa fa-circle-o"></i> Dashboard v2</a></li>
-                    </ul>
-                </li>
-                <li class="treeview">
-                    <a href="#">
-                        <i class="fa fa-files-o"></i>
-                        <span>Layout Options</span>
-                        <span class="pull-right-container">
-              <span class="label label-primary pull-right">4</span>
-            </span>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li><a href="<?=SITE?>UIElements/top-nav"><i class="fa fa-circle-o"></i> Top Navigation</a></li>
-                        <li><a href="<?=SITE?>UIElements/boxed"><i class="fa fa-circle-o"></i> Boxed</a></li>
-                        <li><a href="<?=SITE?>UIElements/fixed"><i class="fa fa-circle-o"></i> Fixed</a></li>
-                        <li><a href="<?=SITE?>UIElements/collapsed-sidebar"><i class="fa fa-circle-o"></i> Collapsed Sidebar</a></li>
+                        <li><a href="<?= SITE ?>UIElements/index"><i class="fa fa-circle-o"></i> Dashboard v1</a></li>
+                        <li><a href="<?= SITE ?>UIElements/index2"><i class="fa fa-circle-o"></i> Dashboard v2</a></li>
                     </ul>
                 </li>
                 <li>
-                    <a href="<?=SITE?>UIElements/widgets">
+                    <a href="<?= SITE ?>UIElements/widgets">
                         <i class="fa fa-th"></i> <span>Widgets</span>
                         <span class="pull-right-container">
               <small class="label pull-right bg-green">new</small>
@@ -345,10 +346,10 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?=SITE?>UIElements/chartjs"><i class="fa fa-circle-o"></i> ChartJS</a></li>
-                        <li><a href="<?=SITE?>UIElements/morris"><i class="fa fa-circle-o"></i> Morris</a></li>
-                        <li><a href="<?=SITE?>UIElements/flot"><i class="fa fa-circle-o"></i> Flot</a></li>
-                        <li><a href="<?=SITE?>UIElements/inline"><i class="fa fa-circle-o"></i> Inline charts</a></li>
+                        <li><a href="<?= SITE ?>UIElements/chartjs"><i class="fa fa-circle-o"></i> ChartJS</a></li>
+                        <li><a href="<?= SITE ?>UIElements/morris"><i class="fa fa-circle-o"></i> Morris</a></li>
+                        <li><a href="<?= SITE ?>UIElements/flot"><i class="fa fa-circle-o"></i> Flot</a></li>
+                        <li><a href="<?= SITE ?>UIElements/inline"><i class="fa fa-circle-o"></i> Inline charts</a></li>
                     </ul>
                 </li>
                 <li class="treeview">
@@ -360,12 +361,12 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?=SITE?>UIElements/general"><i class="fa fa-circle-o"></i> General</a></li>
-                        <li><a href="<?=SITE?>UIElements/icons"><i class="fa fa-circle-o"></i> Icons</a></li>
-                        <li><a href="<?=SITE?>UIElements/buttons"><i class="fa fa-circle-o"></i> Buttons</a></li>
-                        <li><a href="<?=SITE?>UIElements/sliders"><i class="fa fa-circle-o"></i> Sliders</a></li>
-                        <li><a href="<?=SITE?>UIElements/timeline"><i class="fa fa-circle-o"></i> Timeline</a></li>
-                        <li><a href="<?=SITE?>UIElements/modals"><i class="fa fa-circle-o"></i> Modals</a></li>
+                        <li><a href="<?= SITE ?>UIElements/general"><i class="fa fa-circle-o"></i> General</a></li>
+                        <li><a href="<?= SITE ?>UIElements/icons"><i class="fa fa-circle-o"></i> Icons</a></li>
+                        <li><a href="<?= SITE ?>UIElements/buttons"><i class="fa fa-circle-o"></i> Buttons</a></li>
+                        <li><a href="<?= SITE ?>UIElements/sliders"><i class="fa fa-circle-o"></i> Sliders</a></li>
+                        <li><a href="<?= SITE ?>UIElements/timeline"><i class="fa fa-circle-o"></i> Timeline</a></li>
+                        <li><a href="<?= SITE ?>UIElements/modals"><i class="fa fa-circle-o"></i> Modals</a></li>
                     </ul>
                 </li>
                 <li class="treeview">
@@ -376,9 +377,11 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?=SITE?>UIElements/general"><i class="fa fa-circle-o"></i> General Elements</a></li>
-                        <li><a href="<?=SITE?>UIElements/advanced"><i class="fa fa-circle-o"></i> Advanced Elements</a></li>
-                        <li><a href="<?=SITE?>UIElements/editors"><i class="fa fa-circle-o"></i> Editors</a></li>
+                        <li><a href="<?= SITE ?>UIElements/general"><i class="fa fa-circle-o"></i> General Elements</a>
+                        </li>
+                        <li><a href="<?= SITE ?>UIElements/advanced"><i class="fa fa-circle-o"></i> Advanced
+                                Elements</a></li>
+                        <li><a href="<?= SITE ?>UIElements/editors"><i class="fa fa-circle-o"></i> Editors</a></li>
                     </ul>
                 </li>
                 <li class="treeview">
@@ -389,12 +392,12 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?=SITE?>UIElements/simple"><i class="fa fa-circle-o"></i> Simple tables</a></li>
-                        <li><a href="<?=SITE?>UIElements/data"><i class="fa fa-circle-o"></i> Data tables</a></li>
+                        <li><a href="<?= SITE ?>UIElements/simple"><i class="fa fa-circle-o"></i> Simple tables</a></li>
+                        <li><a href="<?= SITE ?>UIElements/data"><i class="fa fa-circle-o"></i> Data tables</a></li>
                     </ul>
                 </li>
                 <li class="active">
-                    <a href="<?=SITE?>UIElements/calendar">
+                    <a href="<?= SITE ?>UIElements/calendar">
                         <i class="fa fa-calendar"></i> <span>Calendar</span>
                         <span class="pull-right-container">
               <small class="label pull-right bg-red">3</small>
@@ -402,15 +405,25 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                 </li>
-                <li>
-                    <a href="<?=SITE?>UIElements/mailbox">
+
+                <li class="treeview active menu-open">
+                    <a href="mailbox.html">
                         <i class="fa fa-envelope"></i> <span>Mailbox</span>
                         <span class="pull-right-container">
-              <small class="label pull-right bg-yellow">12</small>
-              <small class="label pull-right bg-green">16</small>
-              <small class="label pull-right bg-red">5</small>
+              <i class="fa fa-angle-left pull-right"></i>
             </span>
                     </a>
+                    <ul class="treeview-menu">
+                        <li class="active">
+                            <a href="<?= SITE ?>UIElements/mailbox">Inbox
+                                <span class="pull-right-container">
+                  <span class="label label-primary pull-right">13</span>
+                </span>
+                            </a>
+                        </li>
+                        <li><a href="<?= SITE ?>UIElements/compose">Compose</a></li>
+                        <li><a href="<?= SITE ?>UIElements/readmail">Read</a></li>
+                    </ul>
                 </li>
                 <li class="treeview">
                     <a href="#">
@@ -420,15 +433,15 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?=SITE?>UIElements/invoice"><i class="fa fa-circle-o"></i> Invoice</a></li>
-                        <li><a href="<?=SITE?>UIElements/profile"><i class="fa fa-circle-o"></i> Profile</a></li>
-                        <li><a href="<?=SITE?>UIElements/login"><i class="fa fa-circle-o"></i> Login</a></li>
-                        <li><a href="<?=SITE?>UIElements/register"><i class="fa fa-circle-o"></i> Register</a></li>
-                        <li><a href="<?=SITE?>UIElements/lockscreen"><i class="fa fa-circle-o"></i> Lockscreen</a></li>
-                        <li><a href="<?=SITE?>UIElements/404"><i class="fa fa-circle-o"></i> 404 Error</a></li>
-                        <li><a href="<?=SITE?>UIElements/500"><i class="fa fa-circle-o"></i> 500 Error</a></li>
-                        <li><a href="<?=SITE?>UIElements/blank"><i class="fa fa-circle-o"></i> Blank Page</a></li>
-                        <li><a href="<?=SITE?>UIElements/pace"><i class="fa fa-circle-o"></i> Pace Page</a></li>
+                        <li><a href="<?= SITE ?>UIElements/invoice"><i class="fa fa-circle-o"></i> Invoice</a></li>
+                        <li><a href="<?= SITE ?>UIElements/profile"><i class="fa fa-circle-o"></i> Profile</a></li>
+                        <li><a href="<?= SITE ?>UIElements/login"><i class="fa fa-circle-o"></i> Login</a></li>
+                        <li><a href="<?= SITE ?>UIElements/register"><i class="fa fa-circle-o"></i> Register</a></li>
+                        <li><a href="<?= SITE ?>UIElements/lockscreen"><i class="fa fa-circle-o"></i> Lockscreen</a>
+                        </li>
+                        <li><a href="<?= SITE ?>UIElements/404"><i class="fa fa-circle-o"></i> 404 Error</a></li>
+                        <li><a href="<?= SITE ?>UIElements/500"><i class="fa fa-circle-o"></i> 500 Error</a></li>
+                        <li><a href="<?= SITE ?>UIElements/blank"><i class="fa fa-circle-o"></i> Blank Page</a></li>
                     </ul>
                 </li>
                 <li class="treeview">
@@ -464,7 +477,7 @@ $logged_in = $_SESSION['id'] ?? false;
                         <li><a href="#"><i class="fa fa-circle-o"></i> Level One</a></li>
                     </ul>
                 </li>
-                <li><a href="https://adminlte.io/docs"><i class="fa fa-book"></i> <span>Documentation</span></a></li>
+                <li><a href="<?=SITE?>"><i class="fa fa-book"></i> <span>Documentation</span></a></li>
                 <li class="header">LABELS</li>
                 <li><a href="#"><i class="fa fa-circle-o text-red"></i> <span>Important</span></a></li>
                 <li><a href="#"><i class="fa fa-circle-o text-yellow"></i> <span>Warning</span></a></li>
@@ -476,7 +489,7 @@ $logged_in = $_SESSION['id'] ?? false;
 
     <script>//--  Sidebar Search Engine
         Carbon(() => {
-            let $menu = $('li');
+            let $menu = $('#left-sidebar-menu' + ' li');
 
             let activity = function () {
                 $("li a").filter(function () {
@@ -500,11 +513,11 @@ $logged_in = $_SESSION['id'] ?? false;
                 e.preventDefault();
             });
 
-            $('.sidebar-menu li.active').data('lte.pushmenu.active', true);
+            $('#left-sidebar-menu li.active').data('lte.pushmenu.active', true);
 
             $('#search-input').on('keyup', function () {
                 let term = $('#search-input').val().trim(),
-                    sidebar = $('.sidebar-menu li');
+                    sidebar = $('#left-sidebar-menu li');
 
                 if (term.length === 0) {
                     sidebar.each(function () {
@@ -544,13 +557,14 @@ $logged_in = $_SESSION['id'] ?? false;
                     }
                 });
 
-                $('.sidebar-menu li.pushmenu-search-found.treeview').each(function () {
+                $('#left-sidebar-menu li.pushmenu-search-found.treeview').each(function () {
                     $(this).find('.pushmenu-search-found').show(0);
                 });
             });
 
         })
     </script>
+
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper" style="background: transparent">
@@ -568,6 +582,7 @@ $logged_in = $_SESSION['id'] ?? false;
         <!-- /.container -->
     </div>
     <!-- /.content-wrapper -->
+
     <footer class="main-footer bg-black" style="border-top-color:black">
         <div class="container">
             <div class="pull-right hidden-xs">
@@ -579,10 +594,208 @@ $logged_in = $_SESSION['id'] ?? false;
         </div>
         <!-- /.container -->
     </footer>
+
+    <!-- Control Sidebar -->
+    <aside class="control-sidebar control-sidebar-dark">
+        <!-- Create the tabs -->
+        <ul class="nav nav-tabs nav-justified control-sidebar-tabs">
+            <li><a href="#control-sidebar-home-tab" data-toggle="tab"><i class="fa fa-home"></i></a></li>
+
+            <li><a href="#control-sidebar-settings-tab" data-toggle="tab"><i class="fa fa-gears"></i></a></li>
+        </ul>
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <!-- Home tab content -->
+            <div class="tab-pane" id="control-sidebar-home-tab">
+                <h3 class="control-sidebar-heading">Recent Activity</h3>
+                <ul class="control-sidebar-menu">
+                    <li>
+                        <a href="javascript:void(0)">
+                            <i class="menu-icon fa fa-birthday-cake bg-red"></i>
+
+                            <div class="menu-info">
+                                <h4 class="control-sidebar-subheading">Langdon's Birthday</h4>
+
+                                <p>Will be 23 on April 24th</p>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)">
+                            <i class="menu-icon fa fa-user bg-yellow"></i>
+
+                            <div class="menu-info">
+                                <h4 class="control-sidebar-subheading">Frodo Updated His Profile</h4>
+
+                                <p>New phone +1(800)555-1234</p>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)">
+                            <i class="menu-icon fa fa-envelope-o bg-light-blue"></i>
+
+                            <div class="menu-info">
+                                <h4 class="control-sidebar-subheading">Nora Joined Mailing List</h4>
+
+                                <p>nora@example.com</p>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)">
+                            <i class="menu-icon fa fa-file-code-o bg-green"></i>
+
+                            <div class="menu-info">
+                                <h4 class="control-sidebar-subheading">Cron Job 254 Executed</h4>
+
+                                <p>Execution time 5 seconds</p>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+                <!-- /.control-sidebar-menu -->
+
+                <h3 class="control-sidebar-heading">Tasks Progress</h3>
+                <ul class="control-sidebar-menu">
+                    <li>
+                        <a href="javascript:void(0)">
+                            <h4 class="control-sidebar-subheading">
+                                Custom Template Design
+                                <span class="label label-danger pull-right">70%</span>
+                            </h4>
+
+                            <div class="progress progress-xxs">
+                                <div class="progress-bar progress-bar-danger" style="width: 70%"></div>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)">
+                            <h4 class="control-sidebar-subheading">
+                                Update Resume
+                                <span class="label label-success pull-right">95%</span>
+                            </h4>
+
+                            <div class="progress progress-xxs">
+                                <div class="progress-bar progress-bar-success" style="width: 95%"></div>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)">
+                            <h4 class="control-sidebar-subheading">
+                                Laravel Integration
+                                <span class="label label-warning pull-right">50%</span>
+                            </h4>
+
+                            <div class="progress progress-xxs">
+                                <div class="progress-bar progress-bar-warning" style="width: 50%"></div>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="javascript:void(0)">
+                            <h4 class="control-sidebar-subheading">
+                                Back End Framework
+                                <span class="label label-primary pull-right">68%</span>
+                            </h4>
+
+                            <div class="progress progress-xxs">
+                                <div class="progress-bar progress-bar-primary" style="width: 68%"></div>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+                <!-- /.control-sidebar-menu -->
+
+            </div>
+            <!-- /.tab-pane -->
+            <!-- Stats tab content -->
+            <div class="tab-pane" id="control-sidebar-stats-tab">Stats Tab Content</div>
+            <!-- /.tab-pane -->
+            <!-- Settings tab content -->
+            <div class="tab-pane" id="control-sidebar-settings-tab">
+                <form method="post">
+                    <h3 class="control-sidebar-heading">General Settings</h3>
+
+                    <div class="form-group">
+                        <label class="control-sidebar-subheading">
+                            Report panel usage
+                            <input type="checkbox" class="pull-right" checked>
+                        </label>
+
+                        <p>
+                            Some information about this general settings option
+                        </p>
+                    </div>
+                    <!-- /.form-group -->
+
+                    <div class="form-group">
+                        <label class="control-sidebar-subheading">
+                            Allow mail redirect
+                            <input type="checkbox" class="pull-right" checked>
+                        </label>
+
+                        <p>
+                            Other sets of options are available
+                        </p>
+                    </div>
+                    <!-- /.form-group -->
+
+                    <div class="form-group">
+                        <label class="control-sidebar-subheading">
+                            Expose author name in posts
+                            <input type="checkbox" class="pull-right" checked>
+                        </label>
+
+                        <p>
+                            Allow the user to show his name in blog posts
+                        </p>
+                    </div>
+                    <!-- /.form-group -->
+
+                    <h3 class="control-sidebar-heading">Chat Settings</h3>
+
+                    <div class="form-group">
+                        <label class="control-sidebar-subheading">
+                            Show me as online
+                            <input type="checkbox" class="pull-right" checked>
+                        </label>
+                    </div>
+                    <!-- /.form-group -->
+
+                    <div class="form-group">
+                        <label class="control-sidebar-subheading">
+                            Turn off notifications
+                            <input type="checkbox" class="pull-right">
+                        </label>
+                    </div>
+                    <!-- /.form-group -->
+
+                    <div class="form-group">
+                        <label class="control-sidebar-subheading">
+                            Delete chat history
+                            <a href="javascript:void(0)" class="text-red pull-right"><i class="fa fa-trash-o"></i></a>
+                        </label>
+                    </div>
+                    <!-- /.form-group -->
+                </form>
+            </div>
+            <!-- /.tab-pane -->
+        </div>
+    </aside>
+    <!-- /.control-sidebar -->
+    <!-- Add the sidebar's background. This div must be placed
+         immediately after the control sidebar -->
+    <div class="control-sidebar-bg"></div>
 </div>
+
+
 <?php
 include_once SERVER_ROOT . APP_VIEW . 'Layout/Styles.php';
 include_once SERVER_ROOT . APP_VIEW . 'Layout/Scripts.php';
 ?>
+
 </body>
 </html>
