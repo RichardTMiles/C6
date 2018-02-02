@@ -246,6 +246,10 @@ $logged_in = $_SESSION['id'] ?? false;
         <div class="clearfix"></div>
         <!-- /.container -->
     </div>
+    <div class="clearfix"></div>
+    <?php
+    include_once SERVER_ROOT . APP_VIEW . 'Layout/Styles.php';
+    ?>
     <!-- /.content-wrapper -->
     <footer class="main-footer bg-black" style="border-top-color:black">
         <div class="container">
@@ -260,7 +264,6 @@ $logged_in = $_SESSION['id'] ?? false;
     </footer>
 </div>
 <?php
-include_once SERVER_ROOT . APP_VIEW . 'Layout/Styles.php';
 include_once SERVER_ROOT . APP_VIEW . 'Layout/Scripts.php';
 ?>
 </body>
