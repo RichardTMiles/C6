@@ -3,9 +3,9 @@
     <div class="alert alert-danger alert-dismissible">
         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
         <h4>C6 Caveats</h4>
-        <p>To use the `composer` command you must have <a href="https://getcomposer.org/doc/00-intro.md">Composer
+        <p>To use the `composer` command you must have <a href="https://getcomposer.org/doc/00-intro.md" target="_blank">Composer
                 installed globally.</a>
-            The C6 framework uses resources from the <a href="https://bower.io">Bower</a> package manager, which
+            The C6 framework uses resources from the <a href="https://bower.io" target="_blank">Bower</a> package manager, which
             downloads components that contain HTML, CSS, JavaScript, fonts or even image files.
             To use the Bower directly from Composer you must install the "fxp/composer-asset-plugin:~1.3" asset before
             running <b>composer [ require, create-project, or update ]</b>.
@@ -52,7 +52,7 @@
                                 installed.</p>
                             <code>composer global require "fxp/composer-asset-plugin:~1.3"</code>
                             <br>
-                            <code>composer create-project --prefer-dist richardtmiles/c6 </code>
+                            <code>composer create-project richardtmiles/c6 . --prefer-dist --stability dev</code>
                             <br><br>
                         </div>
                     </div>

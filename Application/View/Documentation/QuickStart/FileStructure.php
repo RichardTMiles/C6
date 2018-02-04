@@ -100,13 +100,13 @@
         </div>
         <div class="box-body">
             <p class="lead">
-                The following function is used for many all routes involving <a href="#" class="text-purple">user
+                The following function is used for many all routes involving <a href="<?=SITE?>" class="text-purple">user
                     input or dynamic view.</a>
             </p>
             <p>It is useful to separate the Controller->Model function for events that
                     only return json data. If the HTML requested is not dynamic than you can directly run the
                     <code>View::Content()</code> static method.
-                    <a href="" class="text-purple">This will wrap the html in the provided wrapper.</a>
+                    <a href="<?=SITE?>" class="text-purple">This will wrap the html in the provided wrapper.</a>
             </p>
             <pre>
         <code><?= highlight('

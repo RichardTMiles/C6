@@ -4,9 +4,9 @@ namespace Model;
 
 use Carbon\Helpers\Serialized;
 use Model\Helpers\GlobalMap;
-use Tables\Users;
-use Tables\Followers;
-use Tables\Messages;
+use Table\Users;
+use Table\Followers;
+use Table\Messages;
 use Carbon\Error\PublicAlert;
 use Carbon\Helpers\Bcrypt;
 use Carbon\Request;

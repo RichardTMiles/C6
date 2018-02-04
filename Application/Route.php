@@ -8,6 +8,7 @@ $url = new class extends Route
 {
     public function defaultRoute()  // Sockets will not execute this
     {
+
         if (!$_SESSION['id']):
             View::$forceWrapper = true;
             return $this->wrap()('Documentation/Home.php');  // don't change how wrap works, I know it looks funny
@@ -123,10 +124,6 @@ if ((string)$url->match('UIElements/{AdminLTE?}', function ($AdminLTE) use ($url
 })) {
     return true;
 }
-
-
-
-
 
 $url->structure($url->MVC());
 

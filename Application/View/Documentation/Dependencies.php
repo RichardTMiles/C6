@@ -19,8 +19,7 @@
                             Logger, and MySQL's INNODB driver. <a href="<?=SITE?>Installation">To install CarbonPHP you must have Composer.</a></p>
 
                         <p><b>C6</b> depends on four major libraries.
-                            The downloadable package contains all of these dependancies, so you don't have to manually
-                            download them with a package manager like composer.</p>
+                        </p>
                         <ul class="bring-up">
                             <li><a href="https://jquery-form.github.io/form/" class="text-purple" target="_blank">Jquery Form</a></li>
                             <li><a href="https://pjax.herokuapp.com" class="text-purple" target="_blank">Jquery Pjax</a></li>

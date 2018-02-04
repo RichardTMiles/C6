@@ -30,7 +30,7 @@ $logged_in = $_SESSION['id'] ?? false;
                         <li><a href="<?= SITE ?>Profile">Profile</a></li>
                         <li><a href="<?= SITE ?>LiveChat">Live Chat</a></li>
                     <?php else: ?>
-                        <li><a href="<?= SITE ?>login">Login</a></li>
+                        <!--li><a href="<?= SITE ?>login">Login</a></li-->
                     <?php endif; ?>
                     <li><a href="http://Miles.Systems/">Miles.Systems</a></li>
                     <li><a href="http://Stats.Coach/">Stats.Coach</a></li>

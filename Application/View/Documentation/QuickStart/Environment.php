@@ -150,21 +150,19 @@
                                     <li><code>sudo apt-get install apache2</code></li>
                                     <li><code>sudo a2enmod headers</code></li>
                                     <li><code>sudo a2enmod rewrite</code></li>
-                                    <li><code>sudo vim etc/apache2/mods-availble/rewrite.load</code></li>
-                                    <li>Scroll to this line in the document <code>&lt;Directory /var/www/&gt;</code>
-                                        <ul>
-                                            <li>Change allow Override to <code>All</code></li>
-                                        </ul>
-                                    </li>
                                     <li>Restart Apache
-                                        <ul><li><code>sudo service apache2 restart</code></li></ul>
+                                        <ul>
+                                            <li><code>sudo service apache2 restart</code></li>
+                                        </ul>
                                     </li>
                                 </ol>
                                 <h4>Install MySql</h4>
                                 <ol>
                                     <li><code>sudo apt-get install mysql-server php-pear</code></li>
                                     <li><code>sudo mysql_secure_installation</code>
-                                        <ul><li>You'll be prompted for the following</li></ul>
+                                        <ul>
+                                            <li>You'll be prompted for the following</li>
+                                        </ul>
                                         <ol>
                                             <li>Set a root password</li>
                                             <li>Remove the anonymous user</li>
@@ -173,15 +171,20 @@
                                             <li>Reload privilege tables</li>
                                         </ol>
                                     </li>
-                                    <li>We need to create a user other than root to connect with. The following commands will
-                                        create a user named phpmyadmin with the password some_pass. You should change this to your
+                                    <li>We need to create a user other than root to connect with. The following commands
+                                        will
+                                        create a user named phpmyadmin with the password some_pass. You should change
+                                        this to your
                                         desired options.
-                                    <ol><li><code>sudo mysql --user=root mysql</code></li>
-                                        <li><code>CREATE USER 'phpmyadmin'@'localhost' IDENTIFIED BY 'some_pass';</code></li>
-                                        <li><code>GRANT ALL PRIVILEGES ON *.* TO 'phpmyadmin'@'localhost' WITH GRANT OPTION;</code></li>
-                                        <li><code>FLUSH PRIVILEGES;</code></li>
-                                        <li><code>exit</code></li>
-                                    </ol>
+                                        <ol>
+                                            <li><code>sudo mysql --user=root mysql</code></li>
+                                            <li><code>CREATE USER 'phpmyadmin'@'localhost' IDENTIFIED BY
+                                                    'some_pass';</code></li>
+                                            <li><code>GRANT ALL PRIVILEGES ON *.* TO 'phpmyadmin'@'localhost' WITH GRANT
+                                                    OPTION;</code></li>
+                                            <li><code>FLUSH PRIVILEGES;</code></li>
+                                            <li><code>exit</code></li>
+                                        </ol>
                                     </li>
                                 </ol>
                                 <h4>Install PHP 7.1</h4>
@@ -202,33 +205,58 @@
                                             main" > /etc/apt/sources.list.d/php.list'</code></li>
                                     <li><code>sudo wget -O /etc/apt/trusted.gpg.d/php.gpg
                                             https://packages.sury.org/php/apt.gpg</code></li>
+                                    <li><code>sudo apt-get update</code></li>
                                     <li><code>sudo apt-get install php7.1 php7.1-common</code></li>
-                                    <li><code>sudo apt-get install php7.1-curl php7.1-xml php7.1-zip php7.1-gd php7.1-mysql php7.1-mbstring</code></li>
+                                    <li><code>sudo apt-get install php7.1-curl php7.1-xml php7.1-zip php7.1-gd
+                                            php7.1-mysql php7.1-mbstring</code></li>
+                                    <li><code>sudo service apache2 reload</code></li>
+                                </ol>
+                                <h4>Turn on .htaccess support</h4>
+                                <ol>
+                                    <li><code>sudo vim etc/apache2/apache2.conf</code></li>
+                                    <li>Scroll to this line in the document <code>&lt;Directory /var/www/&gt;</code>
+                                        <ul>
+                                            <li>Change allow Override to <code>All</code></li>
+                                        </ul>
+                                    </li>
                                 </ol>
 
                                 <h4>Install Github's Commandline Tool</h4>
-                                <ol><li><code>sudo apt-get install git-core</code></li>
-                                    <ul><li>That was easy!</li></ul>
+                                <ol>
+                                    <li><code>sudo apt-get install git-core</code></li>
+                                    <ul>
+                                        <li>That was easy!</li>
+                                    </ul>
                                 </ol>
 
                                 <h4>Change Website Directory Permission</h4>
                                 <ol>
                                     <li>Lets add ourselves to the Admin 'sudo' Group. Type the
                                         following in your ssh command prompt.
-                                        <ol><li>cd /var/www/</li>
+                                        <ol>
+                                            <li><code>cd /var/www/</code></li>
                                             <li><code>whoami</code>
-                                                <ul><li>This will output your username</li></ul>
+                                                <ul>
+                                                    <li>This will output your username</li>
+                                                </ul>
                                             </li>
                                             <li><code>sudo chown -R username html/</code>
-                                                <ul><li>Replace username with the user outputted
-                                                    by the whoami function</li></ul>
+                                                <ul>
+                                                    <li>Replace username with the user outputted
+                                                        by the whoami function
+                                                    </li>
+                                                </ul>
                                             </li>
                                         </ol>
                                     </li>
                                     <li>We need to change the directory permission so sFTP will work properly
-                                        <ul><li>Again, replace username with the user outputted
-                                                by the whoami function</li></ul>
-                                        <ol><li><code>sudo chown -R username html/</code>
+                                        <ul>
+                                            <li>Again, replace username with the user outputted
+                                                by the whoami function
+                                            </li>
+                                        </ul>
+                                        <ol>
+                                            <li><code>sudo chown -R username html/</code>
 
                                             </li>
                                             <li><code>sudo chown username html/index.html</code></li>
@@ -245,7 +273,9 @@
                                         </ul>
                                     </li>
                                     <li>Type <code>php -v</code> in your VM's SSH connection
-                                        <ul><li>You should be greeted with <code>PHP 7.1.13</code></li></ul>
+                                        <ul>
+                                            <li>You should be greeted with <code>PHP 7.1.13</code></li>
+                                        </ul>
                                     </li>
                                     <li>Navigate to your website root
                                         <ul>

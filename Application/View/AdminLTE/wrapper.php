@@ -347,7 +347,7 @@ $logged_in = $_SESSION['id'] ?? false;
                     </a>
                     <ul class="treeview-menu">
                         <li><a href="<?= SITE ?>UIElements/chartjs"><i class="fa fa-circle-o"></i> ChartJS</a></li>
-                        <li><a href="<?= SITE ?>UIElements/morris"><i class="fa fa-circle-o"></i> Morris</a></li>
+                        <!--li><a href="/UIElements/morris"><i class="fa fa-circle-o"></i> Morris</a></li-->
                         <li><a href="<?= SITE ?>UIElements/flot"><i class="fa fa-circle-o"></i> Flot</a></li>
                         <li><a href="<?= SITE ?>UIElements/inline"><i class="fa fa-circle-o"></i> Inline charts</a></li>
                     </ul>
