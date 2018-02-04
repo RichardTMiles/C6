@@ -19,6 +19,8 @@ RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
 #RewriteCond %{HTTP:X-Forwarded-Proto} !https
 #RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+# Certs on Google Compute https://community.letsencrypt.org/t/lets-encrypt-on-wordpress-on-google-compute-engine/22296
+
 #prevent hotlinking
 RewriteEngine on
 RewriteCond %{HTTP_REFERER} !^$
