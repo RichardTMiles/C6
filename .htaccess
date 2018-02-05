@@ -9,7 +9,7 @@ Options +FollowSymLinks
 # Remove www.
 RewriteBase /
 RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
-RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 
 # Turn on https ( Cent OS )
 #RewriteCond %{HTTPS} off
@@ -24,7 +24,7 @@ RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
 #prevent hotlinking
 RewriteEngine on
 RewriteCond %{HTTP_REFERER} !^$
-RewriteCond %{HTTP_REFERER} !^http://carbonphp.com/.*$ [NC]
+RewriteCond %{HTTP_REFERER} !^https://carbonphp.com/.*$ [NC]
 RewriteRule \.(gif|jpg)$ - [F]
 
 
