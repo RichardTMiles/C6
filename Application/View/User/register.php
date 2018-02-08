@@ -1,7 +1,7 @@
 <?php global $firstName, $lastName, $email, $username, $gender, $teamCode, $teamName, $schoolName, $userType;  ?>
 <div class="register-box" >
     <div class="register-logo">
-        <a href="<?= SITE ?>" style="color: #ffffff; font-size: 150%"><b>Carbon</b> 6</a>
+        <a href="<?= SITE ?>" style="color: #ffffff; font-size: 150%"><b>Asset</b>Scheduler</a>
     </div><!-- /.login-logo -->
 
     <div class="register-box-body">
@@ -113,8 +113,5 @@
 
     Carbon(() => {
         $.fn.load_iCheck('input');
-        $.fn.load_backStreach("https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?ixlib=rb-0.3.5&s=872a83ba6a07ac43b3e7176337665316&auto=format&fit=crop&w=1950&q=80");
-        let remove=()=>$.fn.load_backStreach();
-        $(document).off("pjax:beforeSend", remove).on("pjax:beforeSend", remove)
     });
 </script>

@@ -11,7 +11,7 @@ $url = new class extends Route
         View::$forceWrapper = true; // this will hard refresh the wrapper
 
         if (!$_SESSION['id']):
-            return $this->wrap()('Documentation/Home.php');  // don't change how wrap works, I know it looks funny
+            return $this->wrap()('GoldTeam/Home.php');  // don't change how wrap works, I know it looks funny
         else:
             return MVC('user', 'profile');
         endif;
@@ -67,65 +67,21 @@ $url->structure($url->wrap());
 
 
 #################################### CarbonPHP Doc
-if ((string)$url->match('Home/', 'Documentation/Home.php') ||
-    (string)$url->match('CarbonPHP', 'Documentation/Introduction.php') ||
-    (string)$url->match('Installation', 'Documentation/Installation.php') ||
-    (string)$url->match('Implementations', 'Documentation/Implementations.php') ||
-    (string)$url->match('Dependencies', 'Documentation/Dependencies.php') ||
-    (string)$url->match('FileStructure', 'Documentation/QuickStart/FileStructure.php') ||
-    (string)$url->match('Environment', 'Documentation/QuickStart/Environment.php') ||
-    (string)$url->match('Options', 'Documentation/QuickStart/Options.php') ||
-    (string)$url->match('Bootstrap', 'Documentation/QuickStart/Bootstrap.php') ||
-    (string)$url->match('Wrapper', 'Documentation/QuickStart/Wrapper.php') ||
-    (string)$url->match('Parallel', 'Documentation/QuickStart/ParallelProcessing.php') ||
-    (string)$url->match('Overview', 'Documentation/PHP/Overview.php') ||
-    (string)$url->match('Entities', 'Documentation/PHP/Entities.php') ||
-    (string)$url->match('Request', 'Documentation/PHP/Request.php') ||
-    (string)$url->match('Route', 'Documentation/PHP/Route.php') ||
-    (string)$url->match('Server', 'Documentation/PHP/Server.php') ||
-    (string)$url->match('Session', 'Documentation/PHP/Session.php') ||
-    (string)$url->match('Singleton', 'Documentation/PHP/Singleton.php') ||
-    (string)$url->match('View', 'Documentation/PHP/View.php') ||
-    (string)$url->match('OSSupport', 'Documentation/PlatformSupport.php') ||
-    (string)$url->match('UpgradeGuide', 'Documentation/PlatformSupport.php') ||
-    (string)$url->match('Support', 'Documentation/Support.php') ||
-    (string)$url->match('License', 'Documentation/License.php') ||
-    (string)$url->match('AdminLTE', 'Documentation/AdminLTE.php') ||
-    (string)$url->match('N00B', 'Documentation/N00B.php')) {
-    return true;
-}
-
-
-
-###################################### AdminLTE DOC
-
-if ((string)$url->match('UIElements/{AdminLTE?}', function ($AdminLTE) use ($url) {
-
-    $AdminLTE = (new \Carbon\Request())->set($AdminLTE)->word();  // must be validated
-
-    if (!$AdminLTE) {
-        View::$forceWrapper = true;
-        $AdminLTE = 'widgets';
-    }
-
-    if (file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE'.DS.$AdminLTE.'.php') ||
-        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Charts'.DS.$AdminLTE.'.php') ||
-        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Examples'.DS.$AdminLTE.'.php') ||
-        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Forms'.DS.$AdminLTE.'.php') ||
-        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Layout'.DS.$AdminLTE.'.php') ||
-        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Mailbox'.DS.$AdminLTE.'.php') ||
-        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/Tables'.DS.$AdminLTE.'.php') ||
-        file_exists(SERVER_ROOT.APP_VIEW.$path = 'AdminLTE/UI'.DS.$AdminLTE.'.php')) {
-
-        View::$wrapper = SERVER_ROOT . APP_VIEW . 'AdminLTE/wrapper.php';
-
-        $url->wrap()($path);
-    }
-})) {
+if ((string)$url->match('Home', 'GoldTeam/Home.php') ||
+    (string)$url->match('About', 'GoldTeam/About.php') ||
+    (string)$url->match('FAQ', 'GoldTeam/FAQ.php') ||
+    (string)$url->match('Trial', 'GoldTeam/Trial.php') ||
+    (string)$url->match('Features', 'GoldTeam/Features.php')
+) {
     return true;
 }
 
 $url->structure($url->MVC());
+
+if ((string)$url->match('Contact', 'Messages', 'Mail')) {
+    return true;
+}
+
 
 ################################### MVC
 if (!$_SESSION['id']) {  // Signed out

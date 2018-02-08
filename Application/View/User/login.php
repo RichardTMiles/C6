@@ -1,7 +1,7 @@
 <?php global $UserImage, $UserName, $FullName; ?>
 <div class="login-box">
     <div class="login-logo">
-        <a href="<?= SITE ?>" style="color: #ffffff; font-size: 150%"><b>Carbon</b> 6</a>
+        <a href="<?= SITE ?>" style="color: #ffffff; font-size: 150%"><b>Asset</b>Scheduler</a>
     </div><!-- /.login-logo -->
     <div class="login-box-body" style="background-color: #ECF0F1; color: #0c0c0c; border: medium">
         <p class="login-box-msg">Sign in to start your session</p>
