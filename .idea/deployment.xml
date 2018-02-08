@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="Google" uploadOnCheckin="63a55c9b-855f-47ef-8a09-5f9ab4fee3bb">
+  <component name="PublishConfigData" autoUpload="Always" serverName="Google">
     <serverData>
       <paths name="Google">
         <serverdata>
@@ -10,7 +10,6 @@
         </serverdata>
       </paths>
     </serverData>
-    <option name="myUploadOnCheckinName" value="Google" />
     <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>

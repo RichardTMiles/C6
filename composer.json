@@ -28,16 +28,11 @@
   },
 
   "require": {
-    "php": "7.1.*",
+    "php": ">=7.1",
     "google/cloud": ">=0.21",
     "facebook/graph-sdk": "^5.6.1",
     "google/apiclient": "dev-master",
     "mustache/mustache": "dev-master",
-    "almasaeed2010/adminlte": "dev-master",
-    "bower-asset/mustache.js": "dev-master",
-    "bower-asset/jquery-form": "dev-master",
-    "bower-asset/jquery-pjax": "dev-master",
-    "bower-asset/jquery-backstretch": "dev-master"
-
+    "almasaeed2010/adminlte":"v2.4.0"
   }
 }

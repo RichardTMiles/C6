@@ -29,14 +29,15 @@ const FACEBOOK_APP_SECRET = '';
 const GOOGLE_APP_ID = '';
 const GOOGLE_APP_SECRET = '';
 
+
 return [
     'DATABASE' => [
 
-        'DB_DSN' => getenv('MYSQL_DSN') ?: 'mysql:host=127.0.0.1;dbname=C6;',      // Host and Database get put here
+        'DB_DSN' =>  APP_LOCAL ? 'mysql:host=127.0.0.1;dbname=C6;' : 'mysql:host=35.224.229.250;dbname=C6;',      // Host and Database get put here
 
-        'DB_USER' => getenv('MYSQL_USER') ?: 'Carbon6',                // User
+        'DB_USER' => 'root',                // User
 
-        'DB_PASS' => getenv('MYSQL_PASSWORD') ?: 'Huskies!99',          // Password
+        'DB_PASS' => 'goldteamrules',          // Password
 
         'DB_BUILD' => SERVER_ROOT . 'Application/Config/buildDatabase.php',
 
@@ -44,19 +45,19 @@ return [
     ],
 
     'SITE' => [
-        'URL' => 'carbonphp.com',    // Evaluated and if not the accurate redirect. Local php server okay. Remove for any domain
+        'URL' => 'rootprerogative.com',    // Evaluated and if not the accurate redirect. Local php server okay. Remove for any domain
 
         'ROOT' => SERVER_ROOT,     // This was defined in our ../index.php
 
-        'ALLOWED_EXTENSIONS' => 'png|jpg|gif|jpeg|bmp|icon|js|css|woff|woff2|map|hbs|eotv',     // File ending in these extentions will be served
+        'ALLOWED_EXTENSIONS' => 'png|jpg|gif|jpeg|bmp|icon|js|css|woff|woff2|map|hbs|eotv',     // File ending in these extensions will be served
 
         'CONFIG' => __FILE__,      // Send to sockets
 
         'TIMEZONE' => 'America/Phoenix',    //  Current timezone TODO - look up php
 
-        'TITLE' => 'C6 • CarbonPHP',      // Website title
+        'TITLE' => 'Root • Prerogative',      // Website title
 
-        'VERSION' => '1.0.0',       // Add link to symantic versioning
+        'VERSION' => '0.0.0',       // Add link to semantic versioning
 
         'SEND_EMAIL' => 'no-reply@carbonphp.com',     // I send emails to validate accounts
 
@@ -117,7 +118,7 @@ return [
     'VIEW' => [
         'VIEW' => 'Application/View/',  // This is where the MVC() function will map the HTML.PHP and HTML.HBS . See Carbonphp.com/mvc
 
-        'WRAPPER' => 'wrapper.php',     // View::content() will produce this
+        'WRAPPER' => 'GoldTeam/Wrapper.php',     // View::content() will produce this
     ],
 
 ];

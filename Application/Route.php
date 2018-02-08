@@ -8,9 +8,9 @@ $url = new class extends Route
 {
     public function defaultRoute()  // Sockets will not execute this
     {
+        View::$forceWrapper = true; // this will hard refresh the wrapper
 
         if (!$_SESSION['id']):
-            View::$forceWrapper = true;
             return $this->wrap()('Documentation/Home.php');  // don't change how wrap works, I know it looks funny
         else:
             return MVC('user', 'profile');

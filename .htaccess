@@ -24,7 +24,7 @@ RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 #prevent hotlinking
 RewriteEngine on
 RewriteCond %{HTTP_REFERER} !^$
-RewriteCond %{HTTP_REFERER} !^https://carbonphp.com/.*$ [NC]
+RewriteCond %{HTTP_REFERER} !^https://http://rootprerogative.com/.*$ [NC]
 RewriteRule \.(gif|jpg)$ - [F]
 
 
@@ -55,7 +55,7 @@ DefaultLanguage en-US
 AddDefaultCharset utf-8
 
 # Error Redirects
-ErrorDocument 404 https://carbonphp.com/404/
+ErrorDocument 404 https://rootprerogative.com/404/
 
 # God forbit an uncaught error - Display contact method
 #ServerSignature EMail

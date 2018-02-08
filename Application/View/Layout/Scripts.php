@@ -23,7 +23,7 @@
         $.fn.CarbonJS = (sc, cb) => (!JSLoaded.has(sc) ? loadJS(sc, cb) : cb());
 
         //-- Jquery Form -->
-        $.fn.CarbonJS('<?=  SITE . COMPOSER . 'bower-asset/jquery-form/src/jquery.form.js'?>');
+        $.fn.CarbonJS('<?=  SITE . APP_VIEW . 'bower-asset/jquery-form/src/jquery.form.js'?>');
 
         //-- Bootstrap -->
         $.fn.CarbonJS("<?=  SITE . TEMPLATE . 'bower_components/bootstrap/dist/js/bootstrap.min.js' ?>", () =>
@@ -43,7 +43,7 @@
                                 $(selector).length ? $(selector).backstretch(img) : $.backstretch(img));
 
 
-                        $.fn.CarbonJS("<?=  SITE . COMPOSER . 'bower-asset/jquery-backstretch/jquery.backstretch.min.js' ?>", () => {
+                        $.fn.CarbonJS("<?=  SITE . APP_VIEW . 'bower-asset/jquery-backstretch/jquery.backstretch.min.js' ?>", () => {
                             $.backstretch('<?=SITE . APP_VIEW?>Img/Carbon-green.png');
                         });
 
@@ -159,8 +159,8 @@
 
                         //-- PJAX-->
                         $.fn.CarbonJS("<?=SITE . APP_VIEW?>AdminLTE/Demo/demo.js", () =>
-                            $.fn.CarbonJS("<?=  SITE . COMPOSER . 'bower-asset/jquery-pjax/jquery.pjax.js' ?>", () =>
-                                $.fn.CarbonJS("<?=  SITE . COMPOSER . 'bower-asset/mustache.js/mustache.js' ?>", () =>
+                            $.fn.CarbonJS("<?=  SITE . APP_VIEW . 'bower-asset/jquery-pjax/jquery.pjax.js' ?>", () =>
+                                $.fn.CarbonJS("<?=  SITE . APP_VIEW . 'bower-asset/mustache.js/mustache.js' ?>", () =>
                                     $.fn.CarbonJS("<?=  SITE . COMPOSER . 'richardtmiles/carbonphp/Helpers/Carbon.js'?>", () => {
                                         CarbonJS('#pjax-content', '', false)
                                         //-- Activate Left Sidebar Tree Menu

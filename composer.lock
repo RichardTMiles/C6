@@ -12,15 +12,16 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/almasaeed2010/AdminLTE.git",
-                "reference": "51e96d8ea9208f6004002901ccd5f20bfb17d23e"
+                "reference": "88acf9c14fb727a26bee1a0002be16f02c0709a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/almasaeed2010/AdminLTE/zipball/51e96d8ea9208f6004002901ccd5f20bfb17d23e",
-                "reference": "51e96d8ea9208f6004002901ccd5f20bfb17d23e",
+                "url": "https://api.github.com/repos/almasaeed2010/AdminLTE/zipball/88acf9c14fb727a26bee1a0002be16f02c0709a9",
+                "reference": "88acf9c14fb727a26bee1a0002be16f02c0709a9",
                 "shasum": ""
             },
             "require": {
+                "bower-asset/jquery": ">=1.9.0 <4.0.0",
                 "composer/installers": "1.*"
             },
             "type": "template",
@@ -47,7 +48,7 @@
                 "theme",
                 "web"
             ],
-            "time": "2017-11-29T11:44:04+00:00"
+            "time": "2018-02-04T13:53:33+00:00"
         },
         {
             "name": "bower-asset/jquery",
@@ -456,12 +457,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/google/google-api-php-client.git",
-                "reference": "ffb8b9ba2d5c212c34e0f00d93b48ea4bceda882"
+                "reference": "d669e0f3b92da94d5b4ed960d462dd3b0de920ea"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/google/google-api-php-client/zipball/ffb8b9ba2d5c212c34e0f00d93b48ea4bceda882",
-                "reference": "ffb8b9ba2d5c212c34e0f00d93b48ea4bceda882",
+                "url": "https://api.github.com/repos/google/google-api-php-client/zipball/d669e0f3b92da94d5b4ed960d462dd3b0de920ea",
+                "reference": "d669e0f3b92da94d5b4ed960d462dd3b0de920ea",
                 "shasum": ""
             },
             "require": {
@@ -507,20 +508,20 @@
             "keywords": [
                 "google"
             ],
-            "time": "2018-01-26T20:12:54+00:00"
+            "time": "2018-02-06T22:48:42+00:00"
         },
         {
             "name": "google/apiclient-services",
-            "version": "v0.44",
+            "version": "v0.45",
             "source": {
                 "type": "git",
                 "url": "https://github.com/google/google-api-php-client-services.git",
-                "reference": "7f1b3a3f387fc3435f27003977ebf5989f8bcca2"
+                "reference": "35909fbc909bf9f9e0d36dd05b62f4b1d5ffe3ae"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/google/google-api-php-client-services/zipball/7f1b3a3f387fc3435f27003977ebf5989f8bcca2",
-                "reference": "7f1b3a3f387fc3435f27003977ebf5989f8bcca2",
+                "url": "https://api.github.com/repos/google/google-api-php-client-services/zipball/35909fbc909bf9f9e0d36dd05b62f4b1d5ffe3ae",
+                "reference": "35909fbc909bf9f9e0d36dd05b62f4b1d5ffe3ae",
                 "shasum": ""
             },
             "require": {
@@ -544,7 +545,7 @@
             "keywords": [
                 "google"
             ],
-            "time": "2018-01-28T00:23:18+00:00"
+            "time": "2018-02-03T00:23:12+00:00"
         },
         {
             "name": "google/auth",
@@ -857,16 +858,16 @@
         },
         {
             "name": "grpc/grpc",
-            "version": "1.6.0",
+            "version": "1.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/grpc/grpc-php.git",
-                "reference": "8d190d91ddb9d980f685d9caf79bca62d7edc1e6"
+                "reference": "a502df7fac0b392dde13ddf157062b5184d0688e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/grpc/grpc-php/zipball/8d190d91ddb9d980f685d9caf79bca62d7edc1e6",
-                "reference": "8d190d91ddb9d980f685d9caf79bca62d7edc1e6",
+                "url": "https://api.github.com/repos/grpc/grpc-php/zipball/a502df7fac0b392dde13ddf157062b5184d0688e",
+                "reference": "a502df7fac0b392dde13ddf157062b5184d0688e",
                 "shasum": ""
             },
             "require": {
@@ -894,7 +895,7 @@
             "keywords": [
                 "rpc"
             ],
-            "time": "2017-09-11T20:50:39+00:00"
+            "time": "2018-01-24T21:48:21+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -1669,12 +1670,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/RichardTMiles/CarbonPHP.git",
-                "reference": "519a10d067b06d336d8e423bbaf503e1cd967107"
+                "reference": "175acd087ed3ea0dad6dd4092e0c36a539a6f66a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/519a10d067b06d336d8e423bbaf503e1cd967107",
-                "reference": "519a10d067b06d336d8e423bbaf503e1cd967107",
+                "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/175acd087ed3ea0dad6dd4092e0c36a539a6f66a",
+                "reference": "175acd087ed3ea0dad6dd4092e0c36a539a6f66a",
                 "shasum": ""
             },
             "require": {
@@ -1718,7 +1719,7 @@
                 "pipes",
                 "sockets"
             ],
-            "time": "2018-02-02T03:01:58+00:00"
+            "time": "2018-02-04T21:49:37+00:00"
         },
         {
             "name": "symfony/browser-kit",
