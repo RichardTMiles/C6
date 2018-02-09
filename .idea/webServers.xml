@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="71fe64df-caef-4dfd-b578-354dbce7fcd1" name="Google" url="http://35.231.27.151">
-        <fileTransfer host="35.231.27.151" port="22" privateKey="$USER_HOME$/.ssh/google_compute_engine" rootFolder="/var/www/html" accessType="SFTP" keyPair="true">
+        <fileTransfer host="35.231.27.151" port="22" privateKey="$USER_HOME$/.ssh/google_compute_engine" rootFolder="/var/www/" accessType="SFTP" keyPair="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />
           </advancedOptions>
