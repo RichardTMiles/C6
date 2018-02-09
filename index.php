@@ -13,6 +13,7 @@ if (false === (include SERVER_ROOT . 'Data/Vendors/autoload.php')) {     // Load
 
 $app = new Carbon\Carbon('Application/Config/Config.php');
 
+
 /** At one point I returned the invocation of $app to show that
  * the application will not exit on completion, but rather return
  * back to this index file. This means you can still execute code

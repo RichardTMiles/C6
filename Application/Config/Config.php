@@ -35,7 +35,7 @@ return [
 
         'DB_DSN' =>  APP_LOCAL ? 'mysql:host=127.0.0.1;dbname=C6;' : 'mysql:host=35.224.229.250;dbname=C6;',      // Host and Database get put here
 
-        'DB_USER' => 'root',                // User
+        'DB_USER' => 'root',                 // User
 
         'DB_PASS' => 'goldteamrules',          // Password
 
