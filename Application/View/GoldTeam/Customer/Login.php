@@ -1,7 +1,7 @@
 <?php global $UserImage, $UserName, $FullName; ?>
 <div class="login-box">
     <div class="login-logo">
-        <a href="<?= SITE ?>" style="color: #ffffff; font-size: 150%"><b>Asset</b>Scheduler</a>
+        <a href="<?= SITE ?>" style="color: #ffffff; font-size: 150%"><b>Restau</b>Rants</a>
     </div><!-- /.login-logo -->
     <div class="login-box-body" style="background-color: #ECF0F1; color: #0c0c0c; border: medium">
         <p class="login-box-msg">Sign in to start your session</p>
@@ -11,9 +11,7 @@
         <?php if (empty($UserName)): ?>
             <form data-pjax action="<?= SITE ?>login/" method="post"> <!-- return false; -->
                 <div class="form-group has-feedback">
-                    <input type="text" class="form-control" name="username"
-                           placeholder="Username"
-                           value="<?= (isset($_POST['username']) ? htmlentities($_POST['username']) : null); ?>">
+                    <input type="text" class="form-control" name="username" placeholder="Username">
                     <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
                 </div>
 
@@ -22,34 +20,11 @@
                     <span class="glyphicon glyphicon-lock form-control-feedback"></span>
                 </div>
                 <div class="row">
-                    <div class="col-xs-8">
-                        <div class="checkbox icheck">
-                            <label>
-                                <input type="checkbox" name="RememberMe" value="1"> Remember Me!
-                            </label>
-                        </div>
-                    </div><!-- /.col no-pjax -->
-                    <div class="col-xs-4">
+                    <div class="col-xs-offset-2 col-xs-8">
                         <button type="submit" class="btn btn-primary btn-block btn-flat">Sign In</button>
                     </div><!-- /.col -->
                 </div>
             </form>
-
-            <div class="social-auth-links text-center">
-                <p>- OR -</p>
-                <div class="row">
-                    <a href="<?= SITE ?>Cooks">
-                        <div class="col-md-6">
-                            <a href="<?=SITE?>Kitchen" class="btn btn-success btn-block btn-flat">Kitchen Staff</a>
-                        </div>
-                    </a>
-                    <a href="<?= SITE ?>Cooks">
-                        <div class="col-md-6">
-                            <a href="<?=SITE?>Tables" class="btn btn-success btn-block btn-flat">Table Selection</a>
-                        </div>
-                    </a>
-                </div>
-            </div>
 
             <div class="social-auth-links text-center">
                 <p>- OR -</p>
@@ -59,11 +34,12 @@
                         'app_id' => FACEBOOK_APP_ID, // Replace {app-id} with your app id
                         'app_secret' => FACEBOOK_APP_SECRET,
                         'default_graph_version' => 'v2.2',
-                    ]))->getRedirectLoginHelper()->getLoginUrl('https://stats.coach/Facebook/', [
+                    ]))->getRedirectLoginHelper()->getLoginUrl(SITE . 'Facebook/', [
                         'public_profile', 'user_friends', 'email',
                         'user_about_me', 'user_birthday',
                         'user_education_history', 'user_hometown',
-                        'user_location', 'user_photos', 'user_friends']); } ?>'>
+                        'user_location', 'user_photos', 'user_friends']);
+                } ?>'>
                     <i class="fa fa-facebook"></i> Sign in using Facebook</a>
 
                 <a href="<?php

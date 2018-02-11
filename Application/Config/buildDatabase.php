@@ -12,11 +12,10 @@ try {
     $sql = <<<END
 CREATE TABLE carbon_users
 (
-	user_id VARCHAR(225) NOT NULL
-		PRIMARY KEY,
+	user_id VARCHAR(225) NOT NULL 
+	PRIMARY KEY,
 	user_type VARCHAR(20) NOT NULL,
-	user_sport VARCHAR(20) DEFAULT 'Golf' NOT NULL COMMENT 'This is used to start the model
-	',
+	user_sport VARCHAR(20) NULL,
 	user_session_id VARCHAR(225) NULL,
 	user_facebook_id VARCHAR(225) NULL,
 	user_username VARCHAR(25) NOT NULL,

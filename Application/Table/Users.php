@@ -32,7 +32,7 @@ class Users extends Entities implements iTable
     /**
      * @param array $array
      * @return bool
-     * @throws PublicAlert
+     * @throws PublicAlert d
      */
     public static function Post(array $array): bool      // object and id will be null
     {
@@ -43,7 +43,7 @@ class Users extends Entities implements iTable
         $stmt = Database::database()->prepare($sql);
 
         $stmt->bindValue(':user_id', $key);
-        $stmt->bindValue(':user_type', $array['type'] ?? "Athlete");
+        $stmt->bindValue(':user_type', $array['type'] ?? '');
         $stmt->bindValue(':user_session_id', session_id());
         $stmt->bindValue(':user_facebook_id', $array['facebook_id'] ?? null);
         $stmt->bindValue(':user_username', $array['username']);
@@ -105,16 +105,24 @@ class Users extends Entities implements iTable
         return true;
     }
 
+    /**
+     * @param array $user
+     * @param string $id
+     * @return bool
+     * @throws PublicAlert
+     */
     public static function All(array &$user, string $id): bool
     {
-        $user = static::fetch('SELECT * FROM carbon_users LEFT JOIN carbon_tag ON entity_id = user.user_id WHERE user.user_id = ?', $id);
-        if (!\is_array($user)) {
-            throw new PublicAlert('Could not find user  ' . $id, 'danger');
+        $user = static::fetch('SELECT * FROM carbon_users LEFT JOIN carbon_tag ON entity_id = carbon_users.user_id WHERE carbon_users.user_id = ?', $id);
+
+        if (empty($user)) {
+            $_SESSION['id'] = null;
+            throw new PublicAlert('Could not find user ' . $id, 'danger');
         }
 
         $user['user_profile_pic'] = (!empty($user['user_profile_pic']) ? $user['user_profile_pic'] : SITE . 'Data/Uploads/Pictures/Defaults/default_avatar.png');
-        $user['user_profile_uri'] = $user['user_profile_uri'] ?: $id;
-        $user['user_cover_photo'] = ($user['user_cover_photo'] ?? SITE . 'Public/Img/defaults/photo' . rand(1, 3) . '.png');
+        $user['user_profile_uri'] = $user['user_profile_uri'] ?? $id;
+        $user['user_cover_photo'] = $user['user_cover_photo'] ?? SITE . 'Public/Img/defaults/photo' . random_int(1, 3) . '.png';
         $user['user_first_last'] = $user['user_full_name'] = $user['user_first_name'] . ' ' . $user['user_last_name'];
         $user['user_id'] = $id;
 
@@ -123,7 +131,7 @@ class Users extends Entities implements iTable
 
     public static function user_id_from_uri(string $user_uri)
     {
-        $stmt = Database::database()->prepare('SELECT user_id FROM user WHERE user_profile_uri = ? OR user_id = ?');
+        $stmt = Database::database()->prepare('SELECT user_id FROM carbon_users WHERE user_profile_uri = ? OR user_id = ?');
         $stmt->execute([$user_uri, $user_uri]);
         return $stmt->fetch(\PDO::FETCH_COLUMN);
     }

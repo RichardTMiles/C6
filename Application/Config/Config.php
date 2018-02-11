@@ -63,7 +63,7 @@ return [
 
         'REPLY_EMAIL' => 'support@carbonphp.com',
 
-        'BOOTSTRAP' => 'Application/Route.php',     // This file is executed when the startApplication() function is called
+        'BOOTSTRAP' => 'Application/Bootstrap.php',     // This file is executed when the startApplication() function is called
 
         'HTTP' => true   // I assume that HTTP is okay by default
     ],

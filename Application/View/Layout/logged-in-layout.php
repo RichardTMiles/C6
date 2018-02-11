@@ -1,4 +1,6 @@
-<?php $my = $my ?? $this->user[$_SESSION['id']]; ?>
+<?php
+global $user;
+$my = $my ?? $user[$_SESSION['id']]; ?>
 
 <header class="main-header">
     <!-- Logo -->

@@ -11,7 +11,6 @@ $profile = (!$myAccountBool ? $user[$user_id] : $my);
 ?>
 
 <!-- Content Header (Page header) -->
-
 <section class="content-header" style="color: ghostwhite">
     <h1>
         <?= $profile['user_first_last'] ?>

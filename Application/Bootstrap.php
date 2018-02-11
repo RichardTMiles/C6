@@ -3,9 +3,27 @@
 use Carbon\Route;
 use Carbon\View;
 
-
 $url = new class extends Route
 {
+
+    /**
+     *  constructor.
+     * @param null $structure
+     * @throws \Carbon\Error\PublicAlert the only
+     * way this will throw an error is if you do
+     * not define a url using sockets.
+     */
+    public function __construct($structure = null)
+    {
+        parent::__construct($structure);
+
+        #if ($_SESSION['id']) {
+        ##View::$wrapper = SERVER_ROOT . APP_VIEW . 'Layout/logged-in-layout.php';
+        #}
+
+    }
+
+
     public function defaultRoute()  // Sockets will not execute this
     {
         View::$forceWrapper = true; // this will hard refresh the wrapper
@@ -26,7 +44,7 @@ $url = new class extends Route
 
     public function wrap()
     {
-        return function (string $file) : bool {
+        return function (string $file): bool {
             return View::content(APP_VIEW . $file);
         };
     }
@@ -60,15 +78,53 @@ $url = new class extends Route
             return true;
         };
     }
-
 };
 
 $url->structure($url->wrap());
 
+################################### Tables / Users
+if ((string)$url->match('Table/{number}/{page?}', function ($number, $page = null) {
+    $validate = new \Carbon\Request();
 
-#################################### CarbonPHP Doc
+    if ($validate->set($number)->int()) {
+        $_SESSION['table'] = $number;           // Our wrapper will modify because this is set
+
+        if ($validate->set($page)->word()) {
+            $page = strtolower($page);
+            if (file_exists(APP_ROOT . $view = (APP_VIEW . 'GoldTeam' . DS . $page . '.php'))) {
+                View::content($view);
+                return;
+            }
+            if (file_exists(APP_ROOT . $view = (APP_VIEW . 'GoldTeam' . DS . ucfirst($page) . '.php'))) {
+                View::content($view);
+                return;
+            }
+            if (file_exists(APP_ROOT . $view = (APP_VIEW . 'GoldTeam' . DS. 'Customer' . DS . $page . '.php'))) {
+                View::content($view);
+                return;
+            }
+            if (file_exists(APP_ROOT . $view = (APP_VIEW . 'GoldTeam' . DS. 'Customer' . DS . ucfirst($page) . '.php'))) {
+                View::content($view);
+                return;
+            }
+        }
+        View::content(APP_VIEW . 'GoldTeam/Home.php');
+
+        return;
+    }
+
+    startApplication(true);
+    exit(1);
+})) {
+    return true;
+}
+
+
+#################################### Gold TEAM
 if ((string)$url->match('Home', 'GoldTeam/Home.php') ||
     (string)$url->match('About', 'GoldTeam/About.php') ||
+    (string)$url->match('Tables', 'GoldTeam/Tables.php') ||
+    (string)$url->match('Kitchen', 'GoldTeam/Kitchen.php') ||
     (string)$url->match('FAQ', 'GoldTeam/FAQ.php') ||
     (string)$url->match('Trial', 'GoldTeam/Trial.php') ||
     (string)$url->match('Features', 'GoldTeam/Features.php')
