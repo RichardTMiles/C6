@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="Google">
+  <component name="PublishConfigData">
     <serverData>
       <paths name="Google">
         <serverdata>
           <mappings>
-            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/var/www/carbonphp.com" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

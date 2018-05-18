@@ -7,11 +7,11 @@ define('SERVER_ROOT', __DIR__ . DS);  // Set our root folder for the application
 
 const APP_ROOT = SERVER_ROOT;         // I would like to change to only using app_root soon
 
-if (false === (include SERVER_ROOT . 'Data/Vendors/autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
+if (false === (include  'vendor' . DS . 'autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
     print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>' and die;     // Composer autoload
 }
 
-$app = new Carbon\Carbon('Application/Config/Config.php');
+$app = new CarbonPHP\CarbonPHP('config'.DS.'config.php');
 
 /** At one point I returned the invocation of $app to show that
  * the application will not exit on completion, but rather return
