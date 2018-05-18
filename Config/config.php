@@ -63,7 +63,7 @@ return [
 
         'REPLY_EMAIL' => 'support@carbonphp.com',
 
-        'BOOTSTRAP' => \App\C6::class,     // This file is executed when the startApplication() function is called
+        'BOOTSTRAP' => App\C6::class,     // This file is executed when the startApplication() function is called
 
         'HTTP' => true   // I assume that HTTP is okay by default
     ],

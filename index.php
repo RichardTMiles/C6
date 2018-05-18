@@ -20,7 +20,7 @@ $app = new CarbonPHP\CarbonPHP('config'.DS.'config.php');
  * is returned, the index will re-execute. This turns very bad quickly.
  */
 
-$app();
+$app( App\C6::class);
 
 
 return true;

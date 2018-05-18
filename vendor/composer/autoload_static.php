@@ -439,7 +439,16 @@ class ComposerStaticInit14430e4abe9b8bdcc1a72c3f06aec44d
             array (
                 0 => __DIR__ . '/..' . '/google/apiclient-services/src',
             ),
+            'Google_' => 
+            array (
+                0 => __DIR__ . '/..' . '/google/apiclient/src',
+            ),
         ),
+    );
+
+    public static $classMap = array (
+        'Google_Service_Exception' => __DIR__ . '/..' . '/google/apiclient/src/Google/Service/Exception.php',
+        'Google_Service_Resource' => __DIR__ . '/..' . '/google/apiclient/src/Google/Service/Resource.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
@@ -448,6 +457,7 @@ class ComposerStaticInit14430e4abe9b8bdcc1a72c3f06aec44d
             $loader->prefixLengthsPsr4 = ComposerStaticInit14430e4abe9b8bdcc1a72c3f06aec44d::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit14430e4abe9b8bdcc1a72c3f06aec44d::$prefixDirsPsr4;
             $loader->prefixesPsr0 = ComposerStaticInit14430e4abe9b8bdcc1a72c3f06aec44d::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit14430e4abe9b8bdcc1a72c3f06aec44d::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -76,45 +76,6 @@
         ]
     },
     {
-        "name": "bower-asset/jquery-backstretch",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/jquery-backstretch/jquery-backstretch.git",
-            "reference": "392632201151feb1325c8807e7ee987af6aab6a1"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/jquery-backstretch/jquery-backstretch/zipball/392632201151feb1325c8807e7ee987af6aab6a1",
-            "reference": "392632201151feb1325c8807e7ee987af6aab6a1",
-            "shasum": ""
-        },
-        "require": {
-            "bower-asset/jquery": ">=1.9.0"
-        },
-        "time": "2017-06-22T16:27:38+00:00",
-        "type": "bower-asset-library",
-        "extra": {
-            "bower-asset-main": [
-                "jquery.backstretch.js"
-            ],
-            "bower-asset-ignore": [
-                "Gruntfile.js",
-                "examples",
-                "libs",
-                "test",
-                ".gitignore",
-                "src"
-            ],
-            "branch-alias": {
-                "dev-master": "2.1.15-dev"
-            }
-        },
-        "installation-source": "source",
-        "description": "A simple jQuery plugin that allows you to add a dynamically-resized, slideshow-capable background image to any page or element."
-    },
-    {
         "name": "bower-asset/jquery-form",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
@@ -335,6 +296,67 @@
         ],
         "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
         "homepage": "https://github.com/firebase/php-jwt"
+    },
+    {
+        "name": "google/apiclient",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/google/google-api-php-client.git",
+            "reference": "ceb9e53f70bf16a39f7334f7910ac8c5180f1760"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/google/google-api-php-client/zipball/ceb9e53f70bf16a39f7334f7910ac8c5180f1760",
+            "reference": "ceb9e53f70bf16a39f7334f7910ac8c5180f1760",
+            "shasum": ""
+        },
+        "require": {
+            "firebase/php-jwt": "~2.0|~3.0|~4.0|~5.0",
+            "google/apiclient-services": "~0.13",
+            "google/auth": "^1.0",
+            "guzzlehttp/guzzle": "~5.3.1|~6.0",
+            "guzzlehttp/psr7": "^1.2",
+            "monolog/monolog": "^1.17",
+            "php": ">=5.4",
+            "phpseclib/phpseclib": "~0.3.10|~2.0"
+        },
+        "require-dev": {
+            "cache/filesystem-adapter": "^0.3.2",
+            "phpunit/phpunit": "~4.8.36",
+            "squizlabs/php_codesniffer": "~2.3",
+            "symfony/css-selector": "~2.1",
+            "symfony/dom-crawler": "~2.1"
+        },
+        "suggest": {
+            "cache/filesystem-adapter": "For caching certs and tokens (using Google_Client::setCache)"
+        },
+        "time": "2018-04-13T18:18:59+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.x-dev"
+            }
+        },
+        "installation-source": "source",
+        "autoload": {
+            "psr-0": {
+                "Google_": "src/"
+            },
+            "classmap": [
+                "src/Google/Service/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "description": "Client library for Google APIs",
+        "homepage": "http://developers.google.com/api-client-library/php",
+        "keywords": [
+            "google"
+        ]
     },
     {
         "name": "google/apiclient-services",
@@ -1520,12 +1542,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/RichardTMiles/CarbonPHP.git",
-            "reference": "25b0b735d5a51aef4918e519fd1f4603311f659a"
+            "reference": "ab69a23fb48caf0b0966246d3aee0f6f403dabbb"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/25b0b735d5a51aef4918e519fd1f4603311f659a",
-            "reference": "25b0b735d5a51aef4918e519fd1f4603311f659a",
+            "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/ab69a23fb48caf0b0966246d3aee0f6f403dabbb",
+            "reference": "ab69a23fb48caf0b0966246d3aee0f6f403dabbb",
             "shasum": ""
         },
         "require": {
@@ -1540,7 +1562,7 @@
             "bower-asset/mustache.js": "dev-master",
             "mustache/mustache": "dev-master"
         },
-        "time": "2018-05-18T14:22:39+00:00",
+        "time": "2018-05-18T14:47:20+00:00",
         "type": "library",
         "installation-source": "source",
         "autoload": {

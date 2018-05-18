@@ -5,8 +5,11 @@ include_once SERVER_ROOT . APP_VIEW . 'Layout/Head.php';
 $logged_in = $_SESSION['id'] ?? false;
 ?>
 <!-- Full Width Column -->
-<body class="skin-purple sidebar-mini sidebar-collapse" style="background-color: #ECF0F1">
+<body class="skin-purple sidebar-mini sidebar-collapse fixed" style="background-color: #ECF0F1">
+
 <div class="wrapper" style="background: rgba(0,0,0,0.7)">
+    <?php include_once SERVER_ROOT . APP_VIEW . 'Layout/Styles.php'; ?>
+
     <!-- Main Header -->
     <header class="main-header">
         <!-- Logo -->
@@ -246,10 +249,8 @@ $logged_in = $_SESSION['id'] ?? false;
         <div class="clearfix"></div>
         <!-- /.container -->
     </div>
-    <div class="clearfix"></div>
-    <?php
-    include_once SERVER_ROOT . APP_VIEW . 'Layout/Styles.php';
-    ?>
+
+
     <!-- /.content-wrapper -->
     <footer class="main-footer bg-black" style="border-top-color:black">
         <div class="container">
