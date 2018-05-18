@@ -1520,12 +1520,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/RichardTMiles/CarbonPHP.git",
-            "reference": "536fb90f2629c80f93b4ca43d9186ed67cde952a"
+            "reference": "25b0b735d5a51aef4918e519fd1f4603311f659a"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/536fb90f2629c80f93b4ca43d9186ed67cde952a",
-            "reference": "536fb90f2629c80f93b4ca43d9186ed67cde952a",
+            "url": "https://api.github.com/repos/RichardTMiles/CarbonPHP/zipball/25b0b735d5a51aef4918e519fd1f4603311f659a",
+            "reference": "25b0b735d5a51aef4918e519fd1f4603311f659a",
             "shasum": ""
         },
         "require": {
@@ -1540,7 +1540,7 @@
             "bower-asset/mustache.js": "dev-master",
             "mustache/mustache": "dev-master"
         },
-        "time": "2018-05-18T07:36:34+00:00",
+        "time": "2018-05-18T14:22:39+00:00",
         "type": "library",
         "installation-source": "source",
         "autoload": {
